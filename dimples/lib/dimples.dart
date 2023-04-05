@@ -3,6 +3,10 @@
 /// More dartdocs go here.
 library dimples;
 
-export 'src/dimples_base.dart';
+export 'src/crypto/format.dart';
+export 'src/crypto/digest.dart';
+export 'src/crypto/keys.dart';
+export 'src/crypto/aes.dart';
+export 'src/crypto/password.dart';
 
-// TODO: Export any libraries intended for clients of this package.
+export 'src/dimples_base.dart';
