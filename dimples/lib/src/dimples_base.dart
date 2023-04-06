@@ -31,6 +31,8 @@ import 'crypto/ecc.dart';
 import 'crypto/format.dart';
 import 'crypto/password.dart';
 import 'crypto/rsa.dart';
+import 'mkm/entity.dart';
+import 'mkm/meta.dart';
 
 void registerKeyFactories() {
 
@@ -65,14 +67,23 @@ void registerKeyFactories() {
   SymmetricKey.setFactory(PlainKey.kPLAIN, PlainKeyFactory());
 }
 
+void registerDocumentFactories() {
+
+  Document.setFactory('*', GeneralDocumentFactory('*'));
+  Document.setFactory(Document.kVisa, GeneralDocumentFactory(Document.kVisa));
+  Document.setFactory(Document.kProfile, GeneralDocumentFactory(Document.kProfile));
+  Document.setFactory(Document.kBulletin, GeneralDocumentFactory(Document.kBulletin));
+}
+
 void registerPlugins() {
+
   registerDataCoders();
   registerDataDigesters();
 
   registerKeyFactories();
 
-  // registerIDFactory();
-  // registerAddressFactory();
-  // registerMetaFactories();
-  // registerDocumentFactories();
+  registerIDFactory();
+  registerAddressFactory();
+  registerMetaFactories();
+  registerDocumentFactories();
 }
