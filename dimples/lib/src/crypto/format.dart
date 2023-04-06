@@ -27,6 +27,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
+import 'package:fast_base58/fast_base58.dart';
 
 /// UTF-8
 class _UTF8Coder implements StringCoder {
@@ -92,13 +93,13 @@ class _HexCoder implements DataCoder {
       data = Uint8List(string.length ~/ 2);
     }
     int? value;
-    for (int i = offset; i < string.length; i += 2) {
+    for (int i = offset; i < string.length; i += 2, offset += 1) {
       item = string.substring(i, i + 2);
       value = int.tryParse(item, radix: 16);
       if (value == null) {
         return null;
       }
-      data.add(value);
+      data[offset] = value;
     }
     return data;
   }
@@ -109,15 +110,12 @@ class _Base58Coder implements DataCoder {
 
   @override
   String encode(Uint8List data) {
-    return '';
-    // TODO: implement decode
-    throw UnimplementedError();
+    return Base58Encode(data);
   }
 
   @override
   Uint8List? decode(String string) {
-    // TODO: implement decode
-    throw UnimplementedError();
+    return Uint8List.fromList(Base58Decode(string));
   }
 }
 

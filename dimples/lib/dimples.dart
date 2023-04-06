@@ -8,5 +8,7 @@ export 'src/crypto/digest.dart';
 export 'src/crypto/keys.dart';
 export 'src/crypto/aes.dart';
 export 'src/crypto/password.dart';
+export 'src/crypto/rsa.dart';
+export 'src/crypto/ecc.dart';
 
 export 'src/dimples_base.dart';

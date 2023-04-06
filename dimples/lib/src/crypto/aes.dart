@@ -39,8 +39,8 @@ import 'keys.dart';
 ///          data     : "{BASE64_ENCODE}}" // password data
 ///          iv       : "{BASE64_ENCODE}", // initialization vector
 ///      }
-class AESKey extends BaseSymmetricKey {
-  AESKey(super.dict);
+class _AESKey extends BaseSymmetricKey {
+  _AESKey(super.dict);
 
   // static final String AES_CBC_PKCS7 = "AES/CBC/PKCS7Padding";
 
@@ -124,8 +124,7 @@ class AESKey extends BaseSymmetricKey {
     Key key = Key.fromBase64(_key());
     IV iv = IV.fromBase64(_iv());
     Encrypter cipher = Encrypter(AES(key, mode: AESMode.cbc));
-    Encrypted encrypted = Encrypted(ciphertext);
-    List<int> result = cipher.decryptBytes(encrypted, iv: iv);
+    List<int> result = cipher.decryptBytes(Encrypted(ciphertext), iv: iv);
     return Uint8List.fromList(result);
   }
 }
@@ -144,11 +143,11 @@ class AESKeyFactory implements SymmetricKeyFactory {
   @override
   SymmetricKey generateSymmetricKey() {
     Map key = {'algorithm': SymmetricKey.kAES};
-    return AESKey(key);
+    return _AESKey(key);
   }
 
   @override
   SymmetricKey? parseSymmetricKey(Map key) {
-    return AESKey(key);
+    return _AESKey(key);
   }
 }
