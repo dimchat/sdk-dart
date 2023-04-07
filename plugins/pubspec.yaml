@@ -1,4 +1,4 @@
-name: dimples
+name: dim_plugins
 description: Decentralized Instant Messaging Plugins
 version: 0.1.0-dev.1
 homepage: https://github.com/dimchat/sdk-dart

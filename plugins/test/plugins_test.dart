@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:dim_plugins/dim_plugins.dart';
 import 'package:dimp/dimp.dart';
-import 'package:dimples/dimples.dart';
 import 'package:test/test.dart';
 
 void debugAssert(bool cond, String msg) {

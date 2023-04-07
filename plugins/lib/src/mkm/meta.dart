@@ -31,8 +31,8 @@
 import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
-import 'package:dimples/src/mkm/btc.dart';
 
+import 'btc.dart';
 import 'eth.dart';
 
 

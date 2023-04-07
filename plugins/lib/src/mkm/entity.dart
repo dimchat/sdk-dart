@@ -29,10 +29,10 @@
  * ==============================================================================
  */
 import 'package:dimp/dimp.dart';
-import 'package:dimples/src/mkm/btc.dart';
-import 'package:dimples/src/mkm/eth.dart';
 
 import '../protocol/network.dart';
+import 'btc.dart';
+import 'eth.dart';
 
 class _EntityID extends Identifier {
   _EntityID(super.string,

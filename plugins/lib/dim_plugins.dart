@@ -1,7 +1,7 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library dimples;
+library dim_plugins;
 
 export 'src/crypto/format.dart';
 export 'src/crypto/digest.dart';
