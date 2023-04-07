@@ -10,7 +10,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  dimp: ^0.1.0-dev.1
+  dimp: ^0.1.0-dev.2
   fast_base58: ^0.2.1
   encrypt: ^5.0.1
   basic_utils: ^5.5.3

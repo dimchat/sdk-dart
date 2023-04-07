@@ -77,7 +77,7 @@ void testEncode() {
 void testPassword() {
   debugLog('======== testPassword ========');
 
-  String text = 'Hello world!';
+  // String text = 'Hello world!';
   String password = '12345';
 
   SymmetricKey key1 = Password.generate(password);
@@ -228,6 +228,7 @@ void testECC() {
 
   sKey = _checkECCKeys('5ae4c458c584ab3b3c8b14c7462f295ed6c22d4d376ae625e9d0a93145c3345c',
       '04a34ba8e23e8abc035e238fb70920289d69e130c7779cf432005f0bfc9482282af496e9ae92ad3f7ff68932855d1d6d5bc30eb59dc0a6c579fa134c830ce14ce3');
+  debugLog('private key: ${sKey.dictionary}');
 
   pKey = _getECCPublicKey('-----BEGIN PUBLIC KEY-----\n'
       'MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEnPfF4seF4dE1qi3a70D2c+vwijAOTU+L\n'

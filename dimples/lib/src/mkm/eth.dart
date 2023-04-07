@@ -109,7 +109,7 @@ class _ETH {
     int ch;
     for (int i = 0; i < 40; ++i) {
       ch = hex.codeUnitAt(i);
-      if (ch > _9) {
+      if (ch > _c9) {
         // check for each 4 bits in the hash table
         // if the first bit is '1',
         //     change the character to uppercase
@@ -124,19 +124,19 @@ class _ETH {
     if (address.length != 42) {
       return false;
     }
-    if (address.codeUnitAt(0) != _0 || address.codeUnitAt(1) != _x) {
+    if (address.codeUnitAt(0) != _c0 || address.codeUnitAt(1) != _cx) {
       return false;
     }
     int ch;
     for (int i = 2; i < 42; ++i) {
       ch = address.codeUnitAt(i);
-      if (ch >= _0 && ch <= _9) {
+      if (ch >= _c0 && ch <= _c9) {
         continue;
       }
-      if (ch >= _A && ch <= _Z) {
+      if (ch >= _cA && ch <= _cZ) {
         continue;
       }
-      if (ch >= _a && ch <= _z) {
+      if (ch >= _ca && ch <= _cz) {
         continue;
       }
       // unexpected character
@@ -145,11 +145,11 @@ class _ETH {
     return true;
   }
 
-  static final int _0 = '0'.codeUnitAt(0);
-  static final int _9 = '9'.codeUnitAt(0);
-  static final int _A = 'A'.codeUnitAt(0);
-  static final int _Z = 'Z'.codeUnitAt(0);
-  static final int _a = 'a'.codeUnitAt(0);
-  static final int _x = 'x'.codeUnitAt(0);
-  static final int _z = 'z'.codeUnitAt(0);
+  static final int _c0 = '0'.codeUnitAt(0);
+  static final int _c9 = '9'.codeUnitAt(0);
+  static final int _cA = 'A'.codeUnitAt(0);
+  static final int _cZ = 'Z'.codeUnitAt(0);
+  static final int _ca = 'a'.codeUnitAt(0);
+  static final int _cx = 'x'.codeUnitAt(0);
+  static final int _cz = 'z'.codeUnitAt(0);
 }
