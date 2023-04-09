@@ -136,14 +136,14 @@ abstract class Facebook extends Barrack {
   ///  Get all local users (for decrypting received message)
   ///
   /// @return users with private key
-  List<User> getLocalUsers();
+  List<User> get localUsers;
 
   ///  Select local user for receiver
   ///
   /// @param receiver - user/group ID
   /// @return local user
   User? selectLocalUser(ID receiver) {
-    List<User> users = getLocalUsers();
+    List<User> users = localUsers;
     if (users.isEmpty) {
       assert(false, 'local users should not be empty');
       return null;
