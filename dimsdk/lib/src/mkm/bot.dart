@@ -37,8 +37,8 @@ class Bot extends BaseUser {
   ///  Get provider ID
   ///
   /// @return ICP ID, bot group
-  ID? get provider {
-    Document? doc = getDocument('*');
+  Future<ID?> get provider async {
+    Document? doc = await getDocument('*');
     if (doc == null) {
       return null;
     }

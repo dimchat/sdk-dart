@@ -65,19 +65,19 @@ abstract class Facebook extends Barrack {
   /// @param meta - entity meta
   /// @param identifier - entity ID
   /// @return true on success
-  bool saveMeta(Meta meta, ID identifier);
+  Future<bool> saveMeta(Meta meta, ID identifier);
 
   ///  Save entity document with ID (must verify first)
   ///
   /// @param doc - entity document
   /// @return true on success
-  bool saveDocument(Document doc);
+  Future<bool> saveDocument(Document doc);
 
   ///  Document checking
   ///
   /// @param doc - entity document
   /// @return true on accepted
-  bool checkDocument(Document doc) {
+  Future<bool> checkDocument(Document doc) async {
     ID identifier = doc.identifier;
     // NOTICE: if this is a bulletin document for group,
     //             verify it with the group owner's meta.key
@@ -85,30 +85,28 @@ abstract class Facebook extends Barrack {
     //             verify it with the user's meta.key
     Meta? meta;
     if (identifier.isGroup) {
-      ID? owner = getOwner(identifier);
+      ID? owner = await getOwner(identifier);
       if (owner != null) {
         // check by owner's meta.key
-        meta = getMeta(owner);
+        meta = await getMeta(owner);
       } else if (identifier.type == EntityType.kGroup) {
         // NOTICE: if this is a polylogue document,
         //             verify it with the founder's meta.key
         //             (which equals to the group's meta.key)
-        meta = getMeta(identifier);
+        meta = await getMeta(identifier);
       } else {
         // FIXME: owner not found for this group
         return false;
       }
     } else {
-      meta = getMeta(identifier);
+      meta = await getMeta(identifier);
     }
     return meta != null && doc.verify(meta.key);
   }
 
   // protected
   User? createUser(ID identifier) {
-    // make sure visa key exists before calling this
-    assert(identifier.isBroadcast || getPublicKeyForEncryption(identifier) != null,
-    'visa key not found for user: $identifier');
+    // TODO: make sure visa key exists before calling this
     int network = identifier.type;
     // check user type
     if (network == EntityType.kStation) {
@@ -121,9 +119,7 @@ abstract class Facebook extends Barrack {
   }
   // protected
   Group? createGroup(ID identifier) {
-    // make sure visa key exists before calling this
-    assert(identifier.isBroadcast || getMeta(identifier) != null,
-    'meta not found for group: $identifier');
+    // TODO: make sure visa key exists before calling this
     int network = identifier.type;
     // check group type
     if (network == EntityType.kISP) {
@@ -136,14 +132,14 @@ abstract class Facebook extends Barrack {
   ///  Get all local users (for decrypting received message)
   ///
   /// @return users with private key
-  List<User> get localUsers;
+  Future<List<User>> get localUsers;
 
   ///  Select local user for receiver
   ///
   /// @param receiver - user/group ID
   /// @return local user
-  User? selectLocalUser(ID receiver) {
-    List<User> users = localUsers;
+  Future<User?> selectLocalUser(ID receiver) async {
+    List<User> users = await localUsers;
     if (users.isEmpty) {
       assert(false, 'local users should not be empty');
       return null;
@@ -170,7 +166,7 @@ abstract class Facebook extends Barrack {
       assert(false, "group not ready: $receiver");
       return null;
     }
-    List<ID> members = grp.members;
+    List<ID> members = await grp.members;
     assert(members.isNotEmpty, "members not found: $receiver");
     for (User item in users) {
       if (members.contains(item.identifier)) {

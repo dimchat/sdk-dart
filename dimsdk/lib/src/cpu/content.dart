@@ -41,7 +41,7 @@ abstract class ContentProcessor {
   /// @param content - content received
   /// @param rMsg    - reliable message
   /// @return {Content} response to sender
-  List<Content> processContent(Content content, ReliableMessage rMsg);
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg);
 
 }
 
@@ -89,7 +89,7 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   BaseContentProcessor(super.facebook, super.messenger);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     String text = 'Content (type: ${content.type}) not support yet!';
     return respondText(text, group: content.group);
   }
@@ -111,7 +111,7 @@ class BaseCommandProcessor extends BaseContentProcessor {
   BaseCommandProcessor(super.facebook, super.messenger);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is Command, 'command error: $content');
     Command command = content as Command;
     String text = 'Command (name: ${command.cmd}) not support yet!';

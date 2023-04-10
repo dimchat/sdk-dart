@@ -40,14 +40,14 @@ abstract class CipherKeyDelegate {
   /// @param receiver - to where (contact or user/group ID)
   /// @param generate - generate when key not exists
   /// @return cipher key
-  SymmetricKey? getCipherKey(ID sender, ID receiver, {bool generate = false});
+  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver, {bool generate = false});
 
   ///  Cache cipher key for reusing, with the direction (from 'sender' to 'receiver')
   ///
   /// @param sender - from where (user or contact ID)
   /// @param receiver - to where (contact or user/group ID)
   /// @param key - cipher key
-  void cacheCipherKey(ID sender, ID receiver, SymmetricKey? key);
+  Future<void> cacheCipherKey(ID sender, ID receiver, SymmetricKey? key);
 
 }
 
@@ -68,90 +68,97 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate, Packe
   //
 
   @override
-  SymmetricKey? getCipherKey(ID sender, ID receiver, {bool generate = false})
-  => cipherKeyDelegate?.getCipherKey(sender, receiver, generate: generate);
+  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver, {bool generate = false}) async
+  => await cipherKeyDelegate?.getCipherKey(sender, receiver, generate: generate);
 
   @override
-  void cacheCipherKey(ID sender, ID receiver, SymmetricKey? key)
-  => cipherKeyDelegate!.cacheCipherKey(sender, receiver, key);
+  Future<void> cacheCipherKey(ID sender, ID receiver, SymmetricKey? key) async
+  => await cipherKeyDelegate!.cacheCipherKey(sender, receiver, key);
 
   //
   //  Interfaces for Packing Message
   //
 
   @override
-  ID? getOvertGroup(Content content) => packer?.getOvertGroup(content);
+  Future<ID?> getOvertGroup(Content content) async
+  => await packer?.getOvertGroup(content);
 
   @override
-  SecureMessage encryptMessage(InstantMessage iMsg) => packer!.encryptMessage(iMsg);
+  Future<SecureMessage> encryptMessage(InstantMessage iMsg) async
+  => await packer!.encryptMessage(iMsg);
 
   @override
-  ReliableMessage signMessage(SecureMessage sMsg) => packer!.signMessage(sMsg);
+  Future<ReliableMessage> signMessage(SecureMessage sMsg) async
+  => await packer!.signMessage(sMsg);
 
   @override
-  Uint8List serializeMessage(ReliableMessage rMsg) => packer!.serializeMessage(rMsg);
+  Future<Uint8List> serializeMessage(ReliableMessage rMsg) async
+  => await packer!.serializeMessage(rMsg);
 
   @override
-  ReliableMessage? deserializeMessage(Uint8List data) => packer?.deserializeMessage(data);
+  Future<ReliableMessage?> deserializeMessage(Uint8List data) async
+  => await packer?.deserializeMessage(data);
 
   @override
-  SecureMessage? verifyMessage(ReliableMessage rMsg) => packer?.verifyMessage(rMsg);
+  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async
+  => await packer?.verifyMessage(rMsg);
 
   @override
-  InstantMessage? decryptMessage(SecureMessage sMsg) => packer?.decryptMessage(sMsg);
+  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async
+  => await packer?.decryptMessage(sMsg);
 
   //
   //  Interfaces for Processing Message
   //
 
   @override
-  List<Uint8List> processPackage(Uint8List data)
-  => processor!.processPackage(data);
+  Future<List<Uint8List>> processPackage(Uint8List data) async
+  => await processor!.processPackage(data);
 
   @override
-  List<ReliableMessage> processReliableMessage(ReliableMessage rMsg)
-  => processor!.processReliableMessage(rMsg);
+  Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg) async
+  => await processor!.processReliableMessage(rMsg);
 
   @override
-  List<SecureMessage> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg)
-  => processor!.processSecureMessage(sMsg, rMsg);
+  Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) async
+  => await processor!.processSecureMessage(sMsg, rMsg);
 
   @override
-  List<InstantMessage> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg)
-  => processor!.processInstantMessage(iMsg, rMsg);
+  Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) async
+  => await processor!.processInstantMessage(iMsg, rMsg);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg)
-  => processor!.processContent(content, rMsg);
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async
+  => await processor!.processContent(content, rMsg);
 
   //-------- SecureMessageDelegate
 
   @override
-  SymmetricKey? deserializeKey(Uint8List? key, ID sender, ID receiver, SecureMessage sMsg) {
+  Future<SymmetricKey?> deserializeKey(Uint8List? key, ID sender, ID receiver, SecureMessage sMsg) async {
     if (key == null) {
       // get key from cache
-      return getCipherKey(sender, receiver, generate: false);
+      return await getCipherKey(sender, receiver, generate: false);
     } else {
-      return super.deserializeKey(key, sender, receiver, sMsg);
+      return await super.deserializeKey(key, sender, receiver, sMsg);
     }
   }
 
   @override
-  Content? deserializeContent(Uint8List data, SymmetricKey password, SecureMessage sMsg) {
-    Content? content = super.deserializeContent(data, password, sMsg);
+  Future<Content?> deserializeContent(Uint8List data, SymmetricKey password, SecureMessage sMsg) async {
+    Content? content = await super.deserializeContent(data, password, sMsg);
     assert(content != null, 'content error: ${data.length}');
 
     if (!isBroadcastMessage(sMsg) && content != null) {
       // check and cache key for reuse
-      ID? group = getOvertGroup(content);
+      ID? group = await getOvertGroup(content);
       if (group == null) {
         // personal message or (group) command
         // cache key with direction (sender -> receiver)
-        cacheCipherKey(sMsg.sender, sMsg.receiver, password);
+        await cacheCipherKey(sMsg.sender, sMsg.receiver, password);
       } else {
         // group message (excludes group command)
         // cache the key with direction (sender -> group)
-        cacheCipherKey(sMsg.sender, group, password);
+        await cacheCipherKey(sMsg.sender, group, password);
       }
     }
 

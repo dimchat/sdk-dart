@@ -40,7 +40,7 @@ class MessagePacker extends TwinsHelper implements Packer {
   MessagePacker(super.facebook, super.messenger);
 
   @override
-  ID? getOvertGroup(Content content) {
+  Future<ID?> getOvertGroup(Content content) async {
     ID? group = content.group;
     if (group == null) {
       return null;
@@ -62,7 +62,7 @@ class MessagePacker extends TwinsHelper implements Packer {
   //
 
   @override
-  SecureMessage encryptMessage(InstantMessage iMsg) {
+  Future<SecureMessage> encryptMessage(InstantMessage iMsg) async {
     Messenger transceiver = messenger!;
     // check message delegate
     iMsg.delegate ??= transceiver;
@@ -86,15 +86,15 @@ class MessagePacker extends TwinsHelper implements Packer {
     //         share the symmetric key (group msg key) with other members.
 
     // 1. get symmetric key
-    ID? group = transceiver.getOvertGroup(iMsg.content);
+    ID? group = await transceiver.getOvertGroup(iMsg.content);
     SymmetricKey? password;
     if (group == null) {
       // personal message or (group) command
-      password = transceiver.getCipherKey(sender, receiver, generate: true);
+      password = await transceiver.getCipherKey(sender, receiver, generate: true);
       assert(password != null, 'failed to get msg key: $sender -> $receiver');
     } else {
       // group message (excludes group command)
-      password = transceiver.getCipherKey(sender, group, generate: true);
+      password = await transceiver.getCipherKey(sender, group, generate: true);
       assert(password != null, 'failed to get group msg key: $sender -> $group');
     }
 
@@ -108,12 +108,12 @@ class MessagePacker extends TwinsHelper implements Packer {
       // before encrypting message, so we can trust that the group can be
       // created and its members MUST exist here.
       assert(grp != null, 'group not ready: $receiver');
-      List<ID> members = grp!.members;
+      List<ID> members = await grp!.members;
       assert(members.isNotEmpty, 'group members not found: $receiver');
-      sMsg = iMsg.encrypt(password!, members: members);
+      sMsg = await iMsg.encrypt(password!, members: members);
     } else {
       // personal message (or split group message)
-      sMsg = iMsg.encrypt(password!);
+      sMsg = await iMsg.encrypt(password!);
     }
     if (sMsg == null) {
       // public key for encryption not found
@@ -139,15 +139,15 @@ class MessagePacker extends TwinsHelper implements Packer {
   }
 
   @override
-  ReliableMessage signMessage(SecureMessage sMsg) {
+  Future<ReliableMessage> signMessage(SecureMessage sMsg) async {
     // check message delegate
     sMsg.delegate ??= messenger;
     // sign 'data' by sender
-    return sMsg.sign();
+    return await sMsg.sign();
   }
 
   @override
-  Uint8List serializeMessage(ReliableMessage rMsg)
+  Future<Uint8List> serializeMessage(ReliableMessage rMsg) async
   => UTF8.encode(JSON.encode(rMsg));
 
   //
@@ -155,7 +155,7 @@ class MessagePacker extends TwinsHelper implements Packer {
   //
 
   @override
-  ReliableMessage? deserializeMessage(Uint8List data) {
+  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
     String? json = UTF8.decode(data);
     if (json == null) {
       assert(false, 'message data error: ${data.length}');
@@ -179,19 +179,19 @@ class MessagePacker extends TwinsHelper implements Packer {
   }
 
   @override
-  SecureMessage? verifyMessage(ReliableMessage rMsg) {
+  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
     // TODO: make sure meta exists before verifying message
     Facebook barrack = facebook!;
     ID sender = rMsg.sender;
     // [Meta Protocol]
     Meta? meta = rMsg.meta;
     if (meta != null) {
-      barrack.saveMeta(meta, sender);
+      await barrack.saveMeta(meta, sender);
     }
     // [Visa Protocol]
     Visa? visa = rMsg.visa;
     if (visa != null) {
-      barrack.saveDocument(visa);
+      await barrack.saveDocument(visa);
     }
     // check message delegate
     rMsg.delegate ??= messenger;
@@ -201,17 +201,17 @@ class MessagePacker extends TwinsHelper implements Packer {
     //        (do in by application)
     //
 
-    assert(rMsg.signature.isNotEmpty, 'message signature cannot be empty');
+    assert((await rMsg.signature).isNotEmpty, 'message signature cannot be empty');
     // verify 'data' with 'signature'
     return rMsg.verify();
   }
 
   @override
-  InstantMessage? decryptMessage(SecureMessage sMsg) {
+  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async {
     // TODO: make sure private key (decrypt key) exists before decrypting message
     Facebook barrack = facebook!;
     ID receiver = sMsg.receiver;
-    User? user = barrack.selectLocalUser(receiver);
+    User? user = await barrack.selectLocalUser(receiver);
     SecureMessage? trimmed;
     if (user == null) {
       // local users not match
@@ -234,7 +234,7 @@ class MessagePacker extends TwinsHelper implements Packer {
     //          if the receiver is a group ID, split it first
     //
 
-    assert(sMsg.data.isNotEmpty, 'message data cannot be empty');
+    assert((await sMsg.data).isNotEmpty, 'message data cannot be empty');
     // decrypt 'data' to 'content'
     return sMsg.decrypt();
 

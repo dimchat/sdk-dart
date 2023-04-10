@@ -38,22 +38,22 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   MetaCommandProcessor(super.facebook, super.messenger);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is MetaCommand, 'meta command error: $content');
     MetaCommand command = content as MetaCommand;
     Meta? meta = command.meta;
     ID identifier = command.identifier;
     if (meta == null) {
       // query meta for ID
-      return _getMeta(identifier);
+      return await _getMeta(identifier);
     } else {
       // received a meta for ID
-      return _putMeta(identifier, meta);
+      return await _putMeta(identifier, meta);
     }
   }
 
-  List<Content> _getMeta(ID identifier) {
-    Meta? meta = facebook?.getMeta(identifier);
+  Future<List<Content>> _getMeta(ID identifier) async {
+    Meta? meta = await facebook?.getMeta(identifier);
     if (meta == null) {
       String text = 'Sorry, meta not found for ID: $identifier';
       return respondText(text);
@@ -62,8 +62,8 @@ class MetaCommandProcessor extends BaseCommandProcessor {
     }
   }
 
-  List<Content> _putMeta(ID identifier, Meta meta) {
-    if (facebook!.saveMeta(meta, identifier)) {
+  Future<List<Content>> _putMeta(ID identifier, Meta meta) async {
+    if (await facebook!.saveMeta(meta, identifier)) {
       String text = 'Meta received: $identifier';
       return respondText(text);
     } else {
@@ -79,7 +79,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
   DocumentCommandProcessor(super.facebook, super.messenger);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is DocumentCommand, 'document command error: $content');
     DocumentCommand command = content as DocumentCommand;
     ID identifier = command.identifier;
@@ -88,36 +88,38 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
       // query entity document for ID
       String? docType = command.getString('doc_type');
       docType ??= '*';  // ANY
-      return _getDoc(identifier, docType);
+      return await _getDoc(identifier, docType);
     } else {
       // received a meta for ID
-      return _putDoc(identifier, command.meta, doc);
+      return await _putDoc(identifier, command.meta, doc);
     }
   }
 
-  List<Content> _getDoc(ID identifier, String docType) {
+  Future<List<Content>> _getDoc(ID identifier, String docType) async {
     Facebook barrack = facebook!;
-    Document? doc = barrack.getDocument(identifier, docType);
+    Document? doc = await barrack.getDocument(identifier, docType);
     if (doc == null) {
       String text = 'Sorry, document not found for ID: $identifier';
       return respondText(text);
     } else {
-      Meta? meta = barrack.getMeta(identifier);
+      Meta? meta = await barrack.getMeta(identifier);
       return [DocumentCommand.response(identifier, meta, doc)];
     }
   }
 
-  List<Content> _putDoc(ID identifier, Meta? meta, Document doc) {
+  Future<List<Content>> _putDoc(ID identifier, Meta? meta, Document doc) async {
     Facebook barrack = facebook!;
     if (meta != null) {
       // received a meta for ID
-      if (!barrack.saveMeta(meta, identifier)) {
+      if (await barrack.saveMeta(meta, identifier)) {
+        // meta saved
+      } else {
         String text = 'Meta not accepted: $identifier';
         return respondText(text);
       }
     }
     // receive a document for ID
-    if (barrack.saveDocument(doc)) {
+    if (await barrack.saveDocument(doc)) {
       String text = 'Document received: $identifier';
       return respondText(text);
     } else {

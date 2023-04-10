@@ -66,9 +66,9 @@ class Station implements User {
   ///  Station IP
   ///
   /// @return IP address
-  String? get host {
+  Future<String?> get host async {
     if (_host == null) {
-      Document? doc = getDocument('*');
+      Document? doc = await getDocument('*');
       if (doc != null) {
         _host = doc.getProperty('host');
       }
@@ -79,9 +79,9 @@ class Station implements User {
   ///  Station Port
   ///
   /// @return port number
-  int? get port {
+  Future<int?> get port async {
     if (_port == null) {
-      Document? doc = getDocument('*');
+      Document? doc = await getDocument('*');
       if (doc != null) {
         _port = doc.getProperty('port');
       }
@@ -92,8 +92,8 @@ class Station implements User {
   ///  Get provider ID
   ///
   /// @return ISP ID, station group
-  ID? get provider {
-    Document? doc = getDocument('*');
+  Future<ID?> get provider async {
+    Document? doc = await getDocument('*');
     if (doc == null) {
       return null;
     }
@@ -106,7 +106,7 @@ class Station implements User {
         // same object
         return true;
       }
-      // check with ID
+      // TODO: check (host:port) in future
       return other.port == port && other.host == host;
     }
     return _user == other;
@@ -127,7 +127,8 @@ class Station implements User {
   String toString() {
     Type clazz = runtimeType;
     int network = identifier.address.type;
-    return '<$clazz id="$identifier" network=$network host="$host" port=$port />';
+    // TODO: check (host:port)
+    return '<$clazz id="$identifier" network=$network host="$_host" port=$_port />';
   }
 
   //-------- Entity
@@ -151,36 +152,39 @@ class Station implements User {
   }
 
   @override
-  Meta get meta => _user!.meta;
+  Future<Meta> get meta async => await _user!.meta;
 
   @override
-  Document? getDocument(String? docType) => _user?.getDocument(docType);
+  Future<Document?> getDocument(String? docType) async
+  => await _user?.getDocument(docType);
 
   //-------- User
 
   @override
-  Visa? get visa => _user?.visa;
+  Future<Visa?> get visa async => await _user?.visa;
 
   @override
-  List<ID> get contacts => _user!.contacts;
+  Future<List<ID>> get contacts async => await _user!.contacts;
 
   @override
-  bool verify(Uint8List data, Uint8List signature)
-  => _user!.verify(data, signature);
+  Future<bool> verify(Uint8List data, Uint8List signature) async
+  => await _user!.verify(data, signature);
 
   @override
-  Uint8List encrypt(Uint8List plaintext) => _user!.encrypt(plaintext);
+  Future<Uint8List> encrypt(Uint8List plaintext) async
+  => await _user!.encrypt(plaintext);
 
   @override
-  Uint8List sign(Uint8List data) => _user!.sign(data);
+  Future<Uint8List> sign(Uint8List data) async => await _user!.sign(data);
 
   @override
-  Uint8List? decrypt(Uint8List ciphertext) => _user?.decrypt(ciphertext);
+  Future<Uint8List?> decrypt(Uint8List ciphertext) async
+  => await _user?.decrypt(ciphertext);
 
   @override
-  Visa? signVisa(Visa doc) => _user?.signVisa(doc);
+  Future<Visa?> signVisa(Visa doc) async => await _user?.signVisa(doc);
 
   @override
-  bool verifyVisa(Visa doc) => _user!.verifyVisa(doc);
+  Future<bool> verifyVisa(Visa doc) async => await _user!.verifyVisa(doc);
 
 }

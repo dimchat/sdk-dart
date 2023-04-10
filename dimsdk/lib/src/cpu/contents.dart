@@ -38,7 +38,7 @@ class ForwardContentProcessor extends BaseContentProcessor {
   ForwardContentProcessor(super.facebook, super.messenger);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is ForwardContent, 'forward command error: $content');
     List<ReliableMessage> secrets = (content as ForwardContent).secrets;
     // call messenger to process it
@@ -47,7 +47,7 @@ class ForwardContentProcessor extends BaseContentProcessor {
     Content res;
     List<ReliableMessage> results;
     for (ReliableMessage item in secrets) {
-      results = transceiver.processReliableMessage(item);
+      results = await transceiver.processReliableMessage(item);
       /*if (results.isEmpty) {
         res = ForwardContent.create(secrets: []);
       } else */if (results.length == 1) {
@@ -67,7 +67,7 @@ class ArrayContentProcessor extends BaseContentProcessor {
   ArrayContentProcessor(super.facebook, super.messenger);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is ArrayContent, 'array command error: $content');
     List<Content> array = (content as ArrayContent).contents;
     // call messenger to process it
@@ -76,7 +76,7 @@ class ArrayContentProcessor extends BaseContentProcessor {
     Content res;
     List<Content> results;
     for (Content item in array) {
-      results = transceiver.processContent(item, rMsg);
+      results = await transceiver.processContent(item, rMsg);
       /*if (results.isEmpty) {
         res = ArrayContent.create([]);
       } else */if (results.length == 1) {

@@ -44,7 +44,8 @@ abstract class CustomizedContentHandler {
   /// @param content - customized content
   /// @param rMsg    - network message
   /// @return responses
-  List<Content> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg);
+  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content,
+      ReliableMessage rMsg);
 
 }
 
@@ -55,7 +56,7 @@ class CustomizedContentProcessor extends BaseContentProcessor implements Customi
   CustomizedContentProcessor(super.facebook, super.messenger);
 
   @override
-  List<Content> processContent(Content content, ReliableMessage rMsg) {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is CustomizedContent, 'customized content error: $content');
     CustomizedContent customized = content as CustomizedContent;
     // 1. check app id
@@ -75,7 +76,7 @@ class CustomizedContentProcessor extends BaseContentProcessor implements Customi
     // 3. do the job
     String act = customized.action;
     ID sender = rMsg.sender;
-    return handler.handleAction(act, sender, customized, rMsg);
+    return await handler.handleAction(act, sender, customized, rMsg);
   }
 
   // protected
@@ -95,7 +96,7 @@ class CustomizedContentProcessor extends BaseContentProcessor implements Customi
   }
 
   @override
-  List<Content> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) {
+  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) async {
     /// override for customized actions
     String app = content.application;
     String mod = content.module;

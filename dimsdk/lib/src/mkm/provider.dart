@@ -34,6 +34,6 @@ import 'package:dimp/dimp.dart';
 class ServiceProvider extends BaseGroup {
   ServiceProvider(super.id);
 
-  List<ID> get stations => members;
+  Future<List<ID>> get stations async => await members;
 
 }
