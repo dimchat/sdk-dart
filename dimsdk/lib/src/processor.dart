@@ -45,13 +45,13 @@ class MessageProcessor extends TwinsHelper implements Processor {
   late final ContentProcessorFactory _factory;
 
   // protected
-  ContentProcessorFactory createFactory()
-  => BaseContentProcessorFactory(facebook!, messenger!, createCreator());
+  ContentProcessorFactory createFactory() =>
+      BaseContentProcessorFactory(facebook!, messenger!, createCreator());
 
   // protected
-  ContentProcessorCreator createCreator()
-  /// override for creating customized CPUs
-  => BaseContentProcessorCreator(facebook!, messenger!);
+  ContentProcessorCreator createCreator() =>
+      /// override for creating customized CPUs
+      BaseContentProcessorCreator(facebook!, messenger!);
 
   ContentProcessor? getProcessor(Content content) {
     return _factory.getProcessor(content);

@@ -147,8 +147,8 @@ class MessagePacker extends TwinsHelper implements Packer {
   }
 
   @override
-  Future<Uint8List> serializeMessage(ReliableMessage rMsg) async
-  => UTF8.encode(JSON.encode(rMsg));
+  Future<Uint8List> serializeMessage(ReliableMessage rMsg) async =>
+      UTF8.encode(JSON.encode(rMsg));
 
   //
   //  Data -> ReliableMessage -> SecureMessage -> InstantMessage

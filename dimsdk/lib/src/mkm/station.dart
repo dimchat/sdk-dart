@@ -155,8 +155,8 @@ class Station implements User {
   Future<Meta> get meta async => await _user!.meta;
 
   @override
-  Future<Document?> getDocument(String? docType) async
-  => await _user?.getDocument(docType);
+  Future<Document?> getDocument(String? docType) async =>
+      await _user?.getDocument(docType);
 
   //-------- User
 
@@ -167,19 +167,19 @@ class Station implements User {
   Future<List<ID>> get contacts async => await _user!.contacts;
 
   @override
-  Future<bool> verify(Uint8List data, Uint8List signature) async
-  => await _user!.verify(data, signature);
+  Future<bool> verify(Uint8List data, Uint8List signature) async =>
+      await _user!.verify(data, signature);
 
   @override
-  Future<Uint8List> encrypt(Uint8List plaintext) async
-  => await _user!.encrypt(plaintext);
+  Future<Uint8List> encrypt(Uint8List plaintext) async =>
+      await _user!.encrypt(plaintext);
 
   @override
   Future<Uint8List> sign(Uint8List data) async => await _user!.sign(data);
 
   @override
-  Future<Uint8List?> decrypt(Uint8List ciphertext) async
-  => await _user?.decrypt(ciphertext);
+  Future<Uint8List?> decrypt(Uint8List ciphertext) async =>
+      await _user?.decrypt(ciphertext);
 
   @override
   Future<Visa?> signVisa(Visa doc) async => await _user?.signVisa(doc);

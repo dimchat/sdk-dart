@@ -28,32 +28,29 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:mirrors';
-
 import 'package:dimp/dimp.dart';
 
-class ContentFactoryBuilder implements ContentFactory {
-  ContentFactoryBuilder(this._class);
+typedef ContentCreator = Content? Function(Map dict);
+typedef CommandCreator = Command? Function(Map dict);
 
-  final Type _class;
+class ContentParser implements ContentFactory {
+  ContentParser(this._builder);
+  final ContentCreator _builder;
 
   @override
   Content? parseContent(Map content) {
-    ClassMirror mirror = reflectClass(_class);
-    return mirror.newInstance(Symbol.empty, [content]) as Content;
+    return _builder(content);
   }
 
 }
 
-class CommandFactoryBuilder implements CommandFactory {
-  CommandFactoryBuilder(this._class);
-
-  final Type _class;
+class CommandParser implements CommandFactory {
+  CommandParser(this._builder);
+  final CommandCreator _builder;
 
   @override
   Command? parseCommand(Map content) {
-    ClassMirror mirror = reflectClass(_class);
-    return mirror.newInstance(Symbol.empty, [content]) as Command;
+    return _builder(content);
   }
 
 }
@@ -136,23 +133,23 @@ void registerMessageFactories() {
 void registerContentFactories() {
 
   // Text
-  Content.setFactory(ContentType.kText, ContentFactoryBuilder(BaseTextContent));
+  Content.setFactory(ContentType.kText, ContentParser((dict) => BaseTextContent(dict)));
 
   // File
-  Content.setFactory(ContentType.kFile, ContentFactoryBuilder(BaseFileContent));
+  Content.setFactory(ContentType.kFile, ContentParser((dict) => BaseFileContent(dict)));
   // Image
-  Content.setFactory(ContentType.kImage, ContentFactoryBuilder(ImageFileContent));
+  Content.setFactory(ContentType.kImage, ContentParser((dict) => ImageFileContent(dict)));
   // Audio
-  Content.setFactory(ContentType.kAudio, ContentFactoryBuilder(AudioFileContent));
+  Content.setFactory(ContentType.kAudio, ContentParser((dict) => AudioFileContent(dict)));
   // Video
-  Content.setFactory(ContentType.kVideo, ContentFactoryBuilder(VideoFileContent));
+  Content.setFactory(ContentType.kVideo, ContentParser((dict) => VideoFileContent(dict)));
 
   // Web Page
-  Content.setFactory(ContentType.kPage, ContentFactoryBuilder(WebPageContent));
+  Content.setFactory(ContentType.kPage, ContentParser((dict) => WebPageContent(dict)));
 
   // Money
-  Content.setFactory(ContentType.kMoney, ContentFactoryBuilder(BaseMoneyContent));
-  Content.setFactory(ContentType.kTransfer, ContentFactoryBuilder(TransferMoneyContent));
+  Content.setFactory(ContentType.kMoney, ContentParser((dict) => BaseMoneyContent(dict)));
+  Content.setFactory(ContentType.kTransfer, ContentParser((dict) => TransferMoneyContent(dict)));
   // ...
 
   // Command
@@ -162,19 +159,19 @@ void registerContentFactories() {
   Content.setFactory(ContentType.kHistory, HistoryCommandFactory());
 
   // Content Array
-  Content.setFactory(ContentType.kArray, ContentFactoryBuilder(ListContent));
+  Content.setFactory(ContentType.kArray, ContentParser((dict) => ListContent(dict)));
 
   /*
   // Application Customized
-  Content.setFactory(ContentType.kCustomized, ContentFactoryBuilder(AppCustomizedContent));
-  Content.setFactory(ContentType.kApplication, ContentFactoryBuilder(AppCustomizedContent));
+  Content.setFactory(ContentType.kCustomized, ContentParser((dict) => AppCustomizedContent(dict)));
+  Content.setFactory(ContentType.kApplication, ContentParser((dict) => AppCustomizedContent(dict)));
    */
 
   // Top-Secret
-  Content.setFactory(ContentType.kForward, ContentFactoryBuilder(SecretContent));
+  Content.setFactory(ContentType.kForward, ContentParser((dict) => SecretContent(dict)));
 
   // unknown content type
-  Content.setFactory(0, ContentFactoryBuilder(BaseContent));
+  Content.setFactory(0, ContentParser((dict) => BaseContent(dict)));
 
 }
 
@@ -182,19 +179,19 @@ void registerContentFactories() {
 void registerCommandFactories() {
 
   // Meta Command
-  Command.setFactory(Command.kMeta, CommandFactoryBuilder(BaseMetaCommand));
+  Command.setFactory(Command.kMeta, CommandParser((dict) => BaseMetaCommand(dict)));
 
   // Document Command
-  Command.setFactory(Command.kDocument, CommandFactoryBuilder(BaseDocumentCommand));
+  Command.setFactory(Command.kDocument, CommandParser((dict) => BaseDocumentCommand(dict)));
 
   // Group Commands
   Command.setFactory('group', GroupCommandFactory());
-  Command.setFactory(GroupCommand.kInvite, CommandFactoryBuilder(InviteGroupCommand));
-  Command.setFactory(GroupCommand.kExpel,  CommandFactoryBuilder(ExpelGroupCommand));
-  Command.setFactory(GroupCommand.kJoin,   CommandFactoryBuilder(JoinGroupCommand));
-  Command.setFactory(GroupCommand.kQuit,   CommandFactoryBuilder(QuitGroupCommand));
-  Command.setFactory(GroupCommand.kQuery,  CommandFactoryBuilder(QueryGroupCommand));
-  Command.setFactory(GroupCommand.kReset,  CommandFactoryBuilder(ResetGroupCommand));
+  Command.setFactory(GroupCommand.kInvite, CommandParser((dict) => InviteGroupCommand(dict)));
+  Command.setFactory(GroupCommand.kExpel,  CommandParser((dict) => ExpelGroupCommand(dict)));
+  Command.setFactory(GroupCommand.kJoin,   CommandParser((dict) => JoinGroupCommand(dict)));
+  Command.setFactory(GroupCommand.kQuit,   CommandParser((dict) => QuitGroupCommand(dict)));
+  Command.setFactory(GroupCommand.kQuery,  CommandParser((dict) => QueryGroupCommand(dict)));
+  Command.setFactory(GroupCommand.kReset,  CommandParser((dict) => ResetGroupCommand(dict)));
 
 }
 
@@ -211,6 +208,6 @@ void registerAllFactories() {
   //
   //  Register customized factories
   //
-  Content.setFactory(ContentType.kCustomized, ContentFactoryBuilder(AppCustomizedContent));
-  Content.setFactory(ContentType.kApplication, ContentFactoryBuilder(AppCustomizedContent));
+  Content.setFactory(ContentType.kCustomized, ContentParser((dict) => AppCustomizedContent(dict)));
+  Content.setFactory(ContentType.kApplication, ContentParser((dict) => AppCustomizedContent(dict)));
 }

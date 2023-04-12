@@ -1,6 +1,6 @@
 name: dimsdk
 description: Decentralized Instant Messaging Software Development Kit.
-version: 0.1.0-dev.3
+version: 0.1.0-dev.4
 homepage: https://github.com/dimchat/sdk-dart
 repository: https://github.com/dimchat/sdk-dart
 issue_tracker: https://github.com/dimchat/sdk-dart/issues

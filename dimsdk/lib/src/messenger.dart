@@ -40,9 +40,10 @@ abstract class CipherKeyDelegate {
   /// @param receiver - to where (contact or user/group ID)
   /// @param generate - generate when key not exists
   /// @return cipher key
-  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver, {bool generate = false});
+  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver,
+      {bool generate = false});
 
-  ///  Cache cipher key for reusing, with the direction (from 'sender' to 'receiver')
+  ///  Cache cipher key for reusing, with the direction ('sender' => 'receiver')
   ///
   /// @param sender - from where (user or contact ID)
   /// @param receiver - to where (contact or user/group ID)
@@ -52,7 +53,8 @@ abstract class CipherKeyDelegate {
 }
 
 
-abstract class Messenger extends Transceiver implements CipherKeyDelegate, Packer, Processor {
+abstract class Messenger extends Transceiver implements CipherKeyDelegate,
+                                                        Packer, Processor {
 
   // protected
   CipherKeyDelegate? get cipherKeyDelegate;
@@ -68,73 +70,79 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate, Packe
   //
 
   @override
-  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver, {bool generate = false}) async
-  => await cipherKeyDelegate?.getCipherKey(sender, receiver, generate: generate);
+  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver,
+      {bool generate = false}) async =>
+      await cipherKeyDelegate?.getCipherKey(sender, receiver, generate: generate);
 
   @override
-  Future<void> cacheCipherKey(ID sender, ID receiver, SymmetricKey? key) async
-  => await cipherKeyDelegate!.cacheCipherKey(sender, receiver, key);
+  Future<void> cacheCipherKey(ID sender, ID receiver,
+      SymmetricKey? key) async =>
+      await cipherKeyDelegate!.cacheCipherKey(sender, receiver, key);
 
   //
   //  Interfaces for Packing Message
   //
 
   @override
-  Future<ID?> getOvertGroup(Content content) async
-  => await packer?.getOvertGroup(content);
+  Future<ID?> getOvertGroup(Content content) async =>
+      await packer?.getOvertGroup(content);
 
   @override
-  Future<SecureMessage> encryptMessage(InstantMessage iMsg) async
-  => await packer!.encryptMessage(iMsg);
+  Future<SecureMessage> encryptMessage(InstantMessage iMsg) async =>
+      await packer!.encryptMessage(iMsg);
 
   @override
-  Future<ReliableMessage> signMessage(SecureMessage sMsg) async
-  => await packer!.signMessage(sMsg);
+  Future<ReliableMessage> signMessage(SecureMessage sMsg) async =>
+      await packer!.signMessage(sMsg);
 
   @override
-  Future<Uint8List> serializeMessage(ReliableMessage rMsg) async
-  => await packer!.serializeMessage(rMsg);
+  Future<Uint8List> serializeMessage(ReliableMessage rMsg) async =>
+      await packer!.serializeMessage(rMsg);
 
   @override
-  Future<ReliableMessage?> deserializeMessage(Uint8List data) async
-  => await packer?.deserializeMessage(data);
+  Future<ReliableMessage?> deserializeMessage(Uint8List data) async =>
+      await packer?.deserializeMessage(data);
 
   @override
-  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async
-  => await packer?.verifyMessage(rMsg);
+  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async =>
+      await packer?.verifyMessage(rMsg);
 
   @override
-  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async
-  => await packer?.decryptMessage(sMsg);
+  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async =>
+      await packer?.decryptMessage(sMsg);
 
   //
   //  Interfaces for Processing Message
   //
 
   @override
-  Future<List<Uint8List>> processPackage(Uint8List data) async
-  => await processor!.processPackage(data);
+  Future<List<Uint8List>> processPackage(Uint8List data) async =>
+      await processor!.processPackage(data);
 
   @override
-  Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg) async
-  => await processor!.processReliableMessage(rMsg);
+  Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg) async =>
+      await processor!.processReliableMessage(rMsg);
 
   @override
-  Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) async
-  => await processor!.processSecureMessage(sMsg, rMsg);
+  Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg,
+      ReliableMessage rMsg) async =>
+      await processor!.processSecureMessage(sMsg, rMsg);
 
   @override
-  Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) async
-  => await processor!.processInstantMessage(iMsg, rMsg);
+  Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg,
+      ReliableMessage rMsg) async =>
+      await processor!.processInstantMessage(iMsg, rMsg);
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async
-  => await processor!.processContent(content, rMsg);
+  Future<List<Content>> processContent(Content content,
+      ReliableMessage rMsg) async =>
+      await processor!.processContent(content, rMsg);
 
   //-------- SecureMessageDelegate
 
   @override
-  Future<SymmetricKey?> deserializeKey(Uint8List? key, ID sender, ID receiver, SecureMessage sMsg) async {
+  Future<SymmetricKey?> deserializeKey(Uint8List? key, ID sender, ID receiver,
+      SecureMessage sMsg) async {
     if (key == null) {
       // get key from cache
       return await getCipherKey(sender, receiver, generate: false);
@@ -144,7 +152,8 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate, Packe
   }
 
   @override
-  Future<Content?> deserializeContent(Uint8List data, SymmetricKey password, SecureMessage sMsg) async {
+  Future<Content?> deserializeContent(Uint8List data, SymmetricKey password,
+      SecureMessage sMsg) async {
     Content? content = await super.deserializeContent(data, password, sMsg);
     assert(content != null, 'content error: ${data.length}');
 
