@@ -42,7 +42,7 @@ import 'keys.dart';
 class _AESKey extends BaseSymmetricKey {
   _AESKey(super.dict);
 
-  // static final String AES_CBC_PKCS7 = "AES/CBC/PKCS7Padding";
+  // static const String AES_CBC_PKCS7 = "AES/CBC/PKCS7Padding";
 
   // TODO: check algorithm parameters
   // 1. check mode = 'CBC'
@@ -71,7 +71,7 @@ class _AESKey extends BaseSymmetricKey {
   String _iv() {
     String? b64 = getString('iv');
     if (b64 != null) {
-      return b64;
+      return b64.replaceAll('\n', '');
     }
     // zero iv
     Uint8List iv = Uint8List(_blockSize());
@@ -83,7 +83,7 @@ class _AESKey extends BaseSymmetricKey {
   String _key() {
     String? b64 = getString('data');
     if (b64 != null) {
-      return b64;
+      return b64.replaceAll('\n', '');
     }
 
     //

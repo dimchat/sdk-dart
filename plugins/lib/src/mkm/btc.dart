@@ -104,7 +104,7 @@ class BTCAddress extends ConstantString implements Address {
     Uint8List suffix = data.sublist(21, 25);
     Uint8List cc = _checkCode(prefix);
     if (Wrapper.listEquals(cc, suffix)) {
-      return BTCAddress(address, data[1]);
+      return BTCAddress(address, data[0]);
     } else {
       return null;
     }

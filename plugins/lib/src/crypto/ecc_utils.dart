@@ -108,10 +108,10 @@ class ECCKeyUtils {
   /// Encode Public/Private key to PEM Format
   static String encodeKey({ECPublicKey? publicKey, ECPrivateKey? privateKey}) {
     if (publicKey != null) {
-      CryptoUtils.encodeEcPublicKeyToPem(publicKey);
+      return CryptoUtils.encodeEcPublicKeyToPem(publicKey);
     }
     if (privateKey != null) {
-      CryptoUtils.encodeEcPrivateKeyToPem(privateKey);
+      return CryptoUtils.encodeEcPrivateKeyToPem(privateKey);
     }
     throw Exception('parameters error');
   }

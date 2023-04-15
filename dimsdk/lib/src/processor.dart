@@ -80,10 +80,12 @@ class MessageProcessor extends TwinsHelper implements Processor {
     }
     // 3. serialize responses
     List<Uint8List> packages = [];
-    Uint8List pack;
+    Uint8List? pack;
     for (ReliableMessage res in responses) {
       pack = await transceiver.serializeMessage(res);
-      assert(pack.isNotEmpty, 'should not happen');
+      if (pack == null) {
+        continue;
+      }
       packages.add(pack);
     }
     return packages;
@@ -107,10 +109,12 @@ class MessageProcessor extends TwinsHelper implements Processor {
     }
     // 3. sign responses
     List<ReliableMessage> messages = [];
-    ReliableMessage msg;
+    ReliableMessage? msg;
     for (SecureMessage res in responses) {
       msg = await transceiver.signMessage(res);
-      assert(msg.isNotEmpty, 'should not happen');
+      if (msg == null) {
+        continue;
+      }
       messages.add(msg);
     }
     return messages;
@@ -135,10 +139,12 @@ class MessageProcessor extends TwinsHelper implements Processor {
     }
     // 3. encrypt responses
     List<SecureMessage> messages = [];
-    SecureMessage msg;
+    SecureMessage? msg;
     for (InstantMessage res in responses) {
       msg = await transceiver.encryptMessage(res);
-      assert(msg.isNotEmpty, 'should not happen');
+      if (msg == null) {
+        continue;
+      }
       messages.add(msg);
     }
     return messages;

@@ -77,7 +77,7 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
   @override
   Future<void> cacheCipherKey(ID sender, ID receiver,
       SymmetricKey? key) async =>
-      await cipherKeyDelegate!.cacheCipherKey(sender, receiver, key);
+      await cipherKeyDelegate?.cacheCipherKey(sender, receiver, key);
 
   //
   //  Interfaces for Packing Message
@@ -88,16 +88,16 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
       await packer?.getOvertGroup(content);
 
   @override
-  Future<SecureMessage> encryptMessage(InstantMessage iMsg) async =>
-      await packer!.encryptMessage(iMsg);
+  Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async =>
+      await packer?.encryptMessage(iMsg);
 
   @override
-  Future<ReliableMessage> signMessage(SecureMessage sMsg) async =>
-      await packer!.signMessage(sMsg);
+  Future<ReliableMessage?> signMessage(SecureMessage sMsg) async =>
+      await packer?.signMessage(sMsg);
 
   @override
-  Future<Uint8List> serializeMessage(ReliableMessage rMsg) async =>
-      await packer!.serializeMessage(rMsg);
+  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async =>
+      await packer?.serializeMessage(rMsg);
 
   @override
   Future<ReliableMessage?> deserializeMessage(Uint8List data) async =>

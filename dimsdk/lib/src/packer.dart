@@ -62,7 +62,7 @@ class MessagePacker extends TwinsHelper implements Packer {
   //
 
   @override
-  Future<SecureMessage> encryptMessage(InstantMessage iMsg) async {
+  Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async {
     Messenger transceiver = messenger!;
     // check message delegate
     iMsg.delegate ??= transceiver;
@@ -139,7 +139,7 @@ class MessagePacker extends TwinsHelper implements Packer {
   }
 
   @override
-  Future<ReliableMessage> signMessage(SecureMessage sMsg) async {
+  Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
     // check message delegate
     sMsg.delegate ??= messenger;
     // sign 'data' by sender
@@ -147,8 +147,8 @@ class MessagePacker extends TwinsHelper implements Packer {
   }
 
   @override
-  Future<Uint8List> serializeMessage(ReliableMessage rMsg) async =>
-      UTF8.encode(JSON.encode(rMsg));
+  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async =>
+      UTF8.encode(JSON.encode(rMsg.dictionary));
 
   //
   //  Data -> ReliableMessage -> SecureMessage -> InstantMessage

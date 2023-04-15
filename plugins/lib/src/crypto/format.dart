@@ -129,6 +129,11 @@ class _Base64Coder implements DataCoder {
 
   @override
   Uint8List? decode(String string) {
+    if (string.contains('\n')) {
+      string = string.replaceAll('\n', '');
+      string = string.replaceAll('\r', '');
+      string = string.replaceAll(' ', '');
+    }
     return base64.decode(string);
   }
 }

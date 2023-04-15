@@ -32,8 +32,8 @@ import 'keys.dart';
 ///  This is for generating symmetric key with a text string
 class Password {
 
-  static final int _keySize = 32;
-  static final int _blockSize = 16;
+  static const int _keySize = 32;
+  static const int _blockSize = 16;
 
   static SymmetricKey generate(String passphrase) {
     Uint8List data = UTF8.encode(passphrase);

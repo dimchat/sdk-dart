@@ -61,11 +61,13 @@ class CommandParser implements CommandFactory {
 class GeneralCommandFactory implements ContentFactory, CommandFactory {
 
   @override
-  Command? parseCommand(Map content) {
-    CommandFactoryManager man = CommandFactoryManager();
-    String cmd = man.generalFactory.getCmd(content);
+  Content? parseContent(Map content) {
     // get factory by command name
-    CommandFactory? factory = man.generalFactory.getCommandFactory(cmd);
+    CommandFactoryManager man = CommandFactoryManager();
+    String? cmd = man.generalFactory.getCmd(content);
+    // assert(cmd != null, 'command name not found: $info');
+    CommandFactory? factory;
+    factory = cmd == null ? null : man.generalFactory.getCommandFactory(cmd);
     if (factory == null) {
       // check for group command
       if (content.containsKey('group')) {
@@ -77,7 +79,7 @@ class GeneralCommandFactory implements ContentFactory, CommandFactory {
   }
 
   @override
-  Content? parseContent(Map content) {
+  Command? parseCommand(Map content) {
     return BaseCommand(content);
   }
 
@@ -97,17 +99,19 @@ class HistoryCommandFactory extends GeneralCommandFactory {
 class GroupCommandFactory extends HistoryCommandFactory {
 
   @override
-  Command? parseCommand(Map content) {
-    CommandFactoryManager man = CommandFactoryManager();
-    String cmd = man.generalFactory.getCmd(content);
+  Content? parseContent(Map content) {
     // get factory by command name
-    CommandFactory? factory = man.generalFactory.getCommandFactory(cmd);
+    CommandFactoryManager man = CommandFactoryManager();
+    String? cmd = man.generalFactory.getCmd(content);
+    // assert(cmd != null, 'command name not found: $info');
+    CommandFactory? factory;
+    factory = cmd == null ? null : man.generalFactory.getCommandFactory(cmd);
     factory ??= this;
     return factory.parseCommand(content);
   }
 
   @override
-  Content? parseContent(Map content) {
+  Command? parseCommand(Map content) {
     return BaseGroupCommand(content);
   }
 

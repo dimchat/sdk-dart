@@ -1,3 +1,7 @@
+## 0.1.0-dev.5
+
+- Encrypt message.
+
 ## 0.1.0-dev.4
 
 - Remove mirrors.
