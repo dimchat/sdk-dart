@@ -29,6 +29,8 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 import 'package:fast_base58/fast_base58.dart';
 
+import 'aes.dart';
+
 /// UTF-8
 class _UTF8Coder implements StringCoder {
 
@@ -129,11 +131,7 @@ class _Base64Coder implements DataCoder {
 
   @override
   Uint8List? decode(String string) {
-    if (string.contains('\n')) {
-      string = string.replaceAll('\n', '');
-      string = string.replaceAll('\r', '');
-      string = string.replaceAll(' ', '');
-    }
+    string = AESKeyFactory.trimBase64String(string);
     return base64.decode(string);
   }
 }

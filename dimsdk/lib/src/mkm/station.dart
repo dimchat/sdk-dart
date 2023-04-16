@@ -49,13 +49,13 @@ class Station implements User {
   static ID kAny = Identifier('station@anywhere', name: 'station', address: Address.kAnywhere);
   static ID kEvery = Identifier('stations@everywhere', name: 'stations', address: Address.kEverywhere);
 
-  User? _user;
+  late User _user;
 
   String? _host;
   int? _port;
 
   @override
-  ID get identifier => _user!.identifier;
+  ID get identifier => _user.identifier;
 
   set identifier(ID sid) {
     User inner = BaseUser(sid);
@@ -114,13 +114,10 @@ class Station implements User {
 
   @override
   int get hashCode {
-    if (_user != null) {
-      return _user.hashCode;
-    }
     if (_host != null && _port != null) {
       return _host.hashCode + _port! * 13;
     }
-    return 0;
+    return _user.hashCode;
   }
 
   @override
@@ -134,11 +131,11 @@ class Station implements User {
   //-------- Entity
 
   @override
-  int get type => _user!.type;
+  int get type => _user.type;
 
   @override
   UserDataSource? get dataSource {
-    EntityDataSource? barrack = _user?.dataSource;
+    EntityDataSource? barrack = _user.dataSource;
     if (barrack == null) {
       return null;
     }
@@ -148,43 +145,43 @@ class Station implements User {
 
   @override
   set dataSource(EntityDataSource? barrack) {
-    _user?.dataSource = barrack;
+    _user.dataSource = barrack;
   }
 
   @override
-  Future<Meta> get meta async => await _user!.meta;
+  Future<Meta> get meta async => await _user.meta;
 
   @override
   Future<Document?> getDocument(String? docType) async =>
-      await _user?.getDocument(docType);
+      await _user.getDocument(docType);
 
   //-------- User
 
   @override
-  Future<Visa?> get visa async => await _user?.visa;
+  Future<Visa?> get visa async => await _user.visa;
 
   @override
-  Future<List<ID>> get contacts async => await _user!.contacts;
+  Future<List<ID>> get contacts async => await _user.contacts;
 
   @override
   Future<bool> verify(Uint8List data, Uint8List signature) async =>
-      await _user!.verify(data, signature);
+      await _user.verify(data, signature);
 
   @override
   Future<Uint8List> encrypt(Uint8List plaintext) async =>
-      await _user!.encrypt(plaintext);
+      await _user.encrypt(plaintext);
 
   @override
-  Future<Uint8List> sign(Uint8List data) async => await _user!.sign(data);
+  Future<Uint8List> sign(Uint8List data) async => await _user.sign(data);
 
   @override
   Future<Uint8List?> decrypt(Uint8List ciphertext) async =>
-      await _user?.decrypt(ciphertext);
+      await _user.decrypt(ciphertext);
 
   @override
-  Future<Visa?> signVisa(Visa doc) async => await _user?.signVisa(doc);
+  Future<Visa?> signVisa(Visa doc) async => await _user.signVisa(doc);
 
   @override
-  Future<bool> verifyVisa(Visa doc) async => await _user!.verifyVisa(doc);
+  Future<bool> verifyVisa(Visa doc) async => await _user.verifyVisa(doc);
 
 }

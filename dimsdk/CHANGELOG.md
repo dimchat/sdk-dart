@@ -1,3 +1,7 @@
+## 0.1.0-dev.6
+
+- Inner user for station.
+
 ## 0.1.0-dev.5
 
 - Encrypt message.

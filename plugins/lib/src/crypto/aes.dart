@@ -50,28 +50,21 @@ class _AESKey extends BaseSymmetricKey {
 
   int _keySize() {
     // TODO: get from key data
-    int size = getInt('keySize');
-    if (size <= 0) {
-      return 32;
-    } else {
-      return size;
-    }
+    int? size = getInt('keySize');
+    return size ?? 32;
   }
 
   int _blockSize() {
     // TODO: get from iv data
-    int size = getInt('blockSize');
-    if (size <= 0) {
-      return 16;  // cipher.getBlockSize();
-    } else {
-      return size;
-    }
+    int? size = getInt('blockSize');
+    return size ?? 16;  // cipher.getBlockSize();
   }
 
   String _iv() {
     String? b64 = getString('iv');
     if (b64 != null) {
-      return b64.replaceAll('\n', '');
+      b64 = AESKeyFactory.trimBase64String(b64);
+      return b64;
     }
     // zero iv
     Uint8List iv = Uint8List(_blockSize());
@@ -83,7 +76,8 @@ class _AESKey extends BaseSymmetricKey {
   String _key() {
     String? b64 = getString('data');
     if (b64 != null) {
-      return b64.replaceAll('\n', '');
+      b64 = AESKeyFactory.trimBase64String(b64);
+      return b64;
     }
 
     //
@@ -139,6 +133,16 @@ Uint8List _random(int size) {
 }
 
 class AESKeyFactory implements SymmetricKeyFactory {
+
+  static String trimBase64String(String b64) {
+    if (b64.contains('\n')) {
+      b64 = b64.replaceAll('\n', '');
+      b64 = b64.replaceAll('\r', '');
+      b64 = b64.replaceAll('\t', '');
+      b64 = b64.replaceAll(' ', '');
+    }
+    return b64.trim();
+  }
 
   @override
   SymmetricKey generateSymmetricKey() {
