@@ -69,18 +69,26 @@ class _RSAPublicKey extends BasePublicKey implements EncryptKey {
 ///          data      : "..." // base64_encode()
 ///      }
 class _RSAPrivateKey extends BasePrivateKey implements DecryptKey {
-  _RSAPrivateKey(super.dict);
+  _RSAPrivateKey(super.dict) : _publicKey = null;
+
+  PublicKey? _publicKey;
 
   @override
   PublicKey get publicKey {
-    var privateKey = RSAKeyUtils.decodePrivateKey(_key());
-    var publicKey = RSAKeyUtils.publicKeyFromPrivateKey(privateKey);
-    String pem = RSAKeyUtils.encodeKey(publicKey: publicKey);
-    Map info = {
-      'algorithm': AsymmetricKey.kRSA,
-      'data': pem,
-    };
-    return PublicKey.parse(info)!;
+    PublicKey? pubKey = _publicKey;
+    if (pubKey == null) {
+      var privateKey = RSAKeyUtils.decodePrivateKey(_key());
+      var publicKey = RSAKeyUtils.publicKeyFromPrivateKey(privateKey);
+      String pem = RSAKeyUtils.encodeKey(publicKey: publicKey);
+      Map info = {
+        'algorithm': AsymmetricKey.kRSA,
+        'data': pem,
+      };
+      pubKey = PublicKey.parse(info);
+      assert(pubKey != null, 'failed to get public key: $info');
+      _publicKey = pubKey;
+    }
+    return pubKey!;
   }
 
   @override

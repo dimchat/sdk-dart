@@ -1,3 +1,7 @@
+## 0.1.0-dev.4
+
+- Generate public key.
+
 ## 0.1.0-dev.3
 
 - Trim base64 string.

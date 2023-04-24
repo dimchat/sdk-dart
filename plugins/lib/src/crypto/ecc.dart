@@ -65,18 +65,26 @@ class _ECCPublicKey extends BasePublicKey {
 ///          data         : "..." // base64_encode()
 ///      }
 class _ECCPrivateKey extends BasePrivateKey {
-  _ECCPrivateKey(super.dict);
+  _ECCPrivateKey(super.dict) : _publicKey = null;
+
+  PublicKey? _publicKey;
 
   @override
   PublicKey get publicKey {
-    var privateKey = ECCKeyUtils.decodePrivateKey(_key());
-    var publicKey = ECCKeyUtils.publicKeyFromPrivateKey(privateKey);
-    String pem = ECCKeyUtils.encodeKey(publicKey: publicKey);
-    Map info = {
-      'algorithm': AsymmetricKey.kECC,
-      'data': pem,
-    };
-    return PublicKey.parse(info)!;
+    PublicKey? pubKey = _publicKey;
+    if (pubKey == null) {
+      var privateKey = ECCKeyUtils.decodePrivateKey(_key());
+      var publicKey = ECCKeyUtils.publicKeyFromPrivateKey(privateKey);
+      String pem = ECCKeyUtils.encodeKey(publicKey: publicKey);
+      Map info = {
+        'algorithm': AsymmetricKey.kECC,
+        'data': pem,
+      };
+      pubKey = PublicKey.parse(info);
+      assert(pubKey != null, 'failed to get public key: $info');
+      _publicKey = pubKey;
+    }
+    return pubKey!;
   }
 
   @override

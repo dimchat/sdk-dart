@@ -63,42 +63,12 @@ class Station implements User {
     _user = inner;
   }
 
-  ///  Station IP
-  ///
-  /// @return IP address
-  Future<String?> get host async {
-    if (_host == null) {
-      Document? doc = await getDocument('*');
-      if (doc != null) {
-        _host = doc.getProperty('host');
-      }
-    }
-    return _host;
-  }
+  /// Station IP
+  String? get host => _host;
 
-  ///  Station Port
-  ///
-  /// @return port number
-  Future<int?> get port async {
-    if (_port == null) {
-      Document? doc = await getDocument('*');
-      if (doc != null) {
-        _port = doc.getProperty('port');
-      }
-    }
-    return _port;
-  }
+  /// Station Port
+  int? get port => _port;
 
-  ///  Get provider ID
-  ///
-  /// @return ISP ID, station group
-  Future<ID?> get provider async {
-    Document? doc = await getDocument('*');
-    if (doc == null) {
-      return null;
-    }
-    return ID.parse(doc.getProperty('ISP'));
-  }
   @override
   bool operator ==(Object other) {
     if (other is Station) {
@@ -106,7 +76,7 @@ class Station implements User {
         // same object
         return true;
       }
-      // TODO: check (host:port) in future
+      // check (host:port)
       return other.port == port && other.host == host;
     }
     return _user == other;
@@ -126,6 +96,25 @@ class Station implements User {
     int network = identifier.address.type;
     // TODO: check (host:port)
     return '<$clazz id="$identifier" network=$network host="$_host" port=$_port />';
+  }
+
+  Future<void> reload() async {
+    Document? doc = await getDocument('*');
+    if (doc != null) {
+      _host = doc.getProperty('host');
+      _port = doc.getProperty('port');
+    }
+  }
+
+  ///  Get provider ID
+  ///
+  /// @return ISP ID, station group
+  Future<ID?> get provider async {
+    Document? doc = await getDocument('*');
+    if (doc == null) {
+      return null;
+    }
+    return ID.parse(doc.getProperty('ISP'));
   }
 
   //-------- Entity
