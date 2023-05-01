@@ -118,7 +118,12 @@ class _AESKey extends BaseSymmetricKey {
     Key key = Key.fromBase64(_key());
     IV iv = IV.fromBase64(_iv());
     Encrypter cipher = Encrypter(AES(key, mode: AESMode.cbc));
-    List<int> result = cipher.decryptBytes(Encrypted(ciphertext), iv: iv);
+    List<int> result;
+    try {
+      result = cipher.decryptBytes(Encrypted(ciphertext), iv: iv);
+    } on ArgumentError catch (e) {
+      return null;
+    }
     return Uint8List.fromList(result);
   }
 }
