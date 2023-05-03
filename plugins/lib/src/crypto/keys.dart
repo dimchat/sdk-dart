@@ -35,7 +35,7 @@ abstract class BaseKey extends Dictionary implements CryptographyKey {
   @override
   String get algorithm {
     CryptographyKeyFactoryManager man = CryptographyKeyFactoryManager();
-    return man.generalFactory.getAlgorithm(dictionary)!;
+    return man.generalFactory.getAlgorithm(toMap()) ?? '';
   }
 }
 
@@ -50,17 +50,19 @@ abstract class BaseSymmetricKey extends Dictionary implements SymmetricKey {
         return true;
       }
       return match(other);
+    } else if (other is Mapper) {
+      other = other.toMap();
     }
-    return dictionary == other;
+    return toMap() == other;
   }
 
   @override
-  int get hashCode => dictionary.hashCode;
+  int get hashCode => toMap().hashCode;
 
   @override
   String get algorithm {
     CryptographyKeyFactoryManager man = CryptographyKeyFactoryManager();
-    return man.generalFactory.getAlgorithm(dictionary)!;
+    return man.generalFactory.getAlgorithm(toMap()) ?? '';
   }
 
   @override
@@ -76,7 +78,7 @@ abstract class BaseAsymmetricKey extends Dictionary implements AsymmetricKey {
   @override
   String get algorithm {
     CryptographyKeyFactoryManager man = CryptographyKeyFactoryManager();
-    return man.generalFactory.getAlgorithm(dictionary)!;
+    return man.generalFactory.getAlgorithm(toMap()) ?? '';
   }
 }
 
@@ -91,17 +93,19 @@ abstract class BasePrivateKey extends Dictionary implements PrivateKey {
         return true;
       }
       return publicKey.match(other);
+    } else if (other is Mapper) {
+      other = other.toMap();
     }
-    return dictionary == other;
+    return toMap() == other;
   }
 
   @override
-  int get hashCode => dictionary.hashCode;
+  int get hashCode => toMap().hashCode;
 
   @override
   String get algorithm {
     CryptographyKeyFactoryManager man = CryptographyKeyFactoryManager();
-    return man.generalFactory.getAlgorithm(dictionary)!;
+    return man.generalFactory.getAlgorithm(toMap()) ?? '';
   }
 }
 
@@ -111,7 +115,7 @@ abstract class BasePublicKey extends Dictionary implements PublicKey {
   @override
   String get algorithm {
     CryptographyKeyFactoryManager man = CryptographyKeyFactoryManager();
-    return man.generalFactory.getAlgorithm(dictionary)!;
+    return man.generalFactory.getAlgorithm(toMap()) ?? '';
   }
 
   @override

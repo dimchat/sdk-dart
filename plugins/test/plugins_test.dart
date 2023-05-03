@@ -82,8 +82,8 @@ void testPassword() {
 
   SymmetricKey key1 = Password.generate(password);
   SymmetricKey key2 = Password.generate(password);
-  debugLog('key1: ${key1.dictionary}');
-  debugLog('key2: ${key2.dictionary}');
+  debugLog('key1: $key1');
+  debugLog('key2: $key2');
   debugAssert(key1 == key2, '$key1 <==> $key2');
 }
 
@@ -97,7 +97,7 @@ void testAES() {
   };
   SymmetricKey key = SymmetricKey.parse(dictionary)!;
   debugLog('key: $key');
-  String json = JSON.encode(key.dictionary);
+  String json = JSON.encode(key.toMap());
   debugLog('JSON (${json.length} bytes): $json');
 
   String text;
@@ -149,11 +149,11 @@ void testRSA() {
   PublicKey pKey;
 
   sKey = PrivateKey.generate(AsymmetricKey.kRSA)!;
-  debugLog('RSA private key: ${sKey.dictionary}');
+  debugLog('RSA private key: $sKey');
 
   pKey = sKey.publicKey;
-  debugLog('RSA public key: ${pKey.dictionary}');
-  debugLog('RSA private key: ${sKey.dictionary}');
+  debugLog('RSA public key: $pKey');
+  debugLog('RSA private key: $sKey');
 
   String text;
   Uint8List plaintext;
@@ -182,10 +182,10 @@ void testRSA() {
 //
 
 void _checkKeys(PrivateKey sKey, PublicKey pKey) {
-  debugLog('private key: ${sKey.dictionary}');
+  debugLog('private key: $sKey');
   debugLog('secret data: ${Hex.encode(sKey.data)}');
 
-  debugLog('public key: ${pKey.dictionary}');
+  debugLog('public key: $pKey');
   debugLog('pub data: ${Hex.encode(pKey.data)}');
   
   final String text = 'moky';
@@ -228,13 +228,13 @@ void testECC() {
 
   sKey = _checkECCKeys('5ae4c458c584ab3b3c8b14c7462f295ed6c22d4d376ae625e9d0a93145c3345c',
       '04a34ba8e23e8abc035e238fb70920289d69e130c7779cf432005f0bfc9482282af496e9ae92ad3f7ff68932855d1d6d5bc30eb59dc0a6c579fa134c830ce14ce3');
-  debugLog('private key: ${sKey.dictionary}');
+  debugLog('private key: $sKey');
 
   pKey = _getECCPublicKey('-----BEGIN PUBLIC KEY-----\n'
       'MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEnPfF4seF4dE1qi3a70D2c+vwijAOTU+L\n'
       '7cDZh80ybe7umXESk2c4PvjypfKEfKgJznjG6WqQGz8aYVHkxLTrEA==\n'
       '-----END PUBLIC KEY-----');
-  debugLog('pub2: ${pKey.dictionary}');
+  debugLog('pub2: $pKey');
   debugLog('pub2 data: ${Hex.encode(pKey.data)}');
 }
 

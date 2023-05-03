@@ -56,11 +56,11 @@ class _EntityIDFactory extends IdentifierFactory {
   ID? parseID(String identifier) {
     assert(identifier.isNotEmpty, 'ID should not be empty');
     String lower = identifier.toLowerCase();
-    if (lower == ID.kAnyone.string) {
+    if (lower == ID.kAnyone.toString()) {
       return ID.kAnyone;
-    } else if (lower == ID.kEveryone.string) {
+    } else if (lower == ID.kEveryone.toString()) {
       return ID.kEveryone;
-    } else if (lower == ID.kFounder.string) {
+    } else if (lower == ID.kFounder.toString()) {
       return ID.kFounder;
     }
     return super.parseID(identifier);
@@ -73,9 +73,9 @@ class _AddressFactory extends BaseAddressFactory {
   Address? createAddress(String address) {
     assert(address.isNotEmpty, 'address should not be empty');
     String lower = address.toLowerCase();
-    if (lower == Address.kAnywhere.string) {
+    if (lower == Address.kAnywhere.toString()) {
       return Address.kAnywhere;
-    } else if (lower == Address.kEverywhere.string) {
+    } else if (lower == Address.kEverywhere.toString()) {
       return Address.kEverywhere;
     }
     Address? res = ETHAddress.parse(address);

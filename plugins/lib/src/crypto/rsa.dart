@@ -57,8 +57,13 @@ class _RSAPublicKey extends BasePublicKey implements EncryptKey {
 
   @override
   bool verify(Uint8List data, Uint8List signature) {
-    var publicKey = RSAKeyUtils.decodePublicKey(_key());
-    return RSAKeyUtils.verify(data, signature, publicKey);
+    try {
+      var publicKey = RSAKeyUtils.decodePublicKey(_key());
+      return RSAKeyUtils.verify(data, signature, publicKey);
+    } catch (e, st) {
+      print('RSA: failed to verify: $e, $st');
+      return false;
+    }
   }
 }
 
@@ -116,8 +121,13 @@ class _RSAPrivateKey extends BasePrivateKey implements DecryptKey {
 
   @override
   Uint8List? decrypt(Uint8List ciphertext) {
-    var privateKey = RSAKeyUtils.decodePrivateKey(_key());
-    return RSAKeyUtils.decrypt(ciphertext, privateKey);
+    try {
+      var privateKey = RSAKeyUtils.decodePrivateKey(_key());
+      return RSAKeyUtils.decrypt(ciphertext, privateKey);
+    } catch (e, st) {
+      print('RSA: failed to decrypt: $e, $st');
+      return null;
+    }
   }
 
   @override

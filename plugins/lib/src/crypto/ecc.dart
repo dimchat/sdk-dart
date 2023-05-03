@@ -52,8 +52,13 @@ class _ECCPublicKey extends BasePublicKey {
 
   @override
   bool verify(Uint8List data, Uint8List signature) {
-    var publicKey = ECCKeyUtils.decodePublicKey(_key());
-    return ECCKeyUtils.verify(data, signature, publicKey);
+    try {
+      var publicKey = ECCKeyUtils.decodePublicKey(_key());
+      return ECCKeyUtils.verify(data, signature, publicKey);
+    } catch (e, st) {
+      print('ECC: failed to verify: $e, $st');
+      return false;
+    }
   }
 }
 

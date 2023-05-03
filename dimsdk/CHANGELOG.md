@@ -1,3 +1,7 @@
+## 0.1.0-dev.8
+
+- Check sender/receiver.
+
 ## 0.1.0-dev.7
 
 - Reload station info.

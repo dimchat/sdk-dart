@@ -113,19 +113,21 @@ class _AESKey extends BaseSymmetricKey {
     Encrypter cipher = Encrypter(AES(key, mode: AESMode.cbc));
     return cipher.encryptBytes(plaintext, iv: iv).bytes;
   }
+
   @override
   Uint8List? decrypt(Uint8List ciphertext) {
-    Key key = Key.fromBase64(_key());
-    IV iv = IV.fromBase64(_iv());
-    Encrypter cipher = Encrypter(AES(key, mode: AESMode.cbc));
-    List<int> result;
     try {
-      result = cipher.decryptBytes(Encrypted(ciphertext), iv: iv);
-    } on ArgumentError catch (e) {
+      Key key = Key.fromBase64(_key());
+      IV iv = IV.fromBase64(_iv());
+      Encrypter cipher = Encrypter(AES(key, mode: AESMode.cbc));
+      List<int> result = cipher.decryptBytes(Encrypted(ciphertext), iv: iv);
+      return Uint8List.fromList(result);
+    } catch (e, st) {
+      print('AES: failed to decrypt: $e, $st');
       return null;
     }
-    return Uint8List.fromList(result);
   }
+
 }
 
 Uint8List _random(int size) {

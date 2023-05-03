@@ -1,3 +1,7 @@
+## 0.1.0-dev.5
+
+- Catch error for keys.
+
 ## 0.1.0-dev.4
 
 - Generate public key.
