@@ -1,6 +1,6 @@
 name: lnc
-description: Log, Notification & Clock.
-version: 0.1.0-dev.1
+description: Log & Notification Center.
+version: 0.1.0-dev.2
 homepage: https://github.com/dimchat/sdk-dart
 repository: https://github.com/dimchat/sdk-dart
 issue_tracker: https://github.com/dimchat/sdk-dart/issues
@@ -10,7 +10,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  object_key: ^0.1.0-dev.1
+  object_key: ^0.1.0-dev.2
 
 dev_dependencies:
   lints: ^2.0.0

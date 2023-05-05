@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  LNC : Log, Notification & Clock
+ *  LNC : Log & Notification Center
  *
  *                               Written in 2023 by Moky <albert.moky@gmail.com>
  *
@@ -28,7 +28,6 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'time.dart';
 
 class Log {
 
@@ -52,8 +51,18 @@ class Log {
   static int limitLength = -1;    // -1 means unlimited
 
   static String get _now {
-    DateTime current = DateTime.now();
-    return Time.getFullTimeString(current);
+    DateTime time = DateTime.now();
+    String m = _twoDigits(time.month);
+    String d = _twoDigits(time.day);
+    String h = _twoDigits(time.hour);
+    String min = _twoDigits(time.minute);
+    String sec = _twoDigits(time.second);
+    return '${time.year}-$m-$d $h:$min:$sec';
+  }
+
+  static String _twoDigits(int n) {
+    if (n >= 10) return "$n";
+    return "0$n";
   }
 
   static String get _location {
