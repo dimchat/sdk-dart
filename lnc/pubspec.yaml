@@ -1,6 +1,6 @@
 name: lnc
 description: Log & Notification Center.
-version: 0.1.0-dev.2
+version: 0.1.0-dev.3
 homepage: https://github.com/dimchat/sdk-dart
 repository: https://github.com/dimchat/sdk-dart
 issue_tracker: https://github.com/dimchat/sdk-dart/issues

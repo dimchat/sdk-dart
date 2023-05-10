@@ -31,11 +31,6 @@
 
 class Log {
 
-  static const String kRed    = '\x1B[95m';
-  static const String kYellow = '\x1B[93m';
-  static const String kGreen  = '\x1B[92m';
-  static const String kClear  = '\x1B[0m';
-
   static const int kDebugFlag   = 1 << 0;
   static const int kInfoFlag    = 1 << 1;
   static const int kWarningFlag = 1 << 2;
@@ -47,10 +42,133 @@ class Log {
 
   static int level = kRelease;
 
-  static int chunkLength = 1000;
-  static int limitLength = -1;    // -1 means unlimited
+  static bool colorful = false;  // colored printer
+  static bool showTime = true;
+  static bool showCaller = false;
 
-  static String get _now {
+  static Logger logger = DefaultLogger();
+
+  static void   debug(String msg) => logger.debug(msg);
+  static void    info(String msg) => logger.info(msg);
+  static void warning(String msg) => logger.warning(msg);
+  static void   error(String msg) => logger.error(msg);
+
+}
+
+class DefaultLogger with LogMixin {
+  // override for customized logger
+
+  final LogPrinter _printer = LogPrinter();
+
+  @override
+  LogPrinter get printer => _printer;
+
+}
+
+abstract class Logger {
+
+  LogPrinter get printer;
+
+  void   debug(String msg);
+  void    info(String msg);
+  void warning(String msg);
+  void   error(String msg);
+
+}
+
+mixin LogMixin implements Logger {
+
+  static String colorRed    = '\x1B[95m';  // error
+  static String colorYellow = '\x1B[93m';  // warning
+  static String colorGreen  = '\x1B[92m';  // debug
+  static String colorClear  = '\x1B[0m';
+
+  String? get now =>
+      Log.showTime ? LogTimer().now : null;
+
+  LogCaller? get caller =>
+      Log.showCaller ? LogCaller.parse(StackTrace.current) : null;
+
+  int output(String msg, {LogCaller? caller, String? tag, String color = ''}) {
+    String body;
+    // insert caller
+    if (caller == null) {
+      body = msg;
+    } else {
+      body = '$caller >\t$msg';
+    }
+    // insert tag
+    if (tag != null) {
+      body = '$tag | $body';
+    }
+    // insert time
+    String? time = now;
+    if (time != null) {
+      body = '[$time] $body';
+    }
+    // colored print
+    if (Log.colorful && color.isNotEmpty) {
+      printer.output(body, head: color, tail: colorClear);
+    } else {
+      printer.output(body);
+    }
+    return body.length;
+  }
+
+  @override
+  void debug(String msg) => (Log.level & Log.kDebugFlag) > 0 &&
+      output(msg, caller: caller, tag: ' DEBUG ', color: colorGreen) > 0;
+
+  @override
+  void info(String msg) => (Log.level & Log.kInfoFlag) > 0 &&
+      output(msg, caller: caller, tag: '       ', color: '') > 0;
+
+  @override
+  void warning(String msg) => (Log.level & Log.kWarningFlag) > 0 &&
+      output(msg, caller: caller, tag: 'WARNING', color: colorYellow) > 0;
+
+  @override
+  void error(String msg) => (Log.level & Log.kErrorFlag) > 0 &&
+      output(msg, caller: caller, tag: ' ERROR ', color: colorRed) > 0;
+
+}
+
+class LogPrinter {
+
+  int chunkLength = 1000;  // split output when it's too long
+  int limitLength = -1;    // max output length, -1 means unlimited
+
+  String carriageReturn = '↩️';
+
+  /// colorful print
+  void output(String body, {String head = '', String tail = ''}) {
+    int size = body.length;
+    if (0 < limitLength && limitLength < size) {
+      body = '${body.substring(0, limitLength - 3)}...';
+      size = limitLength;
+    }
+    int start = 0, end = chunkLength;
+    for (; end < size; start = end, end += chunkLength) {
+      print(head + body.substring(start, end) + tail + carriageReturn);
+    }
+    if (start >= size) {
+      // all chunks printed
+      assert(start == size, 'should not happen');
+    } else if (start == 0) {
+      // body too short
+      print(head + body + tail);
+    } else {
+      // print last chunk
+      print(head + body.substring(start) + tail);
+    }
+  }
+
+}
+
+class LogTimer {
+
+  /// full string for current time: 'yyyy-mm-dd HH:MM:SS'
+  String get now {
     DateTime time = DateTime.now();
     String m = _twoDigits(time.month);
     String d = _twoDigits(time.day);
@@ -65,99 +183,79 @@ class Log {
     return "0$n";
   }
 
-  static String get _location {
-    List<String> caller = _caller(StackTrace.current);
-    // String func = caller[0];
-    String file = caller[1];
-    String line = caller[2];
-    return '$file:$line';
-  }
-
-  static void colorPrint(String body, {required String color}) {
-    _print(body, head: color, tail: kClear);
-  }
-  static void _print(String body, {String head = '', String tail = ''}) {
-    int size = body.length;
-    if (0 < limitLength && limitLength < size) {
-      body = '${body.substring(0, limitLength - 3)}...';
-      size = limitLength;
-    }
-    int start = 0, end = chunkLength;
-    for (; end < size; start = end, end += chunkLength) {
-      print(head + body.substring(start, end) + tail + _chunked);
-    }
-    if (start >= size) {
-      // all chunks printed
-      assert(start == size, 'should not happen');
-    } else if (start == 0) {
-      // body too short
-      print(head + body + tail);
-    } else {
-      // print last chunk
-      print(head + body.substring(start) + tail);
-    }
-  }
-  static const String _chunked = '↩️';
-
-  static void debug(String? msg) {
-    if ((level & kDebugFlag) == 0) {
-      return;
-    }
-    _print('[$_now]  DEBUG  | $_location >\t$msg', head: kGreen, tail: kClear);
-  }
-
-  static void info(String? msg) {
-    if ((level & kInfoFlag) == 0) {
-      return;
-    }
-    _print('[$_now]         | $_location >\t$msg');
-  }
-
-  static void warning(String? msg) {
-    if ((level & kWarningFlag) == 0) {
-      return;
-    }
-    _print('[$_now] WARNING | $_location >\t$msg', head: kYellow, tail: kClear);
-  }
-
-  static void error(String? msg) {
-    if ((level & kErrorFlag) == 0) {
-      return;
-    }
-    _print('[$_now]  ERROR  | $_location >\t$msg', head: kRed, tail: kClear);
-  }
-
 }
 
-// #0      Log._location (package:dim_client/src/common/utils/log.dart:52:46)
-// #2      main.<anonymous closure> (file:///.../client_test.dart:16:11)
-// #3      Amanuensis.saveInstantMessage (package:sechat/models/conversation.dart:398)
+// #0      LogMixin.caller (package:lnc/src/log.dart:85:55)
+// #1      LogMixin.debug (package:lnc/src/log.dart:105:41)
+// #2      Log.debug (package:lnc/src/log.dart:50:45)
+// #3      main.<anonymous closure>.<anonymous closure> (file:///Users/moky/client/test/client_test.dart:14:11)
+// #4      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:215:19)
 // <asynchronous suspension>
+// #5      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:213:7)
+// <asynchronous suspension>
+// #6      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:258:9)
+// <asynchronous suspension>
+
 // #?      function (path:1:2)
-List<String> _caller(StackTrace current) {
-  String text = current.toString().split('\n')[2];
-  // skip '#0      '
-  int pos = text.indexOf(' ');
-  text = text.substring(pos + 1).trimLeft();
-  // split 'function' & '(file:line:column)'
-  pos = text.lastIndexOf(' ');
-  String func = text.substring(0, pos);
-  String tail = text.substring(pos + 1);
-  String file = 'unknown.file';
-  String line = '-1';
-  int pos1 = tail.indexOf(':');
-  if (pos1 > 0) {
-    pos = tail.indexOf(':', pos1 + 1);
-    if (pos > 0) {
-      file = tail.substring(1, pos);
-      pos1 = pos + 1;
-      pos = tail.indexOf(':', pos1);
-      if (pos > 0) {
-        line = tail.substring(pos1, pos);
-      } else if (pos1 < tail.length) {
-        line = tail.substring(pos1, tail.length - 1);
+// #?      function (path:1)
+class LogCaller {
+  LogCaller(this.name, this.path, this.line);
+
+  final String name;
+  final String path;
+  final int line;
+
+  @override
+  String toString() => '$path:$line';
+
+  /// locate the real caller: '#3      ...'
+  static String? locate(StackTrace current) {
+    List<String> array = current.toString().split('\n');
+    for (String line in array) {
+      if (line.contains('lnc/src/log.dart:')) {
+        // skip for Log
+        continue;
+      }
+      // assert(line.startsWith('#3      '), 'unknown stack trace: $current');
+      if (line.startsWith('#')) {
+        return line;
       }
     }
+    // unknown format
+    return null;
   }
-  return[func, file, line];
+
+  /// parse caller info from trace
+  static LogCaller? parse(StackTrace current) {
+    String? text = locate(current);
+    if (text == null) {
+      // unknown format
+      return null;
+    }
+    // skip '#0      '
+    int pos = text.indexOf(' ');
+    text = text.substring(pos + 1).trimLeft();
+    // split 'name' & '(path:line:column)'
+    pos = text.lastIndexOf(' ');
+    String name = text.substring(0, pos);
+    String tail = text.substring(pos + 1);
+    String path = 'unknown.file';
+    String line = '-1';
+    int pos1 = tail.indexOf(':');
+    if (pos1 > 0) {
+      pos = tail.indexOf(':', pos1 + 1);
+      if (pos > 0) {
+        path = tail.substring(1, pos);
+        pos1 = pos + 1;
+        pos = tail.indexOf(':', pos1);
+        if (pos > 0) {
+          line = tail.substring(pos1, pos);
+        } else if (pos1 < tail.length) {
+          line = tail.substring(pos1, tail.length - 1);
+        }
+      }
+    }
+    return LogCaller(name, path, int.parse(line));
+  }
+
 }
