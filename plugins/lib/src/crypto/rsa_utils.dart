@@ -92,8 +92,30 @@ class RSAKeyUtils {
   /// Decode RSA private key from PEM text
   static RSAPrivateKey decodePrivateKey(String pem) {
     RSAKeyParser parser = RSAKeyParser();
+    String beginTag = _rsaPriBeginTag1;
+    String endTag = _rsaPriEndTag1;
+    int start = pem.indexOf(beginTag);
+    if (start < 0) {
+      beginTag = _rsaPriBeginTag8;
+      endTag = _rsaPriEndTag8;
+      start = pem.indexOf(beginTag);
+    }
+    if (start < 0) {
+      assert(false, 'private key content error: $pem');
+    } else {
+      int end = pem.indexOf(endTag, start + beginTag.length);
+      if (end < 0) {
+        assert(false, 'pem error: $pem');
+      } else {
+        pem = pem.substring(start, end + endTag.length);
+      }
+    }
     return parser.parse(pem) as RSAPrivateKey;
   }
+  static const String _rsaPriBeginTag1 = '-----BEGIN RSA PRIVATE KEY-----';
+  static const String _rsaPriEndTag1   =   '-----END RSA PRIVATE KEY-----';
+  static const String _rsaPriBeginTag8 =     '-----BEGIN PRIVATE KEY-----';
+  static const String _rsaPriEndTag8   =       '-----END PRIVATE KEY-----';
 
   /// Encode Public/Private key to PEM Format
   static String encodeKey({RSAPublicKey? publicKey, RSAPrivateKey? privateKey}) {
@@ -106,7 +128,7 @@ class RSAKeyUtils {
       pem += '-----BEGIN RSA PUBLIC KEY-----\r\n$b64\r\n-----END RSA PUBLIC KEY-----';
     }
     if (privateKey != null) {
-      if (publicKey != null) {
+      if (pem.isNotEmpty) {
         pem += '\r\n';
       }
       data = encodePrivateKeyData(privateKey);
