@@ -84,8 +84,10 @@ class ECCKeyUtils {
 
   /// Decode ECC public key from PEM text
   static ECPublicKey decodePublicKey(String pem) {
-    if (pem.length == 130) {
+    if (pem.length == 130 || pem.length == 66) {
       // hex(4 + Q.x + Q.y)
+      // hex(3 + Q.x)
+      // hex(2 + Q.x)
       var data = dim.Hex.decode(pem);
       var domainParams = pc.ECDomainParameters("secp256k1");
       var Q = domainParams.curve.decodePoint(data!);
@@ -123,7 +125,7 @@ class ECCKeyUtils {
   }
 
   /// Encode ECC public key
-  static Uint8List encodePublicKeyData(ECPublicKey publicKey) {
-    return publicKey.Q!.getEncoded(false);
+  static Uint8List encodePublicKeyData(ECPublicKey publicKey, {bool compressed = true}) {
+    return publicKey.Q!.getEncoded(compressed);
   }
 }

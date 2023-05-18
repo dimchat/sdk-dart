@@ -35,7 +35,8 @@ import 'keys.dart';
 ///      keyInfo format: {
 ///          algorithm    : "ECC",
 ///          curve        : "secp256k1",
-///          data         : "..." // base64_encode()
+///          data         : "..." // base64_encode(),
+///          compressed   : 0
 ///      }
 class _ECCPublicKey extends BasePublicKey {
   _ECCPublicKey(super.dict);
@@ -43,12 +44,12 @@ class _ECCPublicKey extends BasePublicKey {
   @override
   Uint8List get data {
     var publicKey = ECCKeyUtils.decodePublicKey(_key());
-    return ECCKeyUtils.encodePublicKeyData(publicKey);
+    return ECCKeyUtils.encodePublicKeyData(publicKey, compressed: compressed);
   }
 
-  String _key() {
-    return getString('data')!;
-  }
+  bool get compressed => getBool('compressed') ?? false;
+
+  String _key() => getString('data')!;
 
   @override
   bool verify(Uint8List data, Uint8List signature) {

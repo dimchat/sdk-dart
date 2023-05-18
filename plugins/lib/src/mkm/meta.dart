@@ -98,8 +98,12 @@ class _BTCMeta extends BaseMeta {
     assert(type == MetaType.kBTC || type == MetaType.kExBTC, 'meta type error: $type');
     // assert(network == NetworkID.kBTCMain, 'BTC address type error: $network');
     if (_cachedAddress == null/* || cached.type != network*/) {
-      // generate and cache it
+      // if (type == MetaType.kBTC) {
+      //   // TODO: compress public key?
+      //   key['compressed'] = 1;
+      // }
       Uint8List data = key.data;
+      // generate and cache it
       _cachedAddress = BTCAddress.generate(data, network!);
     }
     return _cachedAddress!;
@@ -133,8 +137,9 @@ class _ETHMeta extends BaseMeta {
     assert(type == MetaType.kETH || type == MetaType.kExETH, 'meta type error: $type');
     assert(network == null || network == EntityType.kUser, 'address type error: $network');
     if (_cachedAddress == null/* || cached.type != network*/) {
-      // generate and cache it
+      // 64 bytes key data without prefix 0x04
       Uint8List data = key.data;
+      // generate and cache it
       _cachedAddress = ETHAddress.generate(data);
     }
     return _cachedAddress!;
