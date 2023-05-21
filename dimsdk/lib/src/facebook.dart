@@ -119,7 +119,7 @@ abstract class Facebook extends Barrack {
   }
   // protected
   Group? createGroup(ID identifier) {
-    // TODO: make sure visa key exists before calling this
+    // TODO: make group meta exists before calling this
     int network = identifier.type;
     // check group type
     if (network == EntityType.kISP) {

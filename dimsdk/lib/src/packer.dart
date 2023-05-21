@@ -122,6 +122,7 @@ class MessagePacker extends TwinsHelper implements Packer {
     if (sMsg == null) {
       // public key for encryption not found
       assert(false, 'failed to encrypt message: $iMsg');
+      // TODO: suspend this message for waiting receiver's meta
       return null;
     }
 
@@ -199,6 +200,11 @@ class MessagePacker extends TwinsHelper implements Packer {
     }
     // check message delegate
     rMsg.delegate ??= messenger;
+    //
+    //  NOTICE: check [Visa Protocol] before calling this
+    //        make sure the sender's meta(visa) exists
+    //        (do in by application)
+    //
 
     assert((await rMsg.signature).isNotEmpty, 'message signature cannot be empty');
     // verify 'data' with 'signature'

@@ -1,3 +1,7 @@
+## 0.1.0-dev.6
+
+- DIMP core 8 released.
+
 ## 0.1.0-dev.5
 
 - Catch error for keys.

@@ -13,7 +13,7 @@ export 'src/crypto/password.dart';
 // export 'src/crypto/ecc.dart';
 // export 'src/crypto/ecc_utils.dart';
 
-// export 'src/protocol/network.dart';
+export 'src/protocol/network.dart';
 
 export 'src/mkm/btc.dart';
 export 'src/mkm/eth.dart';

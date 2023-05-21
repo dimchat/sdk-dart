@@ -190,7 +190,8 @@ class _MetaFactory implements MetaFactory {
   Meta? parseMeta(Map meta) {
     Meta out;
     AccountFactoryManager man = AccountFactoryManager();
-    int type = man.generalFactory.getMetaType(meta);
+    int? type = man.generalFactory.getMetaType(meta);
+    assert(type != null, 'failed to get meta type: $meta');
     if (type == MetaType.kMKM) {
       // MKM
       out = _DefaultMeta(meta);

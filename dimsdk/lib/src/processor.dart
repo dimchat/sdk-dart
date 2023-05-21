@@ -118,7 +118,6 @@ class MessageProcessor extends TwinsHelper implements Processor {
       messages.add(msg);
     }
     return messages;
-    // TODO: override to deliver to the receiver when catch exception "receiver error ..."
   }
 
   @override

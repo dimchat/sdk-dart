@@ -70,7 +70,7 @@ class GeneralCommandFactory implements ContentFactory, CommandFactory {
     factory = cmd == null ? null : man.generalFactory.getCommandFactory(cmd);
     if (factory == null) {
       // check for group command
-      if (content.containsKey('group')) {
+      if (content.containsKey('group') && cmd != 'group') {
         factory = man.generalFactory.getCommandFactory('group');
       }
       factory ??= this;

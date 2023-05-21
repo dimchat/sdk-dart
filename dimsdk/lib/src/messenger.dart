@@ -157,7 +157,7 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
     Content? content = await super.deserializeContent(data, password, sMsg);
     assert(content != null, 'content error: ${data.length}');
 
-    if (!isBroadcastMessage(sMsg) && content != null) {
+    if (!Transceiver.isBroadcastMessage(sMsg) && content != null) {
       // check and cache key for reuse
       ID? group = await getOvertGroup(content);
       if (group == null) {
