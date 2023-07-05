@@ -82,7 +82,7 @@ class CustomizedContentProcessor extends BaseContentProcessor implements Customi
   // protected
   List<Content>? filter(String app, CustomizedContent content, ReliableMessage rMsg) {
     /// override for your application
-    String text = 'Customized content not support.';
+    String text = 'Content not support.';
     return respondText(text, group: content.group, extra: {
       'template': 'Customized content (app: \${app}) not support yet!',
       'replacements': {
@@ -105,7 +105,7 @@ class CustomizedContentProcessor extends BaseContentProcessor implements Customi
     /// override for customized actions
     String app = content.application;
     String mod = content.module;
-    String text = 'Customized content not support.';
+    String text = 'Content not support.';
     return respondText(text, group: content.group, extra: {
       'template': 'Customized content (app: \${app}, mod: \${mod}, act: \${act}) not support yet!',
       'replacements': {

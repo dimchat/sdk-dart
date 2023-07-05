@@ -129,30 +129,35 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
 
   Future<List<Content>> _putDoc(ID identifier, Meta? meta, Document doc) async {
     Facebook barrack = facebook!;
-    if (meta != null) {
-      // received a meta for ID
-      if (await barrack.saveMeta(meta, identifier)) {
-        // meta saved
-      } else {
-        String text = 'Meta not accepted.';
+    // check meta
+    if (meta == null) {
+      meta = await facebook?.getMeta(identifier);
+      if (meta == null) {
+        String text = 'Meta not found.';
         return respondText(text, extra: {
-          'template': 'Meta not accepted: \${ID}.',
+          'template': 'Meta not found: \${ID}.',
           'replacements': {
             'ID': identifier.toString(),
           },
         });
       }
-    }
-    // receive a document for ID
-    if (await barrack.saveDocument(doc)) {
-      String text = 'Document received.';
+    } else if (await barrack.saveMeta(meta, identifier)) {
+      // meta accepted & saved
+    } else {
+      // meta error
+      String text = 'Meta not accepted.';
       return respondText(text, extra: {
-        'template': 'Document received: \${ID}.',
+        'template': 'Meta not accepted: \${ID}.',
         'replacements': {
           'ID': identifier.toString(),
         },
       });
-    } else {
+    }
+    // check document
+    bool isValid = doc.isValid || doc.verify(meta.key);
+    // TODO: check for group document
+    if (!isValid) {
+      // document error
       String text = 'Document not accepted.';
       return respondText(text, extra: {
         'template': 'Document not accepted: \${ID}.',
@@ -160,6 +165,23 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
           'ID': identifier.toString(),
         },
       });
+    } else if (await barrack.saveDocument(doc)) {
+      // document saved
+      String text = 'Document received.';
+      return respondText(text, extra: {
+        'template': 'Document received: \${ID}.',
+        'replacements': {
+          'ID': identifier.toString(),
+        },
+      });
     }
+    // document expired
+    String text = 'Document not changed.';
+    return respondText(text, extra: {
+      'template': 'Document not changed: \${ID}.',
+      'replacements': {
+        'ID': identifier.toString(),
+      },
+    });
   }
 }

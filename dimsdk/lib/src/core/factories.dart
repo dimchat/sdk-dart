@@ -188,6 +188,9 @@ void registerCommandFactories() {
   // Document Command
   Command.setFactory(Command.kDocument, CommandParser((dict) => BaseDocumentCommand(dict)));
 
+  // Receipt Command
+  Command.setFactory(Command.kReceipt, CommandParser((dict) => BaseReceiptCommand(dict)));
+
   // Group Commands
   Command.setFactory('group', GroupCommandFactory());
   Command.setFactory(GroupCommand.kInvite, CommandParser((dict) => InviteGroupCommand(dict)));
