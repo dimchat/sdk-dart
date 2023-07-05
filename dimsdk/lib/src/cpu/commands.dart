@@ -55,8 +55,13 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   Future<List<Content>> _getMeta(ID identifier) async {
     Meta? meta = await facebook?.getMeta(identifier);
     if (meta == null) {
-      String text = 'Sorry, meta not found for ID: $identifier';
-      return respondText(text);
+      String text = 'Meta not found.';
+      return respondText(text, extra: {
+        'template': 'Meta not found: \${ID}.',
+        'replacements': {
+          'ID': identifier.toString(),
+        },
+      });
     } else {
       return [MetaCommand.response(identifier, meta)];
     }
@@ -64,11 +69,21 @@ class MetaCommandProcessor extends BaseCommandProcessor {
 
   Future<List<Content>> _putMeta(ID identifier, Meta meta) async {
     if (await facebook!.saveMeta(meta, identifier)) {
-      String text = 'Meta received: $identifier';
-      return respondText(text);
+      String text = 'Meta received.';
+      return respondText(text, extra: {
+        'template': 'Meta received: \${ID}.',
+        'replacements': {
+          'ID': identifier.toString(),
+        },
+      });
     } else {
-      String text = 'Meta not accepted: $identifier';
-      return respondText(text);
+      String text = 'Meta not accepted.';
+      return respondText(text, extra: {
+        'template': 'Meta not accepted: \${ID}.',
+        'replacements': {
+          'ID': identifier.toString(),
+        },
+      });
     }
   }
 
@@ -99,8 +114,13 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     Facebook barrack = facebook!;
     Document? doc = await barrack.getDocument(identifier, docType);
     if (doc == null) {
-      String text = 'Sorry, document not found for ID: $identifier';
-      return respondText(text);
+      String text = 'Document not found.';
+      return respondText(text, extra: {
+        'template': 'Document not found: \${ID}.',
+        'replacements': {
+          'ID': identifier.toString(),
+        },
+      });
     } else {
       Meta? meta = await barrack.getMeta(identifier);
       return [DocumentCommand.response(identifier, meta, doc)];
@@ -114,17 +134,32 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
       if (await barrack.saveMeta(meta, identifier)) {
         // meta saved
       } else {
-        String text = 'Meta not accepted: $identifier';
-        return respondText(text);
+        String text = 'Meta not accepted.';
+        return respondText(text, extra: {
+          'template': 'Meta not accepted: \${ID}.',
+          'replacements': {
+            'ID': identifier.toString(),
+          },
+        });
       }
     }
     // receive a document for ID
     if (await barrack.saveDocument(doc)) {
-      String text = 'Document received: $identifier';
-      return respondText(text);
+      String text = 'Document received.';
+      return respondText(text, extra: {
+        'template': 'Document received: \${ID}.',
+        'replacements': {
+          'ID': identifier.toString(),
+        },
+      });
     } else {
-      String text = 'Document not accepted: $identifier';
-      return respondText(text);
+      String text = 'Document not accepted.';
+      return respondText(text, extra: {
+        'template': 'Document not accepted: \${ID}.',
+        'replacements': {
+          'ID': identifier.toString(),
+        },
+      });
     }
   }
 }
