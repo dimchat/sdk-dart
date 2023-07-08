@@ -91,7 +91,7 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     String text = 'Content not support.';
-    return respondText(text, group: content.group, extra: {
+    return respondReceipt(text, rMsg, group: content.group, extra: {
       'template': 'Content (type: \${type}) not support yet!',
       'replacements': {
         'type': content.type,
@@ -100,8 +100,8 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   }
 
   // protected
-  List<Content> respondText(String message, {ID? group, Map? extra}) {
-    Content res = TextReceiptCommand.from(message);
+  List<ReceiptCommand> respondReceipt(String text, ReliableMessage? rMsg, {ID? group, Map? extra}) {
+    ReceiptCommand res = ReceiptCommand.create(text, rMsg);
     if (group != null) {
       res.group = group;
     }
@@ -126,7 +126,7 @@ class BaseCommandProcessor extends BaseContentProcessor {
     assert(content is Command, 'command error: $content');
     Command command = content as Command;
     String text = 'Command not support.';
-    return respondText(text, group: content.group, extra: {
+    return respondReceipt(text, rMsg, group: content.group, extra: {
       'template': 'Command (name: \${command}) not support yet!',
       'replacements': {
         'command': command.cmd,

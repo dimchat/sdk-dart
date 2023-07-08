@@ -1,3 +1,7 @@
+## 0.1.0-dev.12
+
+- Respond receipt with origin message envelope.
+
 ## 0.1.0-dev.11
 
 - Document not changed.

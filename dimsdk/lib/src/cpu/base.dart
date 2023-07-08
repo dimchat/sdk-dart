@@ -80,6 +80,10 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
       case Command.kDocument:
         return DocumentCommandProcessor(facebook!, messenger!);
 
+      // receipt command
+      case Command.kReceipt:
+        return ReceiptCommandProcessor(facebook!, messenger!);
+
       // unknown
       default:
         return null;
