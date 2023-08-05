@@ -153,7 +153,7 @@ class BaseCenter {
   Future<void> post(Notification notification) async {
     Set<Observer>? listeners = _observers[notification.name]?.toSet();
     if (listeners == null) {
-      Log.warning('no listeners for notification: ${notification.name}');
+      Log.info('no listeners for notification: ${notification.name}');
       return;
     }
     List<Future> tasks = [];

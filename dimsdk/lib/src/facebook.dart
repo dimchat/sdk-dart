@@ -87,7 +87,7 @@ abstract class Facebook extends Barrack {
     if (identifier.isGroup) {
       ID? owner = await getOwner(identifier);
       if (owner != null) {
-        // check by owner's meta.key
+        // check by group owner's meta.key
         meta = await getMeta(owner);
       } else if (identifier.type == EntityType.kGroup) {
         // NOTICE: if this is a polylogue document,
@@ -99,6 +99,7 @@ abstract class Facebook extends Barrack {
         return false;
       }
     } else {
+      // check by user's meta.key
       meta = await getMeta(identifier);
     }
     return meta != null && doc.verify(meta.key);
@@ -110,6 +111,8 @@ abstract class Facebook extends Barrack {
     int network = identifier.type;
     // check user type
     if (network == EntityType.kStation) {
+      // TODO: get station ip,port before create it
+      // return Station(identifier, '0.0.0.0', 0);
       return Station.fromID(identifier);
     } else if (network == EntityType.kBot) {
       return Bot(identifier);
@@ -155,6 +158,7 @@ abstract class Facebook extends Barrack {
           return item;
         }
       }
+      // not mine?
       return null;
     }
     // group message (recipient not designated)

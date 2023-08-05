@@ -149,19 +149,22 @@ class LogPrinter {
     }
     int start = 0, end = chunkLength;
     for (; end < size; start = end, end += chunkLength) {
-      print(head + body.substring(start, end) + tail + carriageReturn);
+      _print(head + body.substring(start, end) + tail + carriageReturn);
     }
     if (start >= size) {
       // all chunks printed
       assert(start == size, 'should not happen');
     } else if (start == 0) {
       // body too short
-      print(head + body + tail);
+      _print(head + body + tail);
     } else {
       // print last chunk
-      print(head + body.substring(start) + tail);
+      _print(head + body.substring(start) + tail);
     }
   }
+
+  /// override for redirecting outputs
+  void _print(Object? object) => print(object);
 
 }
 

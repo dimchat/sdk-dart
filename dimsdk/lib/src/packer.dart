@@ -185,7 +185,7 @@ class MessagePacker extends TwinsHelper implements Packer {
 
   @override
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
-    // TODO: check sender before calling this, make sure meta exists
+    // TODO: check sender's meta exists before calling this
     Facebook barrack = facebook!;
     ID sender = rMsg.sender;
     // [Meta Protocol]
@@ -203,7 +203,7 @@ class MessagePacker extends TwinsHelper implements Packer {
     //
     //  NOTICE: check [Visa Protocol] before calling this
     //        make sure the sender's meta(visa) exists
-    //        (do in by application)
+    //        (do it by application)
     //
 
     assert((await rMsg.signature).isNotEmpty, 'message signature cannot be empty');

@@ -1,10 +1,10 @@
-## 0.1.0-dev.12
+## 0.1.0
 
-- Respond receipt with origin message envelope.
+- Version 0.1.0 released.
 
 ## 0.1.0-dev.11
 
-- Document not changed.
+- Respond receipt.
 
 ## 0.1.0-dev.10
 
