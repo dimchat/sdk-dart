@@ -28,9 +28,9 @@ import 'package:dimp/dimp.dart';
 import 'crypto/aes.dart';
 import 'crypto/digest.dart';
 import 'crypto/ecc.dart';
-import 'crypto/format.dart';
 import 'crypto/password.dart';
 import 'crypto/rsa.dart';
+import 'format/coders.dart';
 import 'mkm/entity.dart';
 import 'mkm/meta.dart';
 

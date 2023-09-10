@@ -28,7 +28,6 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 import 'ecc_utils.dart';
-import 'keys.dart';
 
 ///  ECC Public Key
 ///
@@ -47,9 +46,9 @@ class _ECCPublicKey extends BasePublicKey {
     return ECCKeyUtils.encodePublicKeyData(publicKey, compressed: compressed);
   }
 
-  bool get compressed => getBool('compressed') ?? false;
+  bool get compressed => getBool('compressed', false)!;
 
-  String _key() => getString('data')!;
+  String _key() => getString('data', '')!;
 
   @override
   bool verify(Uint8List data, Uint8List signature) {
@@ -100,7 +99,7 @@ class _ECCPrivateKey extends BasePrivateKey {
   }
 
   String _key() {
-    String? pem = getString('data');
+    String? pem = getString('data', null);
     if (pem != null) {
       return pem;
     }

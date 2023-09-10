@@ -27,7 +27,6 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-import 'keys.dart';
 import 'rsa_utils.dart';
 
 ///  RSA Public Key
@@ -46,11 +45,11 @@ class _RSAPublicKey extends BasePublicKey implements EncryptKey {
   }
 
   String _key() {
-    return getString('data')!;
+    return getString('data', '')!;
   }
 
   @override
-  Uint8List encrypt(Uint8List plaintext) {
+  Uint8List encrypt(Uint8List plaintext, Map? extra) {
     var publicKey = RSAKeyUtils.decodePublicKey(_key());
     return RSAKeyUtils.encrypt(plaintext, publicKey);
   }
@@ -103,7 +102,7 @@ class _RSAPrivateKey extends BasePrivateKey implements DecryptKey {
   }
 
   String _key() {
-    String? pem = getString('data');
+    String? pem = getString('data', null);
     if (pem != null) {
       return pem;
     }
@@ -120,7 +119,7 @@ class _RSAPrivateKey extends BasePrivateKey implements DecryptKey {
   }
 
   @override
-  Uint8List? decrypt(Uint8List ciphertext) {
+  Uint8List? decrypt(Uint8List ciphertext, Map? params) {
     try {
       var privateKey = RSAKeyUtils.decodePrivateKey(_key());
       return RSAKeyUtils.decrypt(ciphertext, privateKey);
@@ -137,7 +136,7 @@ class _RSAPrivateKey extends BasePrivateKey implements DecryptKey {
   }
 
   @override
-  bool match(EncryptKey pKey) {
+  bool matchEncryptKey(EncryptKey pKey) {
     CryptographyKeyFactoryManager man = CryptographyKeyFactoryManager();
     return man.generalFactory.matchSymmetricKeys(pKey, this);
   }

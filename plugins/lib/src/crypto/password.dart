@@ -27,8 +27,6 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-import 'keys.dart';
-
 ///  This is for generating symmetric key with a text string
 class Password {
 
@@ -76,12 +74,12 @@ class PlainKey extends BaseSymmetricKey {
   Uint8List get data => Uint8List(0);
 
   @override
-  Uint8List? decrypt(Uint8List ciphertext) {
+  Uint8List? decrypt(Uint8List ciphertext, Map? params) {
     return ciphertext;
   }
 
   @override
-  Uint8List encrypt(Uint8List plaintext) {
+  Uint8List encrypt(Uint8List plaintext, Map? extra) {
     return plaintext;
   }
 

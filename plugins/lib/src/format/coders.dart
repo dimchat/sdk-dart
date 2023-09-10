@@ -29,7 +29,9 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 import 'package:fast_base58/fast_base58.dart';
 
-import 'aes.dart';
+import '../crypto/aes.dart';
+import 'pnf.dart';
+import 'ted.dart';
 
 /// UTF-8
 class _UTF8Coder implements StringCoder {
@@ -137,9 +139,23 @@ class _Base64Coder implements DataCoder {
 }
 
 void registerDataCoders() {
+
+  // UTF-8
   UTF8.coder = _UTF8Coder();
+  // JSON
   JSON.coder = _JSONCoder();
+
+  // HEX, BASE-58, BASE-64
   Hex.coder = _HexCoder();
   Base58.coder = _Base58Coder();
   Base64.coder = _Base64Coder();
+
+  // PNF
+  PortableNetworkFile.setFactory(BaseNetworkFileFactory());
+
+  // TED
+  var tedFactory = Base64DataFactory();
+  TransportableData.setFactory(TransportableData.kBASE_64, tedFactory);
+  TransportableData.setFactory(TransportableData.kDefault, tedFactory);
+  TransportableData.setFactory('*', tedFactory);
 }

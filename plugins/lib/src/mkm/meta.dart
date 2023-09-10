@@ -102,7 +102,7 @@ class _BTCMeta extends BaseMeta {
       //   // TODO: compress public key?
       //   key['compressed'] = 1;
       // }
-      Uint8List data = key.data;
+      Uint8List data = publicKey.data;
       // generate and cache it
       _cachedAddress = BTCAddress.generate(data, network!);
     }
@@ -138,7 +138,7 @@ class _ETHMeta extends BaseMeta {
     assert(network == null || network == EntityType.kUser, 'address type error: $network');
     if (_cachedAddress == null/* || cached.type != network*/) {
       // 64 bytes key data without prefix 0x04
-      Uint8List data = key.data;
+      Uint8List data = publicKey.data;
       // generate and cache it
       _cachedAddress = ETHAddress.generate(data);
     }
@@ -190,7 +190,7 @@ class _MetaFactory implements MetaFactory {
   Meta? parseMeta(Map meta) {
     Meta out;
     AccountFactoryManager man = AccountFactoryManager();
-    int? type = man.generalFactory.getMetaType(meta);
+    int? type = man.generalFactory.getMetaType(meta, 0);
     assert(type != null, 'failed to get meta type: $meta');
     if (type == MetaType.kMKM) {
       // MKM

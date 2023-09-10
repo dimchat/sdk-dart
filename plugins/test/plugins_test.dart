@@ -90,6 +90,8 @@ void testPassword() {
 void testAES() {
   debugLog('======== testAES ========');
 
+  Map extra = {};
+
   Map dictionary = {
     'algorithm': 'AES',
     'data': 'C2+xGizLL1G1+z9QLPYNdp/bPP/seDvNw45SXPAvQqk=',
@@ -109,11 +111,11 @@ void testAES() {
 
   text = 'moky';
   plaintext = UTF8.encode(text);
-  ciphertext = key.encrypt(plaintext);
+  ciphertext = key.encrypt(plaintext, extra);
   debugLog('encrypt ($text) = ${Hex.encode(ciphertext)}');
   debugLog('encrypt ($text) = ${Base64.encode(ciphertext)}');
 
-  data = key.decrypt(ciphertext)!;
+  data = key.decrypt(ciphertext, extra)!;
   decrypt = UTF8.decode(data)!;
   debugLog('decrypt to $decrypt');
   debugLog('$text -> ${Base64.encode(ciphertext)} => $decrypt');
@@ -125,15 +127,15 @@ void testAES() {
   debugAssert(key == key2, 'AES keys equal');
 
   ciphertext = Base64.decode(exp)!;
-  plaintext = key2.decrypt(ciphertext)!;
+  plaintext = key2.decrypt(ciphertext, extra)!;
   debugLog('FIXED: $text -> $plaintext');
 
   String? res;
 
   // random key
   key = SymmetricKey.generate(SymmetricKey.kAES)!;
-  ciphertext = key.encrypt(data);
-  plaintext = key.decrypt(ciphertext)!;
+  ciphertext = key.encrypt(data, extra);
+  plaintext = key.decrypt(ciphertext, extra)!;
   res = UTF8.decode(plaintext);
   debugAssert(res == text, 'AES ($text) => ${Hex.encode(ciphertext)} => $plaintext = $res');
 }
@@ -144,6 +146,8 @@ void testAES() {
 
 void testRSA() {
   debugLog('======== testRSA ========');
+
+  Map extra = {};
 
   PrivateKey sKey;
   PublicKey pKey;
@@ -161,12 +165,12 @@ void testRSA() {
 
   text = 'moky';
   plaintext = UTF8.encode(text);
-  ciphertext = (pKey as EncryptKey).encrypt(plaintext);
+  ciphertext = (pKey as EncryptKey).encrypt(plaintext, extra);
   debugLog('RSA encrypt ($text) = ${Hex.encode(ciphertext)}');
 
   Uint8List? data;
   String? decrypt;
-  data = (sKey as DecryptKey).decrypt(ciphertext);
+  data = (sKey as DecryptKey).decrypt(ciphertext, extra);
   decrypt = data == null ? null : UTF8.decode(data);
 
   debugAssert(text == decrypt, 'decrypt to $decrypt');
