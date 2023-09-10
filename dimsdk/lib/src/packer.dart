@@ -37,7 +37,14 @@ import 'facebook.dart';
 import 'messenger.dart';
 
 class MessagePacker extends TwinsHelper implements Packer {
-  MessagePacker(super.facebook, super.messenger);
+  MessagePacker(super.facebook, super.messenger)
+      : _instantPacker = PlainMessagePacker(messenger),
+        _securePacker = EncryptedMessagePacker(messenger),
+        _reliablePacker = NetworkMessagePacker(messenger);
+
+  final PlainMessagePacker _instantPacker;
+  final EncryptedMessagePacker _securePacker;
+  final NetworkMessagePacker _reliablePacker;
 
   @override
   Future<ID?> getOvertGroup(Content content) async {
@@ -68,9 +75,6 @@ class MessagePacker extends TwinsHelper implements Packer {
     //       if receiver is a group, query all members' visa too!
 
     Messenger transceiver = messenger!;
-    // check message delegate
-    iMsg.delegate ??= transceiver;
-
     ID sender = iMsg.sender;
     ID receiver = iMsg.receiver;
     // if 'group' exists and the 'receiver' is a group ID,
@@ -114,10 +118,10 @@ class MessagePacker extends TwinsHelper implements Packer {
       assert(grp != null, 'group not ready: $receiver');
       List<ID> members = await grp!.members;
       assert(members.isNotEmpty, 'group members not found: $receiver');
-      sMsg = await iMsg.encrypt(password!, members: members);
+      sMsg = await _instantPacker.encrypt(iMsg, password!, members: members);
     } else {
       // personal message (or split group message)
-      sMsg = await iMsg.encrypt(password!);
+      sMsg = await _instantPacker.encrypt(iMsg, password!);
     }
     if (sMsg == null) {
       // public key for encryption not found
@@ -145,10 +149,9 @@ class MessagePacker extends TwinsHelper implements Packer {
 
   @override
   Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
-    // check message delegate
-    sMsg.delegate ??= messenger;
+    assert((await sMsg.data).isNotEmpty, 'message data cannot be empty');
     // sign 'data' by sender
-    return await sMsg.sign();
+    return await _securePacker.sign(sMsg);
   }
 
   @override
@@ -198,17 +201,15 @@ class MessagePacker extends TwinsHelper implements Packer {
     if (visa != null) {
       await barrack.saveDocument(visa);
     }
-    // check message delegate
-    rMsg.delegate ??= messenger;
     //
-    //  NOTICE: check [Visa Protocol] before calling this
+    //  TODO: check [Visa Protocol] before calling this
     //        make sure the sender's meta(visa) exists
     //        (do it by application)
     //
 
     assert((await rMsg.signature).isNotEmpty, 'message signature cannot be empty');
     // verify 'data' with 'signature'
-    return rMsg.verify();
+    return await _reliablePacker.verify(rMsg);
   }
 
   @override
@@ -225,7 +226,7 @@ class MessagePacker extends TwinsHelper implements Packer {
       trimmed = null;
     } else if (receiver.isGroup) {
       // trim group message
-      trimmed = await sMsg.trim(user.identifier);
+      trimmed = await _securePacker.trim(sMsg, user.identifier);
     } else {
       trimmed = sMsg;
     }
@@ -234,8 +235,6 @@ class MessagePacker extends TwinsHelper implements Packer {
       assert(false, 'receiver error: $sMsg');
       return null;
     }
-    // check message delegate
-    sMsg.delegate ??= messenger;
     //
     //  NOTICE: make sure the receiver is YOU!
     //          which means the receiver's private key exists;
@@ -244,7 +243,7 @@ class MessagePacker extends TwinsHelper implements Packer {
 
     assert((await sMsg.data).isNotEmpty, 'message data cannot be empty');
     // decrypt 'data' to 'content'
-    return sMsg.decrypt();
+    return await _securePacker.decrypt(sMsg);
 
     // TODO: check top-secret message
     //       (do it by application)

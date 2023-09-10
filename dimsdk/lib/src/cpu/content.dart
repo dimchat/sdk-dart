@@ -41,7 +41,7 @@ abstract class ContentProcessor {
   /// @param content - content received
   /// @param rMsg    - reliable message
   /// @return {Content} response to sender
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg);
+  Future<List<Content>> process(Content content, ReliableMessage rMsg);
 
 }
 
@@ -89,7 +89,7 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   BaseContentProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     String text = 'Content not support.';
     return respondReceipt(text, rMsg, group: content.group, extra: {
       'template': 'Content (type: \${type}) not support yet!',
@@ -100,16 +100,16 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   }
 
   // protected
-  List<ReceiptCommand> respondReceipt(String text, ReliableMessage? rMsg, {ID? group, Map? extra}) {
-    ReceiptCommand res = ReceiptCommand.create(text, rMsg);
+  List<ReceiptCommand> respondReceipt(String text, ReliableMessage? rMsg,
+      {ID? group, Map<String, Object>? extra}) {
+    // create base receipt command with text & original envelope
+    ReceiptCommand res = ReceiptCommand.from(text, rMsg);
     if (group != null) {
       res.group = group;
     }
+    // add extra key-values
     if (extra != null) {
-      extra.forEach((key, value) {
-        assert(key is String, 'error key: $key');
-        res[key] = value;
-      });
+      res.addAll(extra);
     }
     return [res];
   }
@@ -122,7 +122,7 @@ class BaseCommandProcessor extends BaseContentProcessor {
   BaseCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     assert(content is Command, 'command error: $content');
     Command command = content as Command;
     String text = 'Command not support.';

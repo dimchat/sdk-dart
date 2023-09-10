@@ -40,15 +40,14 @@ abstract class CipherKeyDelegate {
   /// @param receiver - to where (contact or user/group ID)
   /// @param generate - generate when key not exists
   /// @return cipher key
-  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver,
-      {bool generate = false});
+  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver, {bool generate = false});
 
   ///  Cache cipher key for reusing, with the direction ('sender' => 'receiver')
   ///
   /// @param sender - from where (user or contact ID)
   /// @param receiver - to where (contact or user/group ID)
   /// @param key - cipher key
-  Future<void> cacheCipherKey(ID sender, ID receiver, SymmetricKey? key);
+  Future<void> cacheCipherKey(ID sender, ID receiver, SymmetricKey key);
 
 }
 
@@ -70,13 +69,11 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
   //
 
   @override
-  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver,
-      {bool generate = false}) async =>
+  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver, {bool generate = false}) async =>
       await cipherKeyDelegate?.getCipherKey(sender, receiver, generate: generate);
 
   @override
-  Future<void> cacheCipherKey(ID sender, ID receiver,
-      SymmetricKey? key) async =>
+  Future<void> cacheCipherKey(ID sender, ID receiver, SymmetricKey key) async =>
       await cipherKeyDelegate?.cacheCipherKey(sender, receiver, key);
 
   //
@@ -124,40 +121,35 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
       await processor!.processReliableMessage(rMsg);
 
   @override
-  Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg,
-      ReliableMessage rMsg) async =>
+  Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) async =>
       await processor!.processSecureMessage(sMsg, rMsg);
 
   @override
-  Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg,
-      ReliableMessage rMsg) async =>
+  Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) async =>
       await processor!.processInstantMessage(iMsg, rMsg);
 
   @override
-  Future<List<Content>> processContent(Content content,
-      ReliableMessage rMsg) async =>
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async =>
       await processor!.processContent(content, rMsg);
 
   //-------- SecureMessageDelegate
 
   @override
-  Future<SymmetricKey?> deserializeKey(Uint8List? key, ID sender, ID receiver,
-      SecureMessage sMsg) async {
+  Future<SymmetricKey?> deserializeKey(Uint8List? key, ID receiver, SecureMessage sMsg) async {
     if (key == null) {
       // get key from cache
-      return await getCipherKey(sender, receiver, generate: false);
+      return await getCipherKey(sMsg.sender, receiver, generate: false);
     } else {
-      return await super.deserializeKey(key, sender, receiver, sMsg);
+      return await super.deserializeKey(key, receiver, sMsg);
     }
   }
 
   @override
-  Future<Content?> deserializeContent(Uint8List data, SymmetricKey password,
-      SecureMessage sMsg) async {
+  Future<Content?> deserializeContent(Uint8List data, SymmetricKey password, SecureMessage sMsg) async {
     Content? content = await super.deserializeContent(data, password, sMsg);
     assert(content != null, 'content error: ${data.length}');
 
-    if (!Transceiver.isBroadcastMessage(sMsg) && content != null) {
+    if (!BaseMessage.isBroadcast(sMsg) && content != null) {
       // check and cache key for reuse
       ID? group = await getOvertGroup(content);
       if (group == null) {

@@ -38,7 +38,7 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   MetaCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     assert(content is MetaCommand, 'meta command error: $content');
     MetaCommand command = content as MetaCommand;
     Meta? meta = command.meta;
@@ -94,20 +94,21 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
   DocumentCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     assert(content is DocumentCommand, 'document command error: $content');
     DocumentCommand command = content as DocumentCommand;
     ID identifier = command.identifier;
     Document? doc = command.document;
     if (doc == null) {
       // query entity document for ID
-      String? docType = command.getString('doc_type');
-      docType ??= '*';  // ANY
+      String docType = command.getString('doc_type', '*')!;
       return await _getDoc(identifier, docType, rMsg);
-    } else {
+    } else if (identifier == doc.identifier) {
       // received a meta for ID
       return await _putDoc(identifier, command.meta, doc, rMsg);
     }
+    // error
+    return respondReceipt('Document ID not match.', rMsg);
   }
 
   Future<List<Content>> _getDoc(ID identifier, String docType, ReliableMessage rMsg) async {
@@ -154,7 +155,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
       });
     }
     // check document
-    bool isValid = doc.isValid || doc.verify(meta.key);
+    bool isValid = doc.isValid || doc.verify(meta.publicKey);
     // TODO: check for group document
     if (!isValid) {
       // document error
@@ -191,9 +192,9 @@ class ReceiptCommandProcessor extends BaseCommandProcessor {
   ReceiptCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     assert(content is ReceiptCommand, 'receipt command error: $content');
-    // no need to response login command
+    // no need to response receipt command
     return [];
   }
 

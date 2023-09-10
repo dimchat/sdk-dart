@@ -102,7 +102,7 @@ abstract class Facebook extends Barrack {
       // check by user's meta.key
       meta = await getMeta(identifier);
     }
-    return meta != null && doc.verify(meta.key);
+    return meta != null && doc.verify(meta.publicKey);
   }
 
   // protected
@@ -111,8 +111,6 @@ abstract class Facebook extends Barrack {
     int network = identifier.type;
     // check user type
     if (network == EntityType.kStation) {
-      // TODO: get station ip,port before create it
-      // return Station(identifier, '0.0.0.0', 0);
       return Station.fromID(identifier);
     } else if (network == EntityType.kBot) {
       return Bot(identifier);
@@ -148,7 +146,7 @@ abstract class Facebook extends Barrack {
       return null;
     } else if (receiver.isBroadcast) {
       // broadcast message can decrypt by anyone, so just return current user
-      return users[0];
+      return users.first;
     } else if (receiver.isUser) {
       // 1. personal message
       // 2. split group message
@@ -170,6 +168,8 @@ abstract class Facebook extends Barrack {
       assert(false, "group not ready: $receiver");
       return null;
     }
+    // if a group can be create, means its meta, bulletin document,
+    // and owner, members are all ready, so members should not be empty here.
     List<ID> members = await grp.members;
     assert(members.isNotEmpty, "members not found: $receiver");
     for (User item in users) {

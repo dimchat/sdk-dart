@@ -64,13 +64,11 @@ class GeneralCommandFactory implements ContentFactory, CommandFactory {
   Content? parseContent(Map content) {
     // get factory by command name
     CommandFactoryManager man = CommandFactoryManager();
-    String? cmd = man.generalFactory.getCmd(content);
-    // assert(cmd != null, 'command name not found: $info');
-    CommandFactory? factory;
-    factory = cmd == null ? null : man.generalFactory.getCommandFactory(cmd);
+    String cmd = man.generalFactory.getCmd(content, '*')!;
+    CommandFactory? factory = man.generalFactory.getCommandFactory(cmd);
     if (factory == null) {
       // check for group command
-      if (content.containsKey('group') && cmd != 'group') {
+      if (content.containsKey('group')/* && cmd != 'group'*/) {
         factory = man.generalFactory.getCommandFactory('group');
       }
       factory ??= this;
@@ -102,10 +100,8 @@ class GroupCommandFactory extends HistoryCommandFactory {
   Content? parseContent(Map content) {
     // get factory by command name
     CommandFactoryManager man = CommandFactoryManager();
-    String? cmd = man.generalFactory.getCmd(content);
-    // assert(cmd != null, 'command name not found: $info');
-    CommandFactory? factory;
-    factory = cmd == null ? null : man.generalFactory.getCommandFactory(cmd);
+    String cmd = man.generalFactory.getCmd(content, '*')!;
+    CommandFactory? factory = man.generalFactory.getCommandFactory(cmd);
     factory ??= this;
     return factory.parseCommand(content);
   }
@@ -199,6 +195,10 @@ void registerCommandFactories() {
   Command.setFactory(GroupCommand.kQuit,   CommandParser((dict) => QuitGroupCommand(dict)));
   Command.setFactory(GroupCommand.kQuery,  CommandParser((dict) => QueryGroupCommand(dict)));
   Command.setFactory(GroupCommand.kReset,  CommandParser((dict) => ResetGroupCommand(dict)));
+  // Group Admin Commands
+  Command.setFactory(GroupCommand.kHire,  CommandParser((dict) => HireGroupCommand(dict)));
+  Command.setFactory(GroupCommand.kFire,  CommandParser((dict) => FireGroupCommand(dict)));
+  Command.setFactory(GroupCommand.kResign,  CommandParser((dict) => ResignGroupCommand(dict)));
 
 }
 

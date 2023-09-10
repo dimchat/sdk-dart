@@ -84,6 +84,7 @@ class MessageProcessor extends TwinsHelper implements Processor {
     for (ReliableMessage res in responses) {
       pack = await transceiver.serializeMessage(res);
       if (pack == null) {
+        // should not happen
         continue;
       }
       packages.add(pack);
@@ -113,11 +114,13 @@ class MessageProcessor extends TwinsHelper implements Processor {
     for (SecureMessage res in responses) {
       msg = await transceiver.signMessage(res);
       if (msg == null) {
+        // should not happen
         continue;
       }
       messages.add(msg);
     }
     return messages;
+    // TODO: override to deliver to the receiver when catch exception "receiver error ..."
   }
 
   @override
@@ -142,6 +145,7 @@ class MessageProcessor extends TwinsHelper implements Processor {
     for (InstantMessage res in responses) {
       msg = await transceiver.encryptMessage(res);
       if (msg == null) {
+        // should not happen
         continue;
       }
       messages.add(msg);
@@ -166,12 +170,13 @@ class MessageProcessor extends TwinsHelper implements Processor {
       assert(false, 'receiver error: $receiver');
       return [];
     }
+    ID me = user.identifier;
     // 3. pack messages
     List<InstantMessage> messages = [];
     Envelope env;
     for (Content res in responses) {
       // assert(res.isNotEmpty, 'should not happen');
-      env = Envelope.create(sender: user.identifier, receiver: sender);
+      env = Envelope.create(sender: me, receiver: sender);
       iMsg = InstantMessage.create(env, res);
       // assert(iMsg.isNotEmpty, 'should not happen');
       messages.add(iMsg);
@@ -188,7 +193,7 @@ class MessageProcessor extends TwinsHelper implements Processor {
       cpu = getContentProcessor(0);
       assert(cpu != null, 'failed to get default CPU');
     }
-    return cpu!.processContent(content, rMsg);
+    return cpu!.process(content, rMsg);
     // TODO: override to filter the responses
   }
 

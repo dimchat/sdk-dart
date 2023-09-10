@@ -106,12 +106,13 @@ class BaseContentProcessorFactory extends TwinsHelper implements ContentProcesso
     ContentProcessor? cpu;
     int msgType = content.type;
     if (content is Command) {
-      String cmd = content.cmd;
+      String name = content.cmd ?? '*';
       // command processor
-      cpu = getCommandProcessor(msgType, cmd);
+      cpu = getCommandProcessor(msgType, name);
       if (cpu != null) {
         return cpu;
       } else if (content is GroupCommand) {
+        assert(name != 'group', 'command name error: $content');
         // group command processor
         cpu = getCommandProcessor(msgType, 'group');
         if (cpu != null) {

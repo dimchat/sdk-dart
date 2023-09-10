@@ -40,19 +40,23 @@ class Station implements User {
     _user = BaseUser(identifier);
     _host = host;
     _port = port;
+    _isp = null;
   }
-
-  Station.fromID(ID identifier) : this(identifier, null, 0);
-  Station.fromRemote(String host, int port) : this(kAny, host, port);
 
   /// Broadcast
   static ID kAny = Identifier('station@anywhere', name: 'station', address: Address.kAnywhere);
   static ID kEvery = Identifier('stations@everywhere', name: 'stations', address: Address.kEverywhere);
 
+  // inner user
   late User _user;
 
   String? _host;
   int? _port;
+
+  ID? _isp;
+
+  Station.fromID(ID identifier) : this(identifier, null, 0);
+  Station.fromRemote(String host, int port) : this(kAny, host, port);
 
   @override
   ID get identifier => _user.identifier;
@@ -69,15 +73,13 @@ class Station implements User {
   /// Station Port
   int? get port => _port;
 
+  ///  ISP ID, station group
+  ID? get provider => _isp;
+
   @override
   bool operator ==(Object other) {
     if (other is Station) {
-      if (identical(this, other)) {
-        // same object
-        return true;
-      }
-      // check (host:port)
-      return other.port == port && other.host == host;
+      return _sameStation(other, this);
     }
     return _user == other;
   }
@@ -98,23 +100,23 @@ class Station implements User {
     return '<$clazz id="$identifier" network=$network host="$_host" port=$_port />';
   }
 
+  /// Reload station info: host & port, SP ID
   Future<void> reload() async {
     Document? doc = await getDocument('*');
     if (doc != null) {
-      _host = doc.getProperty('host');
-      _port = doc.getProperty('port');
+      String? host = doc.getProperty('host');
+      if (host != null) {
+        _host = host;
+      }
+      int? port = doc.getProperty('port');
+      if (port != null) {
+        _port = port;
+      }
+      ID? sp = ID.parse(doc.getProperty('ISP'));
+      if (sp != null) {
+        _isp = sp;
+      }
     }
-  }
-
-  ///  Get provider ID
-  ///
-  /// @return ISP ID, station group
-  Future<ID?> get provider async {
-    Document? doc = await getDocument('*');
-    if (doc == null) {
-      return null;
-    }
-    return ID.parse(doc.getProperty('ISP'));
   }
 
   //-------- Entity
@@ -173,4 +175,42 @@ class Station implements User {
   @override
   Future<bool> verifyVisa(Visa doc) async => await _user.verifyVisa(doc);
 
+}
+
+///
+/// Comparison
+///
+
+bool _sameStation(Station a, Station b) {
+  if (identical(a, b)) {
+    // same object
+    return true;
+  }
+  return _checkIdentifiers(a.identifier, b.identifier)
+      && _checkHosts(a.host, b.host)
+      && _checkPorts(a.port, b.port);
+}
+
+bool _checkIdentifiers(ID a, ID b) {
+  if (identical(a, b)) {
+    // same object
+    return true;
+  } else if (a.isBroadcast || b.isBroadcast) {
+    return true;
+  }
+  return a == b;
+}
+bool _checkHosts(String? a, String? b) {
+  if (a == null || b == null) {
+    return true;
+  }
+  return a == b;
+}
+bool _checkPorts(int? a, int? b) {
+  if (a == null || b == null) {
+    return true;
+  } else if (a == 0 || b == 0) {
+    return true;
+  }
+  return a == b;
 }

@@ -56,7 +56,7 @@ class CustomizedContentProcessor extends BaseContentProcessor implements Customi
   CustomizedContentProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
     assert(content is CustomizedContent, 'customized content error: $content');
     CustomizedContent customized = content as CustomizedContent;
     // 1. check app id

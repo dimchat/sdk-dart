@@ -34,6 +34,16 @@ import 'package:dimp/dimp.dart';
 class ServiceProvider extends BaseGroup {
   ServiceProvider(super.id);
 
-  Future<List<ID>> get stations async => await members;
+  Future<List> get stations async {
+    Document? doc = await getDocument('*');
+    if (doc != null) {
+      var stations = doc.getProperty('stations');
+      if (stations is List) {
+        return stations;
+      }
+    }
+    // TODO: load from local storage
+    return [];
+  }
 
 }
