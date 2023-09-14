@@ -32,9 +32,11 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import 'provider.dart';
+
 ///  DIM Server
 class Station implements User {
-  Station(ID identifier, String? host, int? port) {
+  Station(ID identifier, String? host, int port) {
     assert(identifier.type == EntityType.kStation
         || identifier.type == EntityType.kAny, 'station ID error: $identifier');
     _user = BaseUser(identifier);
@@ -51,7 +53,7 @@ class Station implements User {
   late User _user;
 
   String? _host;
-  int? _port;
+  late int _port = 0;
 
   ID? _isp;
 
@@ -71,7 +73,7 @@ class Station implements User {
   String? get host => _host;
 
   /// Station Port
-  int? get port => _port;
+  int get port => _port;
 
   ///  ISP ID, station group
   ID? get provider => _isp;
@@ -79,15 +81,15 @@ class Station implements User {
   @override
   bool operator ==(Object other) {
     if (other is Station) {
-      return _sameStation(other, this);
+      return ServiceProvider.sameStation(other, this);
     }
     return _user == other;
   }
 
   @override
   int get hashCode {
-    if (_host != null && _port != null) {
-      return _host.hashCode + _port! * 13;
+    if (_host != null) {
+      return _host.hashCode + _port * 13;
     }
     return _user.hashCode;
   }
@@ -104,12 +106,12 @@ class Station implements User {
   Future<void> reload() async {
     Document? doc = await getDocument('*');
     if (doc != null) {
-      String? host = doc.getProperty('host');
+      String? host = Converter.getString(doc.getProperty('host'), null);
       if (host != null) {
         _host = host;
       }
-      int? port = doc.getProperty('port');
-      if (port != null) {
+      int port = Converter.getInt(doc.getProperty('port'), 0)!;
+      if (port > 0) {
         _port = port;
       }
       ID? sp = ID.parse(doc.getProperty('ISP'));
@@ -175,42 +177,4 @@ class Station implements User {
   @override
   Future<bool> verifyVisa(Visa doc) async => await _user.verifyVisa(doc);
 
-}
-
-///
-/// Comparison
-///
-
-bool _sameStation(Station a, Station b) {
-  if (identical(a, b)) {
-    // same object
-    return true;
-  }
-  return _checkIdentifiers(a.identifier, b.identifier)
-      && _checkHosts(a.host, b.host)
-      && _checkPorts(a.port, b.port);
-}
-
-bool _checkIdentifiers(ID a, ID b) {
-  if (identical(a, b)) {
-    // same object
-    return true;
-  } else if (a.isBroadcast || b.isBroadcast) {
-    return true;
-  }
-  return a == b;
-}
-bool _checkHosts(String? a, String? b) {
-  if (a == null || b == null) {
-    return true;
-  }
-  return a == b;
-}
-bool _checkPorts(int? a, int? b) {
-  if (a == null || b == null) {
-    return true;
-  } else if (a == 0 || b == 0) {
-    return true;
-  }
-  return a == b;
 }

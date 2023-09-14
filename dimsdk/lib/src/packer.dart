@@ -33,36 +33,22 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 import 'core/twins.dart';
+import 'delegate.dart';
 import 'facebook.dart';
-import 'messenger.dart';
+import 'msg/instant.dart';
+import 'msg/reliable.dart';
+import 'msg/secure.dart';
 
 class MessagePacker extends TwinsHelper implements Packer {
   MessagePacker(super.facebook, super.messenger)
-      : _instantPacker = PlainMessagePacker(messenger),
-        _securePacker = EncryptedMessagePacker(messenger),
-        _reliablePacker = NetworkMessagePacker(messenger);
+      : instantPacker = InstantMessagePacker(messenger),
+        securePacker = SecureMessagePacker(messenger),
+        reliablePacker = ReliableMessagePacker(messenger);
 
-  final PlainMessagePacker _instantPacker;
-  final EncryptedMessagePacker _securePacker;
-  final NetworkMessagePacker _reliablePacker;
-
-  @override
-  Future<ID?> getOvertGroup(Content content) async {
-    ID? group = content.group;
-    if (group == null) {
-      return null;
-    }
-    if (group.isBroadcast) {
-      // broadcast message is always overt
-      return group;
-    }
-    if (content is Command) {
-      // group command should be sent to each member directly, so
-      // don't expose group ID
-      return null;
-    }
-    return group;
-  }
+  // protected
+  final InstantMessagePacker instantPacker;
+  final SecureMessagePacker securePacker;
+  final ReliableMessagePacker reliablePacker;
 
   //
   //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
@@ -74,69 +60,49 @@ class MessagePacker extends TwinsHelper implements Packer {
     //       otherwise, suspend this message for waiting receiver's visa/meta;
     //       if receiver is a group, query all members' visa too!
 
-    Messenger transceiver = messenger!;
     ID sender = iMsg.sender;
     ID receiver = iMsg.receiver;
-    // if 'group' exists and the 'receiver' is a group ID,
-    // they must be equal
+    // NOTICE: before sending group message, you can decide whether expose the group ID
+    //      (A) if you don't want to expose the group ID,
+    //          you can split it to multi-messages before encrypting,
+    //          replace the 'receiver' to each member and keep the group hidden in the content;
+    //          in this situation, the packer will use the personal message key (user to user);
+    //      (B) if the group ID is overt, no need to worry about the exposing,
+    //          you can keep the 'receiver' being the group ID, or set the group ID as 'group'
+    //          when splitting to multi-messages to let the remote packer knows it;
+    //          in these situations, the local packer will use the group msg key (user to group)
+    //          to encrypt the message, and the remote packer can get the overt group ID before
+    //          decrypting to take the right message key.
+    ID? overtGroup = ID.parse(iMsg['group']);
+    ID target = CipherKeyDelegate.getDestination(receiver, overtGroup);
 
-    // NOTICE: while sending group message, don't split it before encrypting.
-    //         this means you could set group ID into message content, but
-    //         keep the "receiver" to be the group ID;
-    //         after encrypted (and signed), you could split the message
-    //         with group members before sending out, or just send it directly
-    //         to the group assistant to let it split messages for you!
-    //    BUT,
-    //         if you don't want to share the symmetric key with other members,
-    //         you could split it (set group ID into message content and
-    //         set contact ID to the "receiver") before encrypting, this usually
-    //         for sending group command to assistant bot, which should not
-    //         share the symmetric key (group msg key) with other members.
+    //
+    //  1. get message key with direction (sender -> receiver) or (sender -> group)
+    //
+    SymmetricKey? password = await messenger?.getCipherKey(sender, target, generate: true);
+    assert(password != null, 'failed to get msg key: $sender => $receiver, $overtGroup');
 
-    // 1. get symmetric key
-    ID? group = await transceiver.getOvertGroup(iMsg.content);
-    SymmetricKey? password;
-    if (group == null) {
-      // personal message or (group) command
-      password = await transceiver.getCipherKey(sender, receiver, generate: true);
-      assert(password != null, 'failed to get msg key: $sender -> $receiver');
-    } else {
-      // group message (excludes group command)
-      password = await transceiver.getCipherKey(sender, group, generate: true);
-      assert(password != null, 'failed to get group msg key: $sender -> $group');
-    }
-
-    // 2. encrypt 'content' to 'data' for receiver/group members
+    //
+    //  2. encrypt 'content' to 'data' for receiver/group members
+    //
     SecureMessage? sMsg;
     if (receiver.isGroup) {
       // group message
-      Group? grp = facebook?.getGroup(receiver);
+      List<ID> members = await facebook!.getMembers(receiver);
+      assert(members.isNotEmpty, 'group not ready: $receiver');
       // a station will never send group message, so here must be a client;
-      // and the client messenger should check the group's meta & members
-      // before encrypting message, so we can trust that the group can be
-      // created and its members MUST exist here.
-      assert(grp != null, 'group not ready: $receiver');
-      List<ID> members = await grp!.members;
-      assert(members.isNotEmpty, 'group members not found: $receiver');
-      sMsg = await _instantPacker.encrypt(iMsg, password!, members: members);
+      // the client messenger should check the group's meta & members before encrypting,
+      // so we can trust that the group members MUST exist here.
+      sMsg = await instantPacker.encrypt(iMsg, password!, members: members);
     } else {
       // personal message (or split group message)
-      sMsg = await _instantPacker.encrypt(iMsg, password!);
+      sMsg = await instantPacker.encrypt(iMsg, password!);
     }
     if (sMsg == null) {
       // public key for encryption not found
       assert(false, 'failed to encrypt message: $iMsg');
       // TODO: suspend this message for waiting receiver's meta
       return null;
-    }
-
-    // overt group ID
-    if (group != null && group != receiver) {
-      // NOTICE: this help the receiver knows the group ID
-      //         when the group message separated to multi-messages,
-      //         if don't want the others know you are the group members,
-      //         remove it.
-      sMsg.envelope.group = group;
     }
 
     // NOTICE: copy content type to envelope
@@ -151,7 +117,7 @@ class MessagePacker extends TwinsHelper implements Packer {
   Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
     assert((await sMsg.data).isNotEmpty, 'message data cannot be empty');
     // sign 'data' by sender
-    return await _securePacker.sign(sMsg);
+    return await securePacker.sign(sMsg);
   }
 
   @override
@@ -209,7 +175,7 @@ class MessagePacker extends TwinsHelper implements Packer {
 
     assert((await rMsg.signature).isNotEmpty, 'message signature cannot be empty');
     // verify 'data' with 'signature'
-    return await _reliablePacker.verify(rMsg);
+    return await reliablePacker.verify(rMsg);
   }
 
   @override
@@ -217,33 +183,17 @@ class MessagePacker extends TwinsHelper implements Packer {
     // TODO: check receiver before calling this, make sure you are the receiver,
     //       or you are a member of the group when this is a group message,
     //       so that you will have a private key (decrypt key) to decrypt it.
-    Facebook barrack = facebook!;
     ID receiver = sMsg.receiver;
-    User? user = await barrack.selectLocalUser(receiver);
-    SecureMessage? trimmed;
+    User? user = await facebook?.selectLocalUser(receiver);
     if (user == null) {
-      // local users not match
-      trimmed = null;
-    } else if (receiver.isGroup) {
-      // trim group message
-      trimmed = await _securePacker.trim(sMsg, user.identifier);
-    } else {
-      trimmed = sMsg;
-    }
-    if (trimmed == null) {
       // not for you?
-      assert(false, 'receiver error: $sMsg');
+      assert(false, 'receiver error: ${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
       return null;
     }
-    //
-    //  NOTICE: make sure the receiver is YOU!
-    //          which means the receiver's private key exists;
-    //          if the receiver is a group ID, split it first
-    //
-
-    assert((await sMsg.data).isNotEmpty, 'message data cannot be empty');
+    assert((await sMsg.data).isNotEmpty, 'message data empty: '
+        '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
     // decrypt 'data' to 'content'
-    return await _securePacker.decrypt(sMsg);
+    return await securePacker.decrypt(sMsg, user.identifier);
 
     // TODO: check top-secret message
     //       (do it by application)

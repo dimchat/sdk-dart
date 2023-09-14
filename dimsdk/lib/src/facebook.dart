@@ -73,41 +73,20 @@ abstract class Facebook extends Barrack {
   /// @return true on success
   Future<bool> saveDocument(Document doc);
 
-  ///  Document checking
+  ///  Create user when visa.key exists
   ///
-  /// @param doc - entity document
-  /// @return true on accepted
-  Future<bool> checkDocument(Document doc) async {
-    ID identifier = doc.identifier;
-    // NOTICE: if this is a bulletin document for group,
-    //             verify it with the group owner's meta.key
-    //         else (this is a visa document for user)
-    //             verify it with the user's meta.key
-    Meta? meta;
-    if (identifier.isGroup) {
-      ID? owner = await getOwner(identifier);
-      if (owner != null) {
-        // check by group owner's meta.key
-        meta = await getMeta(owner);
-      } else if (identifier.type == EntityType.kGroup) {
-        // NOTICE: if this is a polylogue document,
-        //             verify it with the founder's meta.key
-        //             (which equals to the group's meta.key)
-        meta = await getMeta(identifier);
-      } else {
-        // FIXME: owner not found for this group
-        return false;
-      }
-    } else {
-      // check by user's meta.key
-      meta = await getMeta(identifier);
-    }
-    return meta != null && doc.verify(meta.publicKey);
-  }
-
+  /// @param identifier - user ID
+  /// @return user, null on not ready
   // protected
-  User? createUser(ID identifier) {
-    // TODO: make sure visa key exists before calling this
+  Future<User?> createUser(ID identifier) async {
+    // check visa key
+    if (!identifier.isBroadcast) {
+      if (await getPublicKeyForEncryption(identifier) == null) {
+        assert(false, 'visa.key not found: $identifier');
+        return null;
+      }
+      // NOTICE: if visa.key exists, then visa & meta must exist too.
+    }
     int network = identifier.type;
     // check user type
     if (network == EntityType.kStation) {
@@ -118,9 +97,23 @@ abstract class Facebook extends Barrack {
     // general user, or 'anyone@anywhere'
     return BaseUser(identifier);
   }
+
+  ///  Create group when members exist
+  ///
+  /// @param identifier - group ID
+  /// @return group, null on not ready
   // protected
-  Group? createGroup(ID identifier) {
-    // TODO: make group meta exists before calling this
+  Future<Group?> createGroup(ID identifier) async {
+    // check members
+    if (!identifier.isBroadcast) {
+      List<ID> members = await getMembers(identifier);
+      if (members.isEmpty) {
+        assert(false, 'group members not found: $identifier');
+        return null;
+      }
+      // NOTICE: if members exist, then owner (founder) must exist,
+      //         and bulletin, meta must exist too.
+    }
     int network = identifier.type;
     // check group type
     if (network == EntityType.kISP) {
@@ -156,21 +149,14 @@ abstract class Facebook extends Barrack {
           return item;
         }
       }
-      // not mine?
+      // not me?
       return null;
     }
     // group message (recipient not designated)
     assert(receiver.isGroup, 'receiver error: $receiver');
     // the messenger will check group info before decrypting message,
     // so we can trust that the group's meta & members MUST exist here.
-    Group? grp = getGroup(receiver);
-    if (grp == null) {
-      assert(false, "group not ready: $receiver");
-      return null;
-    }
-    // if a group can be create, means its meta, bulletin document,
-    // and owner, members are all ready, so members should not be empty here.
-    List<ID> members = await grp.members;
+    List<ID> members = await getMembers(receiver);
     assert(members.isNotEmpty, "members not found: $receiver");
     for (User item in users) {
       if (members.contains(item.identifier)) {
@@ -184,12 +170,12 @@ abstract class Facebook extends Barrack {
   //-------- Entity Delegate
 
   @override
-  User? getUser(ID identifier) {
+  Future<User?> getUser(ID identifier) async {
     // 1. get from user cache
     User? user = _userMap[identifier];
     if (user == null) {
       // 2. create user and cache it
-      user = createUser(identifier);
+      user = await createUser(identifier);
       if (user != null) {
         _cacheUser(user);
       }
@@ -198,12 +184,12 @@ abstract class Facebook extends Barrack {
   }
 
   @override
-  Group? getGroup(ID identifier) {
+  Future<Group?> getGroup(ID identifier) async {
     // 1. get from group cache
     Group? group = _groupMap[identifier];
     if (group == null) {
       // 2. create group and cache it
-      group = createGroup(identifier);
+      group = await createGroup(identifier);
       if (group != null) {
         _cacheGroup(group);
       }

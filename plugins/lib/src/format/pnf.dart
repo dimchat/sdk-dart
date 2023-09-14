@@ -28,18 +28,84 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 class _BaseNetworkFile extends Dictionary implements PortableNetworkFile {
-  _BaseNetworkFile(super.dict) : _remoteURL = null, _attachment = null, _password = null;
+  _BaseNetworkFile(super.dict) : _attachment = null, _remoteURL = null, _password = null;
 
-  Uri? _remoteURL;                // download from CDN
-  TransportableData? _attachment; // file content (not encrypted)
-  DecryptKey? _password;          // key to decrypt data
+  /// file content (not encrypted)
+  TransportableData? _attachment;
 
-  _BaseNetworkFile.from({Uri? url, DecryptKey? key, Uint8List? data, String? filename})
+  /// download from CDN
+  Uri? _remoteURL;
+  // key to decrypt data downloaded from CDN
+  DecryptKey? _password;
+
+  _BaseNetworkFile.from({Uint8List? data, String? filename,
+                         Uri? url, DecryptKey? password})
       : super(null) {
-    this.url = url;
-    password = key;
-    this.data = data;
-    this.filename = filename;
+    //
+    //  file data
+    //
+    if (data == null) {
+      _attachment = null;
+    } else {
+      this.data = data;
+    }
+    //
+    //  filename
+    //
+    if (filename != null) {
+      this['filename'] = filename;
+    }
+    //
+    //  remote URL
+    //
+    if (url == null) {
+      _remoteURL = null;
+    } else {
+      this.url = url;
+    }
+    //
+    //  decrypt key
+    //
+    if (password == null) {
+      _password = null;
+    } else {
+      this.password = password;
+    }
+  }
+
+  @override
+  Uint8List? get data {
+    TransportableData? ted = _attachment;
+    if (ted == null) {
+      Object? base64 = this['data'];
+      _attachment = ted = TransportableData.parse(base64);
+    }
+    return ted?.data;
+  }
+
+  @override
+  set data(Uint8List? fileData) {
+    TransportableData? ted;
+    if (fileData == null/* || fileData.isEmpty*/) {
+      remove('data');
+    } else {
+      ted = TransportableData.create(fileData);
+      // lazy encode
+      // this['data'] = ted.toObject();
+    }
+    _attachment = ted;
+  }
+
+  @override
+  String? get filename => getString('filename', null);
+
+  @override
+  set filename(String? name) {
+    if (name == null/* || name.isEmpty*/) {
+      remove('filename');
+    } else {
+      this['filename'] = name;
+    }
   }
 
   @override
@@ -47,12 +113,13 @@ class _BaseNetworkFile extends Dictionary implements PortableNetworkFile {
     Uri? location = _remoteURL;
     if (location == null) {
       String? remote = getString('URL', null);
-      if (remote != null) {
+      if (remote != null/* && remote.isNotEmpty*/) {
         _remoteURL = location = Uri.parse(remote);
       }
     }
     return location;
   }
+
   @override
   set url(Uri? location) {
     if (location == null) {
@@ -64,46 +131,14 @@ class _BaseNetworkFile extends Dictionary implements PortableNetworkFile {
   }
 
   @override
-  Uint8List? get data {
-    TransportableData? ted = _attachment;
-    if (ted == null) {
-      var base64 = this['data'];
-      _attachment = ted = TransportableData.parse(base64);
-    }
-    return ted?.data;
-  }
-  @override
-  set data(Uint8List? fileData) {
-    if (fileData == null || fileData.isEmpty) {
-      _attachment = null;
-      remove('data');
-    } else {
-      TransportableData ted = TransportableData.create(fileData);
-      _attachment = ted;
-      // lazy encode
-      // this['data'] = ted.toObject();
-    }
-  }
-
-  @override
-  String? get filename => getString('filename', null);
-  @override
-  set filename(String? name) {
-    if (name == null) {
-      remove('filename');
-    } else {
-      this['filename'] = name;
-    }
-  }
-
-  @override
   DecryptKey? get password {
-    _password ??= SymmetricKey.parse(this['key']);
+    _password ??= SymmetricKey.parse(this['password']);
     return _password;
   }
+
   @override
   set password(DecryptKey? key) {
-    setMap('key', key);
+    setMap('password', key);
     _password = key;
   }
 
@@ -132,8 +167,7 @@ class _BaseNetworkFile extends Dictionary implements PortableNetworkFile {
     // field 'data' not exists, means this file was uploaded onto a CDN,
     // if 'key' not exists too, just return 'URL' string here.
     assert(this['filename'] == null, 'PNF error: $this');
-    String? url = getString('URL', '');
-    return url!;
+    return getString('URL', '')!;
   }
 
   @override
@@ -144,8 +178,9 @@ class _BaseNetworkFile extends Dictionary implements PortableNetworkFile {
 class BaseNetworkFileFactory implements PortableNetworkFileFactory {
 
   @override
-  PortableNetworkFile createPortableNetworkFile(Uri? url, DecryptKey? key, {Uint8List? data, String? filename}) {
-    return _BaseNetworkFile.from(url: url, key: key, data: data, filename: filename);
+  PortableNetworkFile createPortableNetworkFile(Uint8List? data, String? filename,
+                                                Uri? url, DecryptKey? password) {
+    return _BaseNetworkFile.from(data: data, filename: filename, url: url, password: password);
   }
 
   @override

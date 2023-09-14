@@ -30,6 +30,8 @@
  */
 import 'package:dimp/dimp.dart';
 
+import '../msg/factory.dart';
+
 typedef ContentCreator = Content? Function(Map dict);
 typedef CommandCreator = Command? Function(Map dict);
 
@@ -147,6 +149,9 @@ void registerContentFactories() {
   // Web Page
   Content.setFactory(ContentType.kPage, ContentParser((dict) => WebPageContent(dict)));
 
+  // Name Card
+  // TODO: set factory for name card
+
   // Money
   Content.setFactory(ContentType.kMoney, ContentParser((dict) => BaseMoneyContent(dict)));
   Content.setFactory(ContentType.kTransfer, ContentParser((dict) => TransferMoneyContent(dict)));
@@ -158,14 +163,14 @@ void registerContentFactories() {
   // History Command
   Content.setFactory(ContentType.kHistory, HistoryCommandFactory());
 
-  // Content Array
-  Content.setFactory(ContentType.kArray, ContentParser((dict) => ListContent(dict)));
-
   /*
   // Application Customized
   Content.setFactory(ContentType.kCustomized, ContentParser((dict) => AppCustomizedContent(dict)));
   Content.setFactory(ContentType.kApplication, ContentParser((dict) => AppCustomizedContent(dict)));
    */
+
+  // Content Array
+  Content.setFactory(ContentType.kArray, ContentParser((dict) => ListContent(dict)));
 
   // Top-Secret
   Content.setFactory(ContentType.kForward, ContentParser((dict) => SecretContent(dict)));

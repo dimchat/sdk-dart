@@ -93,6 +93,8 @@ class Base64DataFactory implements TransportableDataFactory {
 
   @override
   TransportableData? parseTransportableData(Map ted) {
+    // TODO: 1. check algorithm
+    //       2. check data format
     return _Base64Data(ted);
   }
 

@@ -57,7 +57,8 @@ abstract class ContentProcessorCreator {
 
   ///  Create command processor with name
   ///
-  /// @param cmd - command name
+  /// @param msgType - content type
+  /// @param cmd     - command name
   /// @return CommandProcessor
   ContentProcessor? createCommandProcessor(int msgType, String cmd);
 
@@ -97,21 +98,6 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
         'type': content.type,
       },
     });
-  }
-
-  // protected
-  List<ReceiptCommand> respondReceipt(String text, ReliableMessage? rMsg,
-      {ID? group, Map<String, Object>? extra}) {
-    // create base receipt command with text & original envelope
-    ReceiptCommand res = ReceiptCommand.from(text, rMsg);
-    if (group != null) {
-      res.group = group;
-    }
-    // add extra key-values
-    if (extra != null) {
-      res.addAll(extra);
-    }
-    return [res];
   }
 
 }

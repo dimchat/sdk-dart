@@ -30,6 +30,8 @@
  */
 import 'package:dimp/dimp.dart';
 
+import 'station.dart';
+
 ///  DIM Station Owner
 class ServiceProvider extends BaseGroup {
   ServiceProvider(super.id);
@@ -46,4 +48,42 @@ class ServiceProvider extends BaseGroup {
     return [];
   }
 
+  //
+  //  Comparison
+  //
+
+  static bool sameStation(Station a, Station b) {
+    if (identical(a, b)) {
+      // same object
+      return true;
+    }
+    return _checkIdentifiers(a.identifier, b.identifier)
+        && _checkHosts(a.host, b.host)
+        && _checkPorts(a.port, b.port);
+  }
+
+}
+
+bool _checkIdentifiers(ID a, ID b) {
+  if (identical(a, b)) {
+    // same object
+    return true;
+  } else if (a.isBroadcast || b.isBroadcast) {
+    return true;
+  }
+  return a == b;
+}
+bool _checkHosts(String? a, String? b) {
+  if (a == null || b == null) {
+    return true;
+  } else if (a.isEmpty || b.isEmpty) {
+    return true;
+  }
+  return a == b;
+}
+bool _checkPorts(int a, int b) {
+  if (a == 0 || b == 0) {
+    return true;
+  }
+  return a == b;
 }

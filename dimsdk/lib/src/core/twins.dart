@@ -28,6 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimp/dimp.dart';
+
 import '../facebook.dart';
 import '../messenger.dart';
 
@@ -41,5 +43,23 @@ abstract class TwinsHelper {
 
   Facebook? get facebook => _barrack.target;
   Messenger? get messenger => _transceiver.target;
+
+  //
+  //  Convenient responding
+  //
+
+  List<ReceiptCommand> respondReceipt(String text, ReliableMessage? rMsg,
+      {ID? group, Map<String, Object>? extra}) {
+    // create base receipt command with text & original envelope
+    ReceiptCommand res = ReceiptCommand.from(text, rMsg);
+    if (group != null) {
+      res.group = group;
+    }
+    // add extra key-values
+    if (extra != null) {
+      res.addAll(extra);
+    }
+    return [res];
+  }
 
 }

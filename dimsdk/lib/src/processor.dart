@@ -35,23 +35,25 @@ import 'package:dimp/dimp.dart';
 import 'core/twins.dart';
 import 'cpu/base.dart';
 import 'cpu/content.dart';
+import 'facebook.dart';
 import 'messenger.dart';
 
 class MessageProcessor extends TwinsHelper implements Processor {
-  MessageProcessor(super.facebook, super.messenger) {
-    _factory = createFactory();
+  MessageProcessor(Facebook facebook, Messenger messenger)
+      : super(facebook, messenger) {
+    _factory = createFactory(facebook, messenger);
   }
 
   late final ContentProcessorFactory _factory;
 
   // protected
-  ContentProcessorFactory createFactory() =>
-      BaseContentProcessorFactory(facebook!, messenger!, createCreator());
+  ContentProcessorFactory createFactory(Facebook facebook, Messenger messenger) =>
+      BaseContentProcessorFactory(facebook, messenger, createCreator(facebook, messenger));
 
   // protected
-  ContentProcessorCreator createCreator() =>
+  ContentProcessorCreator createCreator(Facebook facebook, Messenger messenger) =>
       /// override for creating customized CPUs
-      BaseContentProcessorCreator(facebook!, messenger!);
+      BaseContentProcessorCreator(facebook, messenger);
 
   ContentProcessor? getProcessor(Content content) {
     return _factory.getProcessor(content);

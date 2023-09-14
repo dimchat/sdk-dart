@@ -35,6 +35,9 @@ import 'commands.dart';
 import 'content.dart';
 import 'contents.dart';
 
+
+/// Base ContentProcessor Creator
+/// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessorCreator {
   BaseContentProcessorCreator(super.facebook, super.messenger);
 
@@ -80,10 +83,6 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
       case Command.kDocument:
         return DocumentCommandProcessor(facebook!, messenger!);
 
-      // receipt command
-      case Command.kReceipt:
-        return ReceiptCommandProcessor(facebook!, messenger!);
-
       // unknown
       default:
         return null;
@@ -92,6 +91,9 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
 
 }
 
+
+/// Base ContentProcessor Factory
+/// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class BaseContentProcessorFactory extends TwinsHelper implements ContentProcessorFactory {
   BaseContentProcessorFactory(super.facebook, super.messenger, this._creator);
 
@@ -106,14 +108,13 @@ class BaseContentProcessorFactory extends TwinsHelper implements ContentProcesso
     ContentProcessor? cpu;
     int msgType = content.type;
     if (content is Command) {
-      String name = content.cmd ?? '*';
-      // command processor
+      String name = content.cmd;
+      // assert(name.isNotEmpty, 'command name error: $name');
       cpu = getCommandProcessor(msgType, name);
       if (cpu != null) {
         return cpu;
       } else if (content is GroupCommand) {
-        assert(name != 'group', 'command name error: $content');
-        // group command processor
+        // assert(name != 'group', 'command name error: $content');
         cpu = getCommandProcessor(msgType, 'group');
         if (cpu != null) {
           return cpu;

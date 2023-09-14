@@ -68,7 +68,16 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   }
 
   Future<List<Content>> _putMeta(ID identifier, Meta meta, ReliableMessage rMsg) async {
-    if (await facebook!.saveMeta(meta, identifier)) {
+    // check meta
+    if (!meta.isValid || !meta.matchIdentifier(identifier)) {
+      String text = 'Meta not valid.';
+      return respondReceipt(text, rMsg, extra: {
+        'template': 'Meta not valid: \${ID}.',
+        'replacements': {
+          'ID': identifier.toString(),
+        },
+      });
+    } else if (await facebook!.saveMeta(meta, identifier)) {
       String text = 'Meta received.';
       return respondReceipt(text, rMsg, extra: {
         'template': 'Meta received: \${ID}.',
@@ -132,7 +141,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     Facebook barrack = facebook!;
     // check meta
     if (meta == null) {
-      meta = await facebook?.getMeta(identifier);
+      meta = await barrack.getMeta(identifier);
       if (meta == null) {
         String text = 'Meta not found.';
         return respondReceipt(text, rMsg, extra: {
@@ -142,6 +151,14 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
           },
         });
       }
+    } else if (!meta.isValid || !meta.matchIdentifier(identifier)) {
+      String text = 'Meta not valid.';
+      return respondReceipt(text, rMsg, extra: {
+        'template': 'Meta not valid: \${ID}.',
+        'replacements': {
+          'ID': identifier.toString(),
+        },
+      });
     } else if (await barrack.saveMeta(meta, identifier)) {
       // meta accepted & saved
     } else {
@@ -155,9 +172,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
       });
     }
     // check document
-    bool isValid = doc.isValid || doc.verify(meta.publicKey);
-    // TODO: check for group document
-    if (!isValid) {
+    if (!checkDocument(doc, meta)) {
       // document error
       String text = 'Document not accepted.';
       return respondReceipt(text, rMsg, extra: {
@@ -185,17 +200,17 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
       },
     });
   }
-}
 
-
-class ReceiptCommandProcessor extends BaseCommandProcessor {
-  ReceiptCommandProcessor(super.facebook, super.messenger);
-
-  @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
-    assert(content is ReceiptCommand, 'receipt command error: $content');
-    // no need to response receipt command
-    return [];
+  // protected
+  bool checkDocument(Document doc, Meta meta) {
+    if (doc.isValid) {
+      return true;
+    }
+    // NOTICE: if this is a bulletin document for group,
+    //             verify it with the group owner's meta.key
+    //         else (this is a visa document for user)
+    //             verify it with the user's meta.key
+    return doc.verify(meta.publicKey);
+    // TODO: check for group document
   }
-
 }

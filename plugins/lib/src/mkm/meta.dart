@@ -204,7 +204,7 @@ class _MetaFactory implements MetaFactory {
     } else {
       throw Exception('unknown meta type: $type');
     }
-    return Meta.check(out) ? out : null;
+    return out.isValid ? out : null;
   }
 }
 

@@ -32,24 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-abstract class CipherKeyDelegate {
-
-  ///  Get cipher key for encrypt message from 'sender' to 'receiver'
-  ///
-  /// @param sender - from where (user or contact ID)
-  /// @param receiver - to where (contact or user/group ID)
-  /// @param generate - generate when key not exists
-  /// @return cipher key
-  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver, {bool generate = false});
-
-  ///  Cache cipher key for reusing, with the direction ('sender' => 'receiver')
-  ///
-  /// @param sender - from where (user or contact ID)
-  /// @param receiver - to where (contact or user/group ID)
-  /// @param key - cipher key
-  Future<void> cacheCipherKey(ID sender, ID receiver, SymmetricKey key);
-
-}
+import 'delegate.dart';
 
 
 abstract class Messenger extends Transceiver implements CipherKeyDelegate,
@@ -79,10 +62,6 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
   //
   //  Interfaces for Packing Message
   //
-
-  @override
-  Future<ID?> getOvertGroup(Content content) async =>
-      await packer?.getOvertGroup(content);
 
   @override
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async =>
@@ -135,12 +114,13 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
   //-------- SecureMessageDelegate
 
   @override
-  Future<SymmetricKey?> deserializeKey(Uint8List? key, ID receiver, SecureMessage sMsg) async {
+  Future<SymmetricKey?> deserializeKey(Uint8List? key, SecureMessage sMsg) async {
     if (key == null) {
       // get key from cache
-      return await getCipherKey(sMsg.sender, receiver, generate: false);
+      ID target = CipherKeyDelegate.getDestination(sMsg.receiver, sMsg.group);
+      return await getCipherKey(sMsg.sender, target, generate: false);
     } else {
-      return await super.deserializeKey(key, receiver, sMsg);
+      return await super.deserializeKey(key, sMsg);
     }
   }
 
@@ -149,18 +129,15 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
     Content? content = await super.deserializeContent(data, password, sMsg);
     assert(content != null, 'content error: ${data.length}');
 
-    if (!BaseMessage.isBroadcast(sMsg) && content != null) {
+    if (!BaseMessage.isBroadcast(sMsg)/* && content != null*/) {
       // check and cache key for reuse
-      ID? group = await getOvertGroup(content);
-      if (group == null) {
-        // personal message or (group) command
-        // cache key with direction (sender -> receiver)
-        await cacheCipherKey(sMsg.sender, sMsg.receiver, password);
-      } else {
-        // group message (excludes group command)
-        // cache the key with direction (sender -> group)
-        await cacheCipherKey(sMsg.sender, group, password);
-      }
+      ID? target = sMsg.group;
+      // if target == null:
+      //    1. personal message
+      //    2. group message not split
+      target ??= sMsg.receiver;
+      // cache the key with direction: sender -> receiver(group)
+      await cacheCipherKey(sMsg.sender, target, password);
     }
 
     // NOTICE: check attachment for File/Image/Audio/Video message content
