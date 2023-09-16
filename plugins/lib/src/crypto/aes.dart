@@ -100,10 +100,9 @@ class _AESKey extends BaseSymmetricKey {
     return ted!;
   }
   void _setInitVector(Object? base64) {
-    var ted = TransportableData.parse(base64);
-    if (ted != null) {
-      _ivData = ted;
-    }
+    // if new iv not exists, this will erase the decoded ivData,
+    // and cause reloading from dictionary again.
+    _ivData = TransportableData.parse(base64);
   }
 
   /// get key data

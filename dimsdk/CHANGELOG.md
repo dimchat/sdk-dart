@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Cipher Key Delegate.
+
 ## 0.2.0
 
 - Message packers.

@@ -68,6 +68,26 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   }
 
   Future<List<Content>> _putMeta(ID identifier, Meta meta, ReliableMessage rMsg) async {
+    List<Content>? errors;
+    // 1. try to save meta
+    errors = await saveMeta(identifier, meta, rMsg);
+    if (errors != null) {
+      // failed
+      return errors;
+    }
+    // 2. success
+    String text = 'Meta received.';
+    return respondReceipt(text, rMsg, extra: {
+      'template': 'Meta received: \${ID}.',
+      'replacements': {
+        'ID': identifier.toString(),
+      },
+    });
+  }
+
+  // protected
+  Future<List<Content>?> saveMeta(ID identifier, Meta meta, ReliableMessage rMsg) async {
+    Facebook barrack = facebook!;
     // check meta
     if (!meta.isValid || !meta.matchIdentifier(identifier)) {
       String text = 'Meta not valid.';
@@ -77,15 +97,10 @@ class MetaCommandProcessor extends BaseCommandProcessor {
           'ID': identifier.toString(),
         },
       });
-    } else if (await facebook!.saveMeta(meta, identifier)) {
-      String text = 'Meta received.';
-      return respondReceipt(text, rMsg, extra: {
-        'template': 'Meta received: \${ID}.',
-        'replacements': {
-          'ID': identifier.toString(),
-        },
-      });
+    } else if (await barrack.saveMeta(meta, identifier)) {
+      // saved
     } else {
+      // DB error?
       String text = 'Meta not accepted.';
       return respondReceipt(text, rMsg, extra: {
         'template': 'Meta not accepted: \${ID}.',
@@ -94,6 +109,8 @@ class MetaCommandProcessor extends BaseCommandProcessor {
         },
       });
     }
+    // OK
+    return null;
   }
 
 }
@@ -139,7 +156,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
 
   Future<List<Content>> _putDoc(ID identifier, Meta? meta, Document doc, ReliableMessage rMsg) async {
     Facebook barrack = facebook!;
-    // check meta
+    // 0. check meta
     if (meta == null) {
       meta = await barrack.getMeta(identifier);
       if (meta == null) {
@@ -151,26 +168,33 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
           },
         });
       }
-    } else if (!meta.isValid || !meta.matchIdentifier(identifier)) {
-      String text = 'Meta not valid.';
-      return respondReceipt(text, rMsg, extra: {
-        'template': 'Meta not valid: \${ID}.',
-        'replacements': {
-          'ID': identifier.toString(),
-        },
-      });
-    } else if (await barrack.saveMeta(meta, identifier)) {
-      // meta accepted & saved
-    } else {
-      // meta error
-      String text = 'Meta not accepted.';
-      return respondReceipt(text, rMsg, extra: {
-        'template': 'Meta not accepted: \${ID}.',
-        'replacements': {
-          'ID': identifier.toString(),
-        },
-      });
     }
+    List<Content>? errors;
+    // 1. try to save meta
+    errors = await saveMeta(identifier, meta, rMsg);
+    if (errors != null) {
+      // failed
+      return errors;
+    }
+    // 2. try to save document
+    errors = await saveDocument(identifier, meta, doc, rMsg);
+    if (errors != null) {
+      // failed
+      return errors;
+    }
+    // 3. success
+    String text = 'Document received.';
+    return respondReceipt(text, rMsg, extra: {
+      'template': 'Document received: \${ID}.',
+      'replacements': {
+        'ID': identifier.toString(),
+      },
+    });
+  }
+
+  // protected
+  Future<List<Content>?> saveDocument(ID identifier, Meta meta, Document doc, ReliableMessage rMsg) async {
+    Facebook barrack = facebook!;
     // check document
     if (!checkDocument(doc, meta)) {
       // document error
@@ -182,23 +206,19 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
         },
       });
     } else if (await barrack.saveDocument(doc)) {
-      // document saved
-      String text = 'Document received.';
+      // saved
+    } else {
+      // document expired
+      String text = 'Document not changed.';
       return respondReceipt(text, rMsg, extra: {
-        'template': 'Document received: \${ID}.',
+        'template': 'Document not changed: \${ID}.',
         'replacements': {
           'ID': identifier.toString(),
         },
       });
     }
-    // document expired
-    String text = 'Document not changed.';
-    return respondReceipt(text, rMsg, extra: {
-      'template': 'Document not changed: \${ID}.',
-      'replacements': {
-        'ID': identifier.toString(),
-      },
-    });
+    // OK
+    return null;
   }
 
   // protected

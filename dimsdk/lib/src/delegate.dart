@@ -55,7 +55,7 @@ abstract class CipherKeyDelegate {
    *      |   (F)   |    receiver     |      group      |                 |                 |
    *      +---------+-----------------+-----------------+-----------------+-----------------+
    */
-  static ID getDestination(ID receiver, ID? group) {
+  static ID getDestination({required ID receiver, required ID? group}) {
     if (receiver.isGroup) {
       // (A)  group message, not split yet (maybe broadcast)
       //      'group' field must be empty here
@@ -83,13 +83,15 @@ abstract class CipherKeyDelegate {
   /// @param receiver - to where (contact or user/group ID)
   /// @param generate - generate when key not exists
   /// @return cipher key
-  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver, {bool generate = false});
+  Future<SymmetricKey?> getCipherKey({required ID sender, required ID receiver,
+                                      bool generate = false});
 
   ///  Cache cipher key for reusing, with the direction ('sender' => 'receiver')
   ///
   /// @param sender - from where (user or contact ID)
   /// @param receiver - to where (contact or user/group ID)
   /// @param key - cipher key
-  Future<void> cacheCipherKey(ID sender, ID receiver, SymmetricKey key);
+  Future<void> cacheCipherKey({required ID sender, required ID receiver,
+                               required SymmetricKey key});
 
 }

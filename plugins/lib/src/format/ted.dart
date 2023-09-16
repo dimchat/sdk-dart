@@ -28,59 +28,47 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 class _Base64Data extends Dictionary implements TransportableData {
-  _Base64Data(super.dict) : _data = null;
+  _Base64Data(super.dict);
 
-  Uint8List? _data;
+  late final BaseDataWrapper _wrapper = BaseDataWrapper(toMap());
 
   _Base64Data.fromData(Uint8List binary) : super(null) {
-    // algorithm: base64
-    this['algorithm'] = TransportableData.kBASE_64;
-    // binary data (lazy encode)
-    _data = binary;
+    // encode algorithm
+    _wrapper.algorithm = TransportableData.kBASE_64;
+    // binary data
+    if (binary.isNotEmpty) {
+      _wrapper.data = binary;
+    }
   }
+
+  ///
+  /// encode algorithm
+  ///
 
   @override
-  String get algorithm => getString('algorithm', TransportableData.kBASE_64)!;
+  String get algorithm => _wrapper.algorithm;
+
+  ///
+  /// binary data
+  ///
 
   @override
-  Uint8List get data {
-    Uint8List? binary = _data;
-    if (binary == null) {
-      String? base64 = getString('data', '');
-      assert(base64 != null, 'data should not be empty');
-      _data = binary = Base64.decode(base64!);
-    }
-    return binary!;
-  }
+  Uint8List get data => _wrapper.data!;
 
-  String? _encode() {
-    String? base64 = getString('data', null);
-    if (base64 == null) {
-      // field 'data' not exists, check binary data
-      Uint8List? binary = _data;
-      if (binary != null) {
-        // encode data string
-        base64 = Base64.encode(binary);
-        this['data'] = base64;
-      }
-      assert(base64 != null, 'TED data should not be empty');
-    }
-    // return encoded data string
-    return base64;
-  }
-
-  @override
-  String toString() {
-    String? base64 = _encode();
-    if (base64 != null) {
-      return base64;
-    }
-    // TODO: other field?
-    return JSONMap.encode(toMap());
-  }
+  ///
+  /// encoding
+  ///
 
   @override
   Object toObject() => toString();
+
+  // 0. "{BASE64_ENCODE}"
+  // 1. "base64,{BASE64_ENCODE}"
+  @override
+  String toString() => _wrapper.toString();
+
+  // 2. "data:image/png;base64,{BASE64_ENCODE}"
+  String encode(String mimeType) => _wrapper.encode(mimeType);
 
 }
 

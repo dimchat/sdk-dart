@@ -52,12 +52,14 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
   //
 
   @override
-  Future<SymmetricKey?> getCipherKey(ID sender, ID receiver, {bool generate = false}) async =>
-      await cipherKeyDelegate?.getCipherKey(sender, receiver, generate: generate);
+  Future<SymmetricKey?> getCipherKey({required ID sender, required ID receiver,
+                                      bool generate = false}) async =>
+      await cipherKeyDelegate?.getCipherKey(sender: sender, receiver: sender, generate: generate);
 
   @override
-  Future<void> cacheCipherKey(ID sender, ID receiver, SymmetricKey key) async =>
-      await cipherKeyDelegate?.cacheCipherKey(sender, receiver, key);
+  Future<void> cacheCipherKey({required ID sender, required ID receiver,
+                               required SymmetricKey key}) async =>
+      await cipherKeyDelegate?.cacheCipherKey(sender: sender, receiver: receiver, key: key);
 
   //
   //  Interfaces for Packing Message
@@ -117,8 +119,8 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
   Future<SymmetricKey?> deserializeKey(Uint8List? key, SecureMessage sMsg) async {
     if (key == null) {
       // get key from cache
-      ID target = CipherKeyDelegate.getDestination(sMsg.receiver, sMsg.group);
-      return await getCipherKey(sMsg.sender, target, generate: false);
+      ID target = CipherKeyDelegate.getDestination(receiver: sMsg.receiver, group: sMsg.group);
+      return await getCipherKey(sender: sMsg.sender, receiver: target, generate: false);
     } else {
       return await super.deserializeKey(key, sMsg);
     }
@@ -137,7 +139,7 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
       //    2. group message not split
       target ??= sMsg.receiver;
       // cache the key with direction: sender -> receiver(group)
-      await cacheCipherKey(sMsg.sender, target, password);
+      await cacheCipherKey(sender: sMsg.sender, receiver: target, key: password);
     }
 
     // NOTICE: check attachment for File/Image/Audio/Video message content

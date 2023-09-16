@@ -74,12 +74,12 @@ class MessagePacker extends TwinsHelper implements Packer {
     //          to encrypt the message, and the remote packer can get the overt group ID before
     //          decrypting to take the right message key.
     ID? overtGroup = ID.parse(iMsg['group']);
-    ID target = CipherKeyDelegate.getDestination(receiver, overtGroup);
+    ID target = CipherKeyDelegate.getDestination(receiver: receiver, group: overtGroup);
 
     //
     //  1. get message key with direction (sender -> receiver) or (sender -> group)
     //
-    SymmetricKey? password = await messenger?.getCipherKey(sender, target, generate: true);
+    SymmetricKey? password = await messenger?.getCipherKey(sender: sender, receiver: target, generate: true);
     assert(password != null, 'failed to get msg key: $sender => $receiver, $overtGroup');
 
     //

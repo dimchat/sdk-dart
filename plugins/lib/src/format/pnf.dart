@@ -28,150 +28,110 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 class _BaseNetworkFile extends Dictionary implements PortableNetworkFile {
-  _BaseNetworkFile(super.dict) : _attachment = null, _remoteURL = null, _password = null;
+  _BaseNetworkFile(super.dict);
 
-  /// file content (not encrypted)
-  TransportableData? _attachment;
-
-  /// download from CDN
-  Uri? _remoteURL;
-  // key to decrypt data downloaded from CDN
-  DecryptKey? _password;
+  late final BaseFileWrapper _wrapper = BaseFileWrapper(toMap());
 
   _BaseNetworkFile.from({Uint8List? data, String? filename,
                          Uri? url, DecryptKey? password})
       : super(null) {
-    //
-    //  file data
-    //
-    if (data == null) {
-      _attachment = null;
-    } else {
-      this.data = data;
+    // file data
+    if (data != null) {
+      _wrapper.data = data;
     }
-    //
-    //  filename
-    //
+    // file name
     if (filename != null) {
-      this['filename'] = filename;
+      _wrapper.filename = filename;
     }
-    //
-    //  remote URL
-    //
-    if (url == null) {
-      _remoteURL = null;
-    } else {
-      this.url = url;
+    // remote URL
+    if (url != null) {
+      _wrapper.url = url;
     }
-    //
-    //  decrypt key
-    //
-    if (password == null) {
-      _password = null;
-    } else {
-      this.password = password;
+    // decrypt key
+    if (password != null) {
+      _wrapper.password = password;
     }
   }
+
+  ///
+  /// file data
+  ///
 
   @override
-  Uint8List? get data {
-    TransportableData? ted = _attachment;
-    if (ted == null) {
-      Object? base64 = this['data'];
-      _attachment = ted = TransportableData.parse(base64);
-    }
-    return ted?.data;
-  }
+  Uint8List? get data => _wrapper.data;
 
   @override
-  set data(Uint8List? fileData) {
-    TransportableData? ted;
-    if (fileData == null/* || fileData.isEmpty*/) {
-      remove('data');
-    } else {
-      ted = TransportableData.create(fileData);
-      // lazy encode
-      // this['data'] = ted.toObject();
-    }
-    _attachment = ted;
-  }
+  set data(Uint8List? fileData) => _wrapper.data = fileData;
+
+  ///
+  /// file name
+  ///
 
   @override
-  String? get filename => getString('filename', null);
+  String? get filename => _wrapper.filename;
 
   @override
-  set filename(String? name) {
-    if (name == null/* || name.isEmpty*/) {
-      remove('filename');
-    } else {
-      this['filename'] = name;
-    }
-  }
+  set filename(String? name) => _wrapper.filename = name;
+
+  ///
+  /// download URL
+  ///
 
   @override
-  Uri? get url {
-    Uri? location = _remoteURL;
-    if (location == null) {
-      String? remote = getString('URL', null);
-      if (remote != null/* && remote.isNotEmpty*/) {
-        _remoteURL = location = Uri.parse(remote);
-      }
-    }
-    return location;
-  }
+  Uri? get url => _wrapper.url;
 
   @override
-  set url(Uri? location) {
-    if (location == null) {
-      remove('URL');
-    } else {
-      this['URL'] = location.toString();
-    }
-    _remoteURL = location;
-  }
+  set url(Uri? remote) => _wrapper.url = remote;
+
+  ///
+  /// decrypt key
+  ///
 
   @override
-  DecryptKey? get password {
-    _password ??= SymmetricKey.parse(this['password']);
-    return _password;
-  }
+  DecryptKey? get password => _wrapper.password;
 
   @override
-  set password(DecryptKey? key) {
-    setMap('password', key);
-    _password = key;
-  }
+  set password(DecryptKey? key) => _wrapper.password = key;
 
-  Object? _encode() {
-    var base64 = this['data'];
-    if (base64 == null) {
-      // 'data' not exists, check attachment
-      TransportableData? ted = _attachment;
-      if (ted != null) {
-        // encode data string
-        base64 = ted.toObject();
-        this['data'] = base64;
-      }
-    }
-    // return encoded data string
-    return base64;
-  }
+  ///
+  /// encoding
+  ///
 
   @override
   String toString() {
-    // check 'data' and 'key'
-    if (_encode() != null || password != null) {
-      // not a single URL, encode the entire dictionary
-      return JSONMap.encode(toMap());
+    String? urlString = _getURLString();
+    if (urlString != null) {
+      // only contains 'URL', return the URL string directly
+      return urlString;
     }
-    // field 'data' not exists, means this file was uploaded onto a CDN,
-    // if 'key' not exists too, just return 'URL' string here.
-    assert(this['filename'] == null, 'PNF error: $this');
-    return getString('URL', '')!;
+    // not a single URL, encode the entire dictionary
+    return JSONMap.encode(toMap());
   }
 
   @override
-  Object toObject() => toString();
+  Object toObject() {
+    String? urlString = _getURLString();
+    if (urlString != null) {
+      // only contains 'URL', return the URL string directly
+      return urlString;
+    }
+    // not a single URL, return the entire dictionary
+    return toMap();
+  }
+
+  String? _getURLString() {
+    int count = length;
+    if (count == 1) {
+      // if only contains 'URL' field, return the URL string directly
+      return getString('URL', null);
+    } else if (count == 2 && containsKey('filename')) {
+      // ignore 'filename' field
+      return getString('URL', null);
+    } else {
+      // not a single URL
+      return null;
+    }
+  }
 
 }
 
@@ -180,7 +140,8 @@ class BaseNetworkFileFactory implements PortableNetworkFileFactory {
   @override
   PortableNetworkFile createPortableNetworkFile(Uint8List? data, String? filename,
                                                 Uri? url, DecryptKey? password) {
-    return _BaseNetworkFile.from(data: data, filename: filename, url: url, password: password);
+    return _BaseNetworkFile.from(data: data, filename: filename,
+                                 url: url, password: password);
   }
 
   @override
