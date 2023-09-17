@@ -35,8 +35,7 @@ import 'package:dimp/dimp.dart';
 import 'delegate.dart';
 
 
-abstract class Messenger extends Transceiver implements CipherKeyDelegate,
-                                                        Packer, Processor {
+abstract class Messenger extends Transceiver implements Packer, Processor {
 
   // protected
   CipherKeyDelegate? get cipherKeyDelegate;
@@ -51,15 +50,28 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
   //  Interfaces for Cipher Key
   //
 
-  @override
-  Future<SymmetricKey?> getCipherKey({required ID sender, required ID receiver,
-                                      bool generate = false}) async =>
-      await cipherKeyDelegate?.getCipherKey(sender: sender, receiver: sender, generate: generate);
+  Future<SymmetricKey?> getEncryptKey(InstantMessage iMsg) async {
+    ID sender = iMsg.sender;
+    ID receiver = iMsg.receiver;
+    ID? group = ID.parse(iMsg['group']);
+    ID target = CipherKeyDelegate.getDestination(receiver: receiver, group: group);
+    return await cipherKeyDelegate?.getCipherKey(sender: sender, receiver: target, generate: true);
+  }
+  Future<SymmetricKey?> getDecryptKey(SecureMessage sMsg) async {
+    ID sender = sMsg.sender;
+    ID receiver = sMsg.receiver;
+    ID? group = ID.parse(sMsg['group']);
+    ID target = CipherKeyDelegate.getDestination(receiver: receiver, group: group);
+    return await cipherKeyDelegate?.getCipherKey(sender: sender, receiver: target, generate: false);
+  }
 
-  @override
-  Future<void> cacheCipherKey({required ID sender, required ID receiver,
-                               required SymmetricKey key}) async =>
-      await cipherKeyDelegate?.cacheCipherKey(sender: sender, receiver: receiver, key: key);
+  Future<void> cacheDecryptKey(SymmetricKey key, SecureMessage sMsg) async {
+    ID sender = sMsg.sender;
+    ID receiver = sMsg.receiver;
+    ID? group = ID.parse(sMsg['group']);
+    ID target = CipherKeyDelegate.getDestination(receiver: receiver, group: group);
+    return await cipherKeyDelegate?.cacheCipherKey(sender: sender, receiver: target, key: key);
+  }
 
   //
   //  Interfaces for Packing Message
@@ -118,9 +130,8 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
   @override
   Future<SymmetricKey?> deserializeKey(Uint8List? key, SecureMessage sMsg) async {
     if (key == null) {
-      // get key from cache
-      ID target = CipherKeyDelegate.getDestination(receiver: sMsg.receiver, group: sMsg.group);
-      return await getCipherKey(sender: sMsg.sender, receiver: target, generate: false);
+      // get key from cache with direction: sender -> receiver(group)
+      return await getDecryptKey(sMsg);
     } else {
       return await super.deserializeKey(key, sMsg);
     }
@@ -131,15 +142,9 @@ abstract class Messenger extends Transceiver implements CipherKeyDelegate,
     Content? content = await super.deserializeContent(data, password, sMsg);
     assert(content != null, 'content error: ${data.length}');
 
-    if (!BaseMessage.isBroadcast(sMsg)/* && content != null*/) {
-      // check and cache key for reuse
-      ID? target = sMsg.group;
-      // if target == null:
-      //    1. personal message
-      //    2. group message not split
-      target ??= sMsg.receiver;
+    if (content != null) {
       // cache the key with direction: sender -> receiver(group)
-      await cacheCipherKey(sender: sMsg.sender, receiver: target, key: password);
+      await cacheDecryptKey(password, sMsg);
     }
 
     // NOTICE: check attachment for File/Image/Audio/Video message content

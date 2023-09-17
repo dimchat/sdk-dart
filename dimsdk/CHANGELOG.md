@@ -1,3 +1,7 @@
+## 0.2.2
+
+- Cipher Key with direction.
+
 ## 0.2.1
 
 - Cipher Key Delegate.

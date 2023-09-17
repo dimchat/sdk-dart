@@ -33,7 +33,6 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 import 'core/twins.dart';
-import 'delegate.dart';
 import 'facebook.dart';
 import 'msg/instant.dart';
 import 'msg/reliable.dart';
@@ -60,8 +59,7 @@ class MessagePacker extends TwinsHelper implements Packer {
     //       otherwise, suspend this message for waiting receiver's visa/meta;
     //       if receiver is a group, query all members' visa too!
 
-    ID sender = iMsg.sender;
-    ID receiver = iMsg.receiver;
+    SecureMessage? sMsg;
     // NOTICE: before sending group message, you can decide whether expose the group ID
     //      (A) if you don't want to expose the group ID,
     //          you can split it to multi-messages before encrypting,
@@ -73,19 +71,17 @@ class MessagePacker extends TwinsHelper implements Packer {
     //          in these situations, the local packer will use the group msg key (user to group)
     //          to encrypt the message, and the remote packer can get the overt group ID before
     //          decrypting to take the right message key.
-    ID? overtGroup = ID.parse(iMsg['group']);
-    ID target = CipherKeyDelegate.getDestination(receiver: receiver, group: overtGroup);
+    ID receiver = iMsg.receiver;
 
     //
     //  1. get message key with direction (sender -> receiver) or (sender -> group)
     //
-    SymmetricKey? password = await messenger?.getCipherKey(sender: sender, receiver: target, generate: true);
-    assert(password != null, 'failed to get msg key: $sender => $receiver, $overtGroup');
+    SymmetricKey? password = await messenger?.getEncryptKey(iMsg);
+    assert(password != null, 'failed to get msg key: ${iMsg.sender} => $receiver, ${iMsg['group']}');
 
     //
     //  2. encrypt 'content' to 'data' for receiver/group members
     //
-    SecureMessage? sMsg;
     if (receiver.isGroup) {
       // group message
       List<ID> members = await facebook!.getMembers(receiver);
