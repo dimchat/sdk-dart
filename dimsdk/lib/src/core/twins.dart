@@ -48,10 +48,29 @@ abstract class TwinsHelper {
   //  Convenient responding
   //
 
-  List<ReceiptCommand> respondReceipt(String text, ReliableMessage? rMsg,
-      {ID? group, Map<String, Object>? extra}) {
-    // create base receipt command with text & original envelope
-    ReceiptCommand res = ReceiptCommand.from(text, rMsg);
+  ///  receipt command with text, original envelope, serial number & group
+  ///
+  /// @param text     - respond message
+  /// @param envelope - original message envelope
+  /// @param content  - original message content
+  /// @param extra    - extra info
+  /// @return commands
+  List<ReceiptCommand> respondReceipt(String text,
+      {required Envelope envelope, Content? content,
+        Map<String, Object>? extra}) {
+    // check envelope
+    if (envelope.containsKey('data')) {
+      Map info = envelope.copyMap(false);
+      info.remove('data');
+      info.remove('key');
+      info.remove('keys');
+      info.remove('meta');
+      info.remove('visa');
+      envelope = Envelope.parse(info)!;
+    }
+    // create base receipt command with text, original envelope & serial number
+    ReceiptCommand res = ReceiptCommand.create(text, envelope, sn: content?.sn);
+    ID? group = content?.group;
     if (group != null) {
       res.group = group;
     }

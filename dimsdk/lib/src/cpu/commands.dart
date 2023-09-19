@@ -45,18 +45,18 @@ class MetaCommandProcessor extends BaseCommandProcessor {
     ID identifier = command.identifier;
     if (meta == null) {
       // query meta for ID
-      return await _getMeta(identifier, rMsg);
+      return await _getMeta(identifier, content, rMsg.envelope);
     } else {
       // received a meta for ID
-      return await _putMeta(identifier, meta, rMsg);
+      return await _putMeta(identifier, meta, content, rMsg.envelope);
     }
   }
 
-  Future<List<Content>> _getMeta(ID identifier, ReliableMessage rMsg) async {
+  Future<List<Content>> _getMeta(ID identifier, Content content, Envelope envelope) async {
     Meta? meta = await facebook?.getMeta(identifier);
     if (meta == null) {
       String text = 'Meta not found.';
-      return respondReceipt(text, rMsg, extra: {
+      return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Meta not found: \${ID}.',
         'replacements': {
           'ID': identifier.toString(),
@@ -67,17 +67,17 @@ class MetaCommandProcessor extends BaseCommandProcessor {
     }
   }
 
-  Future<List<Content>> _putMeta(ID identifier, Meta meta, ReliableMessage rMsg) async {
+  Future<List<Content>> _putMeta(ID identifier, Meta meta, Content content, Envelope envelope) async {
     List<Content>? errors;
     // 1. try to save meta
-    errors = await saveMeta(identifier, meta, rMsg);
+    errors = await saveMeta(identifier, meta, content, envelope);
     if (errors != null) {
       // failed
       return errors;
     }
     // 2. success
     String text = 'Meta received.';
-    return respondReceipt(text, rMsg, extra: {
+    return respondReceipt(text, content: content, envelope: envelope, extra: {
       'template': 'Meta received: \${ID}.',
       'replacements': {
         'ID': identifier.toString(),
@@ -86,12 +86,12 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   }
 
   // protected
-  Future<List<Content>?> saveMeta(ID identifier, Meta meta, ReliableMessage rMsg) async {
+  Future<List<Content>?> saveMeta(ID identifier, Meta meta, Content content, Envelope envelope) async {
     Facebook barrack = facebook!;
     // check meta
     if (!meta.isValid || !meta.matchIdentifier(identifier)) {
       String text = 'Meta not valid.';
-      return respondReceipt(text, rMsg, extra: {
+      return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Meta not valid: \${ID}.',
         'replacements': {
           'ID': identifier.toString(),
@@ -102,7 +102,7 @@ class MetaCommandProcessor extends BaseCommandProcessor {
     } else {
       // DB error?
       String text = 'Meta not accepted.';
-      return respondReceipt(text, rMsg, extra: {
+      return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Meta not accepted: \${ID}.',
         'replacements': {
           'ID': identifier.toString(),
@@ -128,21 +128,21 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     if (doc == null) {
       // query entity document for ID
       String docType = command.getString('doc_type', '*')!;
-      return await _getDoc(identifier, docType, rMsg);
+      return await _getDoc(identifier, docType, content, rMsg.envelope);
     } else if (identifier == doc.identifier) {
       // received a meta for ID
-      return await _putDoc(identifier, command.meta, doc, rMsg);
+      return await _putDoc(identifier, command.meta, doc, content, rMsg.envelope);
     }
     // error
-    return respondReceipt('Document ID not match.', rMsg);
+    return respondReceipt('Document ID not match.', content: content, envelope: rMsg.envelope);
   }
 
-  Future<List<Content>> _getDoc(ID identifier, String docType, ReliableMessage rMsg) async {
+  Future<List<Content>> _getDoc(ID identifier, String docType, Content content, Envelope envelope) async {
     Facebook barrack = facebook!;
     Document? doc = await barrack.getDocument(identifier, docType);
     if (doc == null) {
       String text = 'Document not found.';
-      return respondReceipt(text, rMsg, extra: {
+      return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Document not found: \${ID}.',
         'replacements': {
           'ID': identifier.toString(),
@@ -154,14 +154,14 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     }
   }
 
-  Future<List<Content>> _putDoc(ID identifier, Meta? meta, Document doc, ReliableMessage rMsg) async {
+  Future<List<Content>> _putDoc(ID identifier, Meta? meta, Document doc, Content content, Envelope envelope) async {
     Facebook barrack = facebook!;
     // 0. check meta
     if (meta == null) {
       meta = await barrack.getMeta(identifier);
       if (meta == null) {
         String text = 'Meta not found.';
-        return respondReceipt(text, rMsg, extra: {
+        return respondReceipt(text, content: content, envelope: envelope, extra: {
           'template': 'Meta not found: \${ID}.',
           'replacements': {
             'ID': identifier.toString(),
@@ -171,20 +171,20 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     }
     List<Content>? errors;
     // 1. try to save meta
-    errors = await saveMeta(identifier, meta, rMsg);
+    errors = await saveMeta(identifier, meta, content, envelope);
     if (errors != null) {
       // failed
       return errors;
     }
     // 2. try to save document
-    errors = await saveDocument(identifier, meta, doc, rMsg);
+    errors = await saveDocument(identifier, meta, doc, content, envelope);
     if (errors != null) {
       // failed
       return errors;
     }
     // 3. success
     String text = 'Document received.';
-    return respondReceipt(text, rMsg, extra: {
+    return respondReceipt(text, content: content, envelope: envelope, extra: {
       'template': 'Document received: \${ID}.',
       'replacements': {
         'ID': identifier.toString(),
@@ -193,13 +193,13 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
   }
 
   // protected
-  Future<List<Content>?> saveDocument(ID identifier, Meta meta, Document doc, ReliableMessage rMsg) async {
+  Future<List<Content>?> saveDocument(ID identifier, Meta meta, Document doc, Content content, Envelope envelope) async {
     Facebook barrack = facebook!;
     // check document
     if (!checkDocument(doc, meta)) {
       // document error
       String text = 'Document not accepted.';
-      return respondReceipt(text, rMsg, extra: {
+      return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Document not accepted: \${ID}.',
         'replacements': {
           'ID': identifier.toString(),
@@ -210,7 +210,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     } else {
       // document expired
       String text = 'Document not changed.';
-      return respondReceipt(text, rMsg, extra: {
+      return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Document not changed: \${ID}.',
         'replacements': {
           'ID': identifier.toString(),
