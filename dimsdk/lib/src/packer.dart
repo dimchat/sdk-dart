@@ -183,8 +183,7 @@ class MessagePacker extends TwinsHelper implements Packer {
     User? user = await facebook?.selectLocalUser(receiver);
     if (user == null) {
       // not for you?
-      assert(false, 'receiver error: ${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
-      return null;
+      throw Exception('receiver error: $receiver, from ${sMsg.sender}, ${sMsg.group}');
     }
     assert((await sMsg.data).isNotEmpty, 'message data empty: '
         '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');

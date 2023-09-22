@@ -32,47 +32,63 @@ import 'package:dimp/dimp.dart';
 
 abstract class CipherKeyDelegate {
 
-  /*
-   *                +-----------------+-----------------+-----------------+-----------------+
-   *                |     is user     |    is group     | broadcast user  | broadcast group |
-   *      +---------+-----------------+-----------------+-----------------+-----------------+
-   *      |         |                 |    receiver     |                 |                 |
-   *      |   (A)   +-----------------+-----------------+-----------------+-----------------+
-   *      |         |                 |                 |                 |    receiver     |
-   *      +---------+-----------------+-----------------+-----------------+-----------------+
-   *      |         |    receiver     |                 |                 |                 |
-   *      |   (B)   +-----------------+-----------------+-----------------+-----------------+
-   *      |         |                 |                 |    receiver     |                 |
-   *      +---------+-----------------+-----------------+-----------------+-----------------+
-   *      |   (C)   |    receiver     |                 |                 |                 |
-   *      +---------+-----------------+-----------------+-----------------+-----------------+
-   *      |         |    receiver     |                 |                 |      group      |
-   *      |   (D)   +-----------------+-----------------+-----------------+-----------------+
-   *      |         |                 |                 |    receiver     |      group      |
-   *      +---------+-----------------+-----------------+-----------------+-----------------+
-   *      |   (E)   |                 |      group      |    receiver     |                 |
-   *      +---------+-----------------+-----------------+-----------------+-----------------+
-   *      |   (F)   |    receiver     |      group      |                 |                 |
-   *      +---------+-----------------+-----------------+-----------------+-----------------+
-   */
+    /*  Situations:
+                      +-------------+-------------+-------------+-------------+
+                      |  receiver   |  receiver   |  receiver   |  receiver   |
+                      |     is      |     is      |     is      |     is      |
+                      |             |             |  broadcast  |  broadcast  |
+                      |    user     |    group    |    user     |    group    |
+        +-------------+-------------+-------------+-------------+-------------+
+        |             |      A      |             |             |             |
+        |             +-------------+-------------+-------------+-------------+
+        |    group    |             |      B      |             |             |
+        |     is      |-------------+-------------+-------------+-------------+
+        |    null     |             |             |      C      |             |
+        |             +-------------+-------------+-------------+-------------+
+        |             |             |             |             |      D      |
+        +-------------+-------------+-------------+-------------+-------------+
+        |             |      E      |             |             |             |
+        |             +-------------+-------------+-------------+-------------+
+        |    group    |             |             |             |             |
+        |     is      |-------------+-------------+-------------+-------------+
+        |  broadcast  |             |             |      F      |             |
+        |             +-------------+-------------+-------------+-------------+
+        |             |             |             |             |      G      |
+        +-------------+-------------+-------------+-------------+-------------+
+        |             |      H      |             |             |             |
+        |             +-------------+-------------+-------------+-------------+
+        |    group    |             |      J      |             |             |
+        |     is      |-------------+-------------+-------------+-------------+
+        |    normal   |             |             |      K      |             |
+        |             +-------------+-------------+-------------+-------------+
+        |             |             |             |             |             |
+        +-------------+-------------+-------------+-------------+-------------+
+     */
+
   static ID getDestination({required ID receiver, required ID? group}) {
-    if (receiver.isGroup) {
-      // (A)  group message, not split yet (maybe broadcast)
-      //      'group' field must be empty here
-      return receiver;
-    } else if (group == null) {
-      // (B)  personal message (maybe broadcast)
-      // (C)  group message split for its member, and needs to hide the group ID
+    if (group == null && receiver.isGroup) {
+      /// Transform:
+      ///     (B) => (J)
+      ///     (D) => (G)
+      group = receiver;
+    }
+    if (group == null) {
+      /// A : personal message (or hidden group message)
+      /// C : broadcast message for anyone
       return receiver;
     } else if (group.isBroadcast) {
-      // (D)  broadcast group message, split for special user
-      //      'sender' field must be user here
+      /// E : unencrypted message for someone
+      //      return group as broadcast ID for no password
+      /// F : broadcast message for anyone
+      /// G : (receiver == group) broadcast group message
       return group;
     } else if (receiver.isBroadcast) {
-      // (E)  group message, broadcast to all members
+      /// K : unencrypted group message, usually group command
+      //      return receiver as broadcast ID for no password
       return receiver;
     } else {
-      // (F)  group message, split for special member
+      /// H    : group message split for someone
+      /// J    : (receiver == group) non-split group message
       return group;
     }
   }

@@ -89,7 +89,7 @@ class GeneralCommandFactory implements ContentFactory, CommandFactory {
 class HistoryCommandFactory extends GeneralCommandFactory {
 
   @override
-  Content? parseContent(Map content) {
+  Command? parseCommand(Map content) {
     return BaseHistoryCommand(content);
   }
 
