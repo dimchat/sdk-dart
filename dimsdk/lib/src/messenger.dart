@@ -52,24 +52,18 @@ abstract class Messenger extends Transceiver implements Packer, Processor {
 
   Future<SymmetricKey?> getEncryptKey(InstantMessage iMsg) async {
     ID sender = iMsg.sender;
-    ID receiver = iMsg.receiver;
-    ID? group = ID.parse(iMsg['group']);
-    ID target = CipherKeyDelegate.getDestination(receiver: receiver, group: group);
+    ID target = CipherKeyDelegate.getDestinationForMessage(iMsg);
     return await cipherKeyDelegate?.getCipherKey(sender: sender, receiver: target, generate: true);
   }
   Future<SymmetricKey?> getDecryptKey(SecureMessage sMsg) async {
     ID sender = sMsg.sender;
-    ID receiver = sMsg.receiver;
-    ID? group = ID.parse(sMsg['group']);
-    ID target = CipherKeyDelegate.getDestination(receiver: receiver, group: group);
+    ID target = CipherKeyDelegate.getDestinationForMessage(sMsg);
     return await cipherKeyDelegate?.getCipherKey(sender: sender, receiver: target, generate: false);
   }
 
   Future<void> cacheDecryptKey(SymmetricKey key, SecureMessage sMsg) async {
     ID sender = sMsg.sender;
-    ID receiver = sMsg.receiver;
-    ID? group = ID.parse(sMsg['group']);
-    ID target = CipherKeyDelegate.getDestination(receiver: receiver, group: group);
+    ID target = CipherKeyDelegate.getDestinationForMessage(sMsg);
     return await cipherKeyDelegate?.cacheCipherKey(sender: sender, receiver: target, key: key);
   }
 

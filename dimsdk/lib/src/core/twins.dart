@@ -48,14 +48,21 @@ abstract class TwinsHelper {
   //  Convenient responding
   //
 
+  List<ReceiptCommand> respondReceipt(String text,
+      {required Envelope envelope, Content? content,
+        Map<String, Object>? extra}) =>
+      [
+        createReceipt(text, envelope: envelope, content: content, extra: extra)
+      ];
+
   ///  receipt command with text, original envelope, serial number & group
   ///
   /// @param text     - respond message
   /// @param envelope - original message envelope
   /// @param content  - original message content
   /// @param extra    - extra info
-  /// @return commands
-  List<ReceiptCommand> respondReceipt(String text,
+  /// @return receipt command
+  static ReceiptCommand createReceipt(String text,
       {required Envelope envelope, Content? content,
         Map<String, Object>? extra}) {
     // check envelope
@@ -78,7 +85,7 @@ abstract class TwinsHelper {
     if (extra != null) {
       res.addAll(extra);
     }
-    return [res];
+    return res;
   }
 
 }

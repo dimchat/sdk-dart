@@ -65,6 +65,10 @@ abstract class CipherKeyDelegate {
         +-------------+-------------+-------------+-------------+-------------+
      */
 
+  /// get destination for cipher key vector: (sender, dest)
+  static ID getDestinationForMessage(Message msg) =>
+      getDestination(receiver: msg.receiver, group: ID.parse(msg['group']));
+
   static ID getDestination({required ID receiver, required ID? group}) {
     if (group == null && receiver.isGroup) {
       /// Transform:
@@ -75,16 +79,21 @@ abstract class CipherKeyDelegate {
     if (group == null) {
       /// A : personal message (or hidden group message)
       /// C : broadcast message for anyone
+      assert(receiver.isUser, 'receiver error: $receiver');
       return receiver;
-    } else if (group.isBroadcast) {
+    }
+    assert(group.isGroup, 'group error: $group, receiver: $receiver');
+    if (group.isBroadcast) {
       /// E : unencrypted message for someone
-      //      return group as broadcast ID for no password
+      //      return group as broadcast ID for disable encryption
       /// F : broadcast message for anyone
       /// G : (receiver == group) broadcast group message
+      assert(receiver.isUser || receiver == group, 'receiver error: $receiver');
       return group;
     } else if (receiver.isBroadcast) {
       /// K : unencrypted group message, usually group command
-      //      return receiver as broadcast ID for no password
+      //      return receiver as broadcast ID for disable encryption
+      assert(receiver.isUser, 'receiver error: $receiver, group: $group');
       return receiver;
     } else {
       /// H    : group message split for someone
