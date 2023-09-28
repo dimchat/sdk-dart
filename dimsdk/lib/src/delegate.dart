@@ -104,7 +104,7 @@ abstract class CipherKeyDelegate {
 
   ///  Get cipher key for encrypt message from 'sender' to 'receiver'
   ///
-  /// @param sender - from where (user or contact ID)
+  /// @param sender   - from where (user or contact ID)
   /// @param receiver - to where (contact or user/group ID)
   /// @param generate - generate when key not exists
   /// @return cipher key
@@ -113,9 +113,9 @@ abstract class CipherKeyDelegate {
 
   ///  Cache cipher key for reusing, with the direction ('sender' => 'receiver')
   ///
-  /// @param sender - from where (user or contact ID)
+  /// @param sender   - from where (user or contact ID)
   /// @param receiver - to where (contact or user/group ID)
-  /// @param key - cipher key
+  /// @param key      - cipher key
   Future<void> cacheCipherKey({required ID sender, required ID receiver,
                                required SymmetricKey key});
 

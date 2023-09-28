@@ -195,6 +195,7 @@ void registerCommandFactories() {
   // Group Commands
   Command.setFactory('group', GroupCommandFactory());
   Command.setFactory(GroupCommand.kInvite, CommandParser((dict) => InviteGroupCommand(dict)));
+  /// 'expel' is deprecated (use 'reset' instead)
   Command.setFactory(GroupCommand.kExpel,  CommandParser((dict) => ExpelGroupCommand(dict)));
   Command.setFactory(GroupCommand.kJoin,   CommandParser((dict) => JoinGroupCommand(dict)));
   Command.setFactory(GroupCommand.kQuit,   CommandParser((dict) => QuitGroupCommand(dict)));

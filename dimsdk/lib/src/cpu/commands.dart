@@ -45,10 +45,10 @@ class MetaCommandProcessor extends BaseCommandProcessor {
     ID identifier = command.identifier;
     if (meta == null) {
       // query meta for ID
-      return await _getMeta(identifier, content, rMsg.envelope);
+      return await _getMeta(identifier, command, rMsg.envelope);
     } else {
       // received a meta for ID
-      return await _putMeta(identifier, meta, content, rMsg.envelope);
+      return await _putMeta(identifier, meta, command, rMsg.envelope);
     }
   }
 
@@ -128,13 +128,13 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     if (doc == null) {
       // query entity document for ID
       String docType = command.getString('doc_type', '*')!;
-      return await _getDoc(identifier, docType, content, rMsg.envelope);
+      return await _getDoc(identifier, docType, command, rMsg.envelope);
     } else if (identifier == doc.identifier) {
       // received a meta for ID
-      return await _putDoc(identifier, command.meta, doc, content, rMsg.envelope);
+      return await _putDoc(identifier, command.meta, doc, command, rMsg.envelope);
     }
     // error
-    return respondReceipt('Document ID not match.', content: content, envelope: rMsg.envelope);
+    return respondReceipt('Document ID not match.', content: command, envelope: rMsg.envelope);
   }
 
   Future<List<Content>> _getDoc(ID identifier, String docType, Content content, Envelope envelope) async {

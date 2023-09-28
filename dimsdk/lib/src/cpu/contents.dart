@@ -51,7 +51,7 @@ class ForwardContentProcessor extends BaseContentProcessor {
       /*if (results.isEmpty) {
         res = ForwardContent.create(secrets: []);
       } else */if (results.length == 1) {
-        res = ForwardContent.create(forward: results[0]);
+        res = ForwardContent.create(forward: results.first);
       } else {
         res = ForwardContent.create(secrets: results);
       }
@@ -80,7 +80,7 @@ class ArrayContentProcessor extends BaseContentProcessor {
       /*if (results.isEmpty) {
         res = ArrayContent.create([]);
       } else */if (results.length == 1) {
-        res = results[0];
+        res = results.first;
       } else {
         res = ArrayContent.create(results);
       }

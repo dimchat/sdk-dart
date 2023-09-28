@@ -99,7 +99,6 @@ class BaseContentProcessorFactory extends TwinsHelper implements ContentProcesso
 
   final ContentProcessorCreator _creator;
 
-  // protected
   final Map<int,    ContentProcessor> _contentProcessors = {};
   final Map<String, ContentProcessor> _commandProcessors = {};
 
@@ -113,7 +112,7 @@ class BaseContentProcessorFactory extends TwinsHelper implements ContentProcesso
       cpu = getCommandProcessor(msgType, name);
       if (cpu != null) {
         return cpu;
-      } else if (content is GroupCommand) {
+      } else if (content is GroupCommand/* || content.containsKey('group')*/) {
         // assert(name != 'group', 'command name error: $content');
         cpu = getCommandProcessor(msgType, 'group');
         if (cpu != null) {

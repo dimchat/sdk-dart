@@ -99,7 +99,7 @@ class Station implements User {
     Type clazz = runtimeType;
     int network = identifier.address.type;
     // TODO: check (host:port)
-    return '<$clazz id="$identifier" network=$network host="$_host" port=$_port />';
+    return '<$clazz id="$identifier" network=$network host="$host" port=$port />';
   }
 
   /// Reload station info: host & port, SP ID
