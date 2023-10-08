@@ -128,17 +128,17 @@ class Station implements User {
 
   @override
   UserDataSource? get dataSource {
-    EntityDataSource? barrack = _user.dataSource;
-    if (barrack == null) {
-      return null;
+    var facebook = _user.dataSource;
+    if (facebook is UserDataSource) {
+      return facebook;
     }
-    assert(barrack is UserDataSource, 'user data source error: $barrack');
-    return barrack as UserDataSource;
+    assert(facebook == null, 'user data source error: $facebook');
+    return null;
   }
 
   @override
-  set dataSource(EntityDataSource? barrack) {
-    _user.dataSource = barrack;
+  set dataSource(EntityDataSource? facebook) {
+    _user.dataSource = facebook;
   }
 
   @override

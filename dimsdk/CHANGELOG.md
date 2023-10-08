@@ -1,3 +1,7 @@
+## 0.2.4
+
+- Create receipt with original envelope & content.
+
 ## 0.2.3
 
 - Cipher Key with direction.

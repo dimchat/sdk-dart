@@ -33,8 +33,8 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 class ReliableMessagePacker {
-  ReliableMessagePacker(ReliableMessageDelegate delegate)
-      : _transceiver = WeakReference(delegate);
+  ReliableMessagePacker(ReliableMessageDelegate messenger)
+      : _transceiver = WeakReference(messenger);
 
   final WeakReference<ReliableMessageDelegate> _transceiver;
 

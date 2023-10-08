@@ -1,6 +1,6 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
+/// DIM-SDK
+/// ~~~~~~~
+/// Decentralized Instant Messaging Software Development Kit
 library dimsdk;
 
 export 'src/mkm/provider.dart';

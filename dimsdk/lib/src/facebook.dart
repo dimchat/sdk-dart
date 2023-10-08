@@ -36,30 +36,6 @@ import 'mkm/station.dart';
 
 abstract class Facebook extends Barrack {
 
-  // memory caches
-  final Map<ID, User>   _userMap = {};
-  final Map<ID, Group> _groupMap = {};
-
-  /// Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
-  /// this will remove 50% of cached objects
-  ///
-  /// @return number of survivors
-  int reduceMemory() {
-    int finger = 0;
-    finger = thanos(_userMap, finger);
-    finger = thanos(_groupMap, finger);
-    return finger >> 1;
-  }
-
-  void _cacheUser(User user) {
-    user.dataSource ??= this;
-    _userMap[user.identifier] = user;
-  }
-  void _cacheGroup(Group group) {
-    group.dataSource ??= this;
-    _groupMap[group.identifier] = group;
-  }
-
   ///  Save meta for entity ID (must verify first)
   ///
   /// @param meta - entity meta
@@ -77,7 +53,7 @@ abstract class Facebook extends Barrack {
   ///
   /// @param identifier - user ID
   /// @return user, null on not ready
-  // protected
+  @override
   Future<User?> createUser(ID identifier) async {
     // check visa key
     if (!identifier.isBroadcast) {
@@ -102,7 +78,7 @@ abstract class Facebook extends Barrack {
   ///
   /// @param identifier - group ID
   /// @return group, null on not ready
-  // protected
+  @override
   Future<Group?> createGroup(ID identifier) async {
     // check members
     if (!identifier.isBroadcast) {
@@ -165,36 +141,6 @@ abstract class Facebook extends Barrack {
       }
     }
     return null;
-  }
-
-  //-------- Entity Delegate
-
-  @override
-  Future<User?> getUser(ID identifier) async {
-    // 1. get from user cache
-    User? user = _userMap[identifier];
-    if (user == null) {
-      // 2. create user and cache it
-      user = await createUser(identifier);
-      if (user != null) {
-        _cacheUser(user);
-      }
-    }
-    return user;
-  }
-
-  @override
-  Future<Group?> getGroup(ID identifier) async {
-    // 1. get from group cache
-    Group? group = _groupMap[identifier];
-    if (group == null) {
-      // 2. create group and cache it
-      group = await createGroup(identifier);
-      if (group != null) {
-        _cacheGroup(group);
-      }
-    }
-    return group;
   }
 
 }

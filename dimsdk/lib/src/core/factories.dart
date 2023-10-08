@@ -64,8 +64,8 @@ class GeneralCommandFactory implements ContentFactory, CommandFactory {
 
   @override
   Content? parseContent(Map content) {
-    // get factory by command name
     CommandFactoryManager man = CommandFactoryManager();
+    // get factory by command name
     String cmd = man.generalFactory.getCmd(content, '*')!;
     CommandFactory? factory = man.generalFactory.getCommandFactory(cmd);
     if (factory == null) {
@@ -100,8 +100,8 @@ class GroupCommandFactory extends HistoryCommandFactory {
 
   @override
   Content? parseContent(Map content) {
-    // get factory by command name
     CommandFactoryManager man = CommandFactoryManager();
+    // get factory by command name
     String cmd = man.generalFactory.getCmd(content, '*')!;
     CommandFactory? factory = man.generalFactory.getCommandFactory(cmd);
     factory ??= this;
@@ -150,7 +150,7 @@ void registerContentFactories() {
   Content.setFactory(ContentType.kPage, ContentParser((dict) => WebPageContent(dict)));
 
   // Name Card
-  // TODO: set factory for name card
+  Content.setFactory(ContentType.kNameCard, ContentParser((dict) => NameCardContent(dict)));
 
   // Money
   Content.setFactory(ContentType.kMoney, ContentParser((dict) => BaseMoneyContent(dict)));

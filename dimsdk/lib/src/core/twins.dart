@@ -49,8 +49,7 @@ abstract class TwinsHelper {
   //
 
   List<ReceiptCommand> respondReceipt(String text,
-      {required Envelope envelope, Content? content,
-        Map<String, Object>? extra}) =>
+      {required Envelope envelope, Content? content, Map<String, Object>? extra}) =>
       [
         createReceipt(text, envelope: envelope, content: content, extra: extra)
       ];
@@ -63,24 +62,9 @@ abstract class TwinsHelper {
   /// @param extra    - extra info
   /// @return receipt command
   static ReceiptCommand createReceipt(String text,
-      {required Envelope envelope, Content? content,
-        Map<String, Object>? extra}) {
-    // check envelope
-    if (envelope.containsKey('data')) {
-      Map info = envelope.copyMap(false);
-      info.remove('data');
-      info.remove('key');
-      info.remove('keys');
-      info.remove('meta');
-      info.remove('visa');
-      envelope = Envelope.parse(info)!;
-    }
-    // create base receipt command with text, original envelope & serial number
-    ReceiptCommand res = ReceiptCommand.create(text, envelope, sn: content?.sn);
-    ID? group = content?.group;
-    if (group != null) {
-      res.group = group;
-    }
+      {required Envelope envelope, Content? content, Map<String, Object>? extra}) {
+    // create base receipt command with text, original envelope, serial number & group ID
+    ReceiptCommand res = ReceiptCommand.create(text, envelope, content);
     // add extra key-values
     if (extra != null) {
       res.addAll(extra);

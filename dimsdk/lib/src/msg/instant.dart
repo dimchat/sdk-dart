@@ -33,8 +33,8 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 class InstantMessagePacker {
-  InstantMessagePacker(InstantMessageDelegate delegate)
-      : _transceiver = WeakReference(delegate);
+  InstantMessagePacker(InstantMessageDelegate messenger)
+      : _transceiver = WeakReference(messenger);
 
   final WeakReference<InstantMessageDelegate> _transceiver;
 
