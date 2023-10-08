@@ -1,6 +1,6 @@
 name: dim_plugins
 description: Decentralized Instant Messaging Plugins
-version: 0.2.1
+version: 0.2.2
 homepage: https://github.com/dimchat/sdk-dart
 repository: https://github.com/dimchat/sdk-dart
 issue_tracker: https://github.com/dimchat/sdk-dart/issues
@@ -10,7 +10,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  dimp: ^0.2.4
+  dimp: ^0.2.5
   fast_base58: ^0.2.1
   encrypt: ^5.0.1
   basic_utils: ^5.5.3

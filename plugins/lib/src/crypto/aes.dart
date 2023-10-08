@@ -130,7 +130,7 @@ class _AESKey extends BaseSymmetricKey {
   @override
   Uint8List get data {
     TransportableData ted = _getKeyData();
-    return ted.data;
+    return ted.data!;
   }
 
   @override

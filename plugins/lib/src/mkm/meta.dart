@@ -49,8 +49,8 @@ import 'eth.dart';
 class _DefaultMeta extends BaseMeta {
   _DefaultMeta(super.dict);
 
-  _DefaultMeta.from(int version, VerifyKey key, String seed, Uint8List fingerprint)
-      : super.from(version, key, seed, fingerprint);
+  _DefaultMeta.from(int version, VerifyKey key, String seed, TransportableData fingerprint)
+      : super.from(version, key, seed: seed, fingerprint: fingerprint);
 
   // caches
   final Map<int, Address> _cachedAddresses = {};
@@ -85,8 +85,8 @@ class _DefaultMeta extends BaseMeta {
 class _BTCMeta extends BaseMeta {
   _BTCMeta(super.dict) : _cachedAddress = null;
 
-  _BTCMeta.from(int version, VerifyKey key, {String? seed, Uint8List? fingerprint})
-      : super.from(version, key, seed, fingerprint) {
+  _BTCMeta.from(int version, VerifyKey key, {String? seed, TransportableData? fingerprint})
+      : super.from(version, key, seed: seed, fingerprint: fingerprint) {
     _cachedAddress = null;
   }
 
@@ -96,7 +96,6 @@ class _BTCMeta extends BaseMeta {
   @override
   Address generateAddress(int? network) {
     assert(type == MetaType.kBTC || type == MetaType.kExBTC, 'meta type error: $type');
-    // assert(network == NetworkID.kBTCMain, 'BTC address type error: $network');
     if (_cachedAddress == null/* || cached.type != network*/) {
       // if (type == MetaType.kBTC) {
       //   // TODO: compress public key?
@@ -124,8 +123,8 @@ class _BTCMeta extends BaseMeta {
 class _ETHMeta extends BaseMeta {
   _ETHMeta(super.dict) : _cachedAddress = null;
 
-  _ETHMeta.from(int version, VerifyKey key, {String? seed, Uint8List? fingerprint})
-      : super.from(version, key, seed, fingerprint) {
+  _ETHMeta.from(int version, VerifyKey key, {String? seed, TransportableData? fingerprint})
+      : super.from(version, key, seed: seed, fingerprint: fingerprint) {
     _cachedAddress = null;
   }
 
@@ -147,13 +146,13 @@ class _ETHMeta extends BaseMeta {
 }
 
 
-class _MetaFactory implements MetaFactory {
-  _MetaFactory(this._version);
+class GeneralMetaFactory implements MetaFactory {
+  GeneralMetaFactory(this._version);
 
   final int _version;
 
   @override
-  Meta createMeta(VerifyKey pKey, {String? seed, Uint8List? fingerprint}) {
+  Meta createMeta(VerifyKey pKey, {String? seed, TransportableData? fingerprint}) {
     switch (_version) {
       case MetaType.kMKM:
         // MKM
@@ -176,11 +175,12 @@ class _MetaFactory implements MetaFactory {
 
   @override
   Meta generateMeta(SignKey sKey, {String? seed}) {
-    Uint8List? fingerprint;
+    TransportableData? fingerprint;
     if (seed == null) {
       fingerprint = null;
     } else {
-      fingerprint = sKey.sign(UTF8.encode(seed));
+      Uint8List sig = sKey.sign(UTF8.encode(seed));
+      fingerprint = TransportableData.create(sig);
     }
     VerifyKey pKey = (sKey as PrivateKey).publicKey;
     return createMeta(pKey, seed: seed, fingerprint: fingerprint);
@@ -208,10 +208,14 @@ class _MetaFactory implements MetaFactory {
   }
 }
 
+
+///
+/// Register
+///
 void registerMetaFactories() {
-  Meta.setFactory(MetaType.kMKM,   _MetaFactory(MetaType.kMKM));
-  Meta.setFactory(MetaType.kBTC,   _MetaFactory(MetaType.kBTC));
-  Meta.setFactory(MetaType.kExBTC, _MetaFactory(MetaType.kExBTC));
-  Meta.setFactory(MetaType.kETH,   _MetaFactory(MetaType.kETH));
-  Meta.setFactory(MetaType.kExETH, _MetaFactory(MetaType.kExETH));
+  Meta.setFactory(MetaType.kMKM,   GeneralMetaFactory(MetaType.kMKM));
+  Meta.setFactory(MetaType.kBTC,   GeneralMetaFactory(MetaType.kBTC));
+  Meta.setFactory(MetaType.kExBTC, GeneralMetaFactory(MetaType.kExBTC));
+  Meta.setFactory(MetaType.kETH,   GeneralMetaFactory(MetaType.kETH));
+  Meta.setFactory(MetaType.kExETH, GeneralMetaFactory(MetaType.kExETH));
 }

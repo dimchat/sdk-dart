@@ -15,11 +15,11 @@ export 'src/crypto/password.dart';
 // export 'src/format/pnf.dart';
 export 'src/format/coders.dart';
 
-export 'src/protocol/network.dart';
-
 export 'src/mkm/btc.dart';
 export 'src/mkm/eth.dart';
+export 'src/mkm/address.dart';
+export 'src/mkm/identifier.dart';
 export 'src/mkm/meta.dart';
-export 'src/mkm/entity.dart';
+export 'src/mkm/document.dart';
 
 export 'src/dimples_base.dart';

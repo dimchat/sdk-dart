@@ -32,8 +32,6 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-import '../protocol/network.dart';
-
 ///  Address like BitCoin
 ///
 ///      data format: "network+digest+code"
@@ -58,10 +56,10 @@ class BTCAddress extends ConstantString implements Address {
   bool get isBroadcast => false;
 
   @override
-  bool get isUser => EntityType.isUser(NetworkID.getType(_network));
+  bool get isUser => EntityType.isUser(_network);
 
   @override
-  bool get isGroup => EntityType.isGroup(NetworkID.getType(_network));
+  bool get isGroup => EntityType.isGroup(_network);
 
 
   ///  Generate BTC address with fingerprint and network ID

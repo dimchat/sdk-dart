@@ -57,7 +57,7 @@ class ETHAddress extends ConstantString implements Address {
 
   static String? getValidateAddress(String address) {
     if (!_ETH.isETH(address)) {
-      // not a ETH address
+      // not an ETH address
       return null;
     }
     String lower = address.substring(2).toLowerCase();
@@ -93,7 +93,7 @@ class ETHAddress extends ConstantString implements Address {
   /// @return null on error
   static ETHAddress? parse(String address) {
     if (!_ETH.isETH(address)) {
-      // not a ETH address
+      // not an ETH address
       return null;
     }
     return ETHAddress(address);

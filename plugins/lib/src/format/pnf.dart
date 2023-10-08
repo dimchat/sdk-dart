@@ -32,9 +32,8 @@ class _BaseNetworkFile extends Dictionary implements PortableNetworkFile {
 
   late final BaseFileWrapper _wrapper = BaseFileWrapper(toMap());
 
-  _BaseNetworkFile.from({Uint8List? data, String? filename,
-                         Uri? url, DecryptKey? password})
-      : super(null) {
+  _BaseNetworkFile.from(TransportableData? data, String? filename,
+      Uri? url, DecryptKey? password) : super(null) {
     // file data
     if (data != null) {
       _wrapper.data = data;
@@ -58,10 +57,10 @@ class _BaseNetworkFile extends Dictionary implements PortableNetworkFile {
   ///
 
   @override
-  Uint8List? get data => _wrapper.data;
+  Uint8List? get data => _wrapper.data?.data;
 
   @override
-  set data(Uint8List? fileData) => _wrapper.data = fileData;
+  set data(Uint8List? binary) => _wrapper.setDate(binary);
 
   ///
   /// file name
@@ -138,10 +137,9 @@ class _BaseNetworkFile extends Dictionary implements PortableNetworkFile {
 class BaseNetworkFileFactory implements PortableNetworkFileFactory {
 
   @override
-  PortableNetworkFile createPortableNetworkFile(Uint8List? data, String? filename,
+  PortableNetworkFile createPortableNetworkFile(TransportableData? data, String? filename,
                                                 Uri? url, DecryptKey? password) {
-    return _BaseNetworkFile.from(data: data, filename: filename,
-                                 url: url, password: password);
+    return _BaseNetworkFile.from(data, filename, url, password);
   }
 
   @override

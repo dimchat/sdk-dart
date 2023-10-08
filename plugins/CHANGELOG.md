@@ -1,3 +1,7 @@
+## 0.2.2
+
+- Factories for entity.
+
 ## 0.2.1
 
 - TED/PNF wrappers.

@@ -30,40 +30,43 @@
  */
 import 'package:dimp/dimp.dart';
 
-import '../protocol/network.dart';
 import 'btc.dart';
 import 'eth.dart';
 
-class _EntityID extends Identifier {
-  _EntityID(super.string,
-      {String? name, required Address address, String? terminal})
-      : super(name: name, address: address, terminal: terminal);
 
-  // compatible with MKM 0.9.*
-  @override
-  int get type => NetworkID.getType(address.type);
-}
+///  Base Address Factory
+///  ~~~~~~~~~~~~~~~~~~~~
+abstract class BaseAddressFactory implements AddressFactory {
 
-class _EntityIDFactory extends IdentifierFactory {
+  final Map<String, Address> _addresses = {};
 
-  @override // protected
-  ID newID(String identifier, {String? name, required Address address, String? terminal}) {
-    /// override for customized ID
-    return _EntityID(identifier, name: name, address: address, terminal: terminal);
+  /// Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
+  /// this will remove 50% of cached objects
+  ///
+  /// @return number of survivors
+  int reduceMemory() {
+    int finger = 0;
+    finger = thanos(_addresses, finger);
+    return finger >> 1;
   }
 
   @override
-  ID? parseID(String identifier) {
-    assert(identifier.isNotEmpty, 'ID should not be empty');
-    String lower = identifier.toLowerCase();
-    if (lower == ID.kAnyone.toString()) {
-      return ID.kAnyone;
-    } else if (lower == ID.kEveryone.toString()) {
-      return ID.kEveryone;
-    } else if (lower == ID.kFounder.toString()) {
-      return ID.kFounder;
+  Address generateAddress(Meta meta, int? network) {
+    Address address = meta.generateAddress(network);
+    _addresses[address.toString()] = address;
+    return address;
+  }
+
+  @override
+  Address? parseAddress(String address) {
+    Address? res = _addresses[address];
+    if (res == null) {
+      res = Address.create(address);
+      if (res != null) {
+        _addresses[address] = res;
+      }
     }
-    return super.parseID(identifier);
+    return res;
   }
 }
 
@@ -85,10 +88,10 @@ class _AddressFactory extends BaseAddressFactory {
   }
 }
 
-void registerIDFactory() {
-  ID.setFactory(_EntityIDFactory());
-}
 
+///
+/// Register
+///
 void registerAddressFactory() {
   Address.setFactory(_AddressFactory());
 }

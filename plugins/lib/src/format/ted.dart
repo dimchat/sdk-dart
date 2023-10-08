@@ -46,14 +46,14 @@ class _Base64Data extends Dictionary implements TransportableData {
   ///
 
   @override
-  String get algorithm => _wrapper.algorithm;
+  String? get algorithm => _wrapper.algorithm;
 
   ///
   /// binary data
   ///
 
   @override
-  Uint8List get data => _wrapper.data!;
+  Uint8List? get data => _wrapper.data;
 
   ///
   /// encoding
