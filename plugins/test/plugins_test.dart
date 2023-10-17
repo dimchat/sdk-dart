@@ -74,19 +74,6 @@ void testEncode() {
   debugAssert(res == exp, 'Base64 ($string) = "$res"');
 }
 
-void testPassword() {
-  debugLog('======== testPassword ========');
-
-  // String text = 'Hello world!';
-  String password = '12345';
-
-  SymmetricKey key1 = Password.generate(password);
-  SymmetricKey key2 = Password.generate(password);
-  debugLog('key1: $key1');
-  debugLog('key2: $key2');
-  debugAssert(key1 == key2, '$key1 <==> $key2');
-}
-
 void testAES() {
   debugLog('======== testAES ========');
 
@@ -244,7 +231,6 @@ void testECC() {
 
 void testSymmetric() {
   testAES();
-  testPassword();
 }
 
 void testAsymmetric() {

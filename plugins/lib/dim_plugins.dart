@@ -5,7 +5,7 @@ library dim_plugins;
 
 export 'src/crypto/digest.dart';
 // export 'src/crypto/aes.dart';
-export 'src/crypto/password.dart';
+export 'src/crypto/plain.dart';
 // export 'src/crypto/rsa.dart';
 // export 'src/crypto/rsa_utils.dart';
 // export 'src/crypto/ecc.dart';

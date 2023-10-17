@@ -139,6 +139,6 @@ String _concat({String? name, required Address address, String? terminal}) {
 ///
 /// Register
 ///
-void registerIDFactory() {
+void registerIdentifierFactory() {
   ID.setFactory(IdentifierFactory());
 }

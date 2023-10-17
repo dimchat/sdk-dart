@@ -1,3 +1,7 @@
+## 0.2.3
+
+- Move Password to app level.
+
 ## 0.2.2
 
 - Factories for entity.

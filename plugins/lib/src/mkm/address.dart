@@ -75,17 +75,26 @@ class _AddressFactory extends BaseAddressFactory {
   @override
   Address? createAddress(String address) {
     assert(address.isNotEmpty, 'address should not be empty');
-    String lower = address.toLowerCase();
-    if (lower == Address.kAnywhere.toString()) {
-      return Address.kAnywhere;
-    } else if (lower == Address.kEverywhere.toString()) {
-      return Address.kEverywhere;
+    int len = address.length;
+    if (len == 8) {
+      if (address.toLowerCase() == Address.kAnywhere.toString()) {
+        return Address.kAnywhere;
+      }
+    } else if (len == 10) {
+      if (address.toLowerCase() == Address.kEverywhere.toString()) {
+        return Address.kEverywhere;
+      }
     }
-    Address? res = ETHAddress.parse(address);
-    res ??= BTCAddress.parse(address);
+    Address? res;
+    if (len == 42) {
+      res = ETHAddress.parse(address);
+    } else if (26 <= len && len <= 35) {
+      res = BTCAddress.parse(address);
+    }
     assert(res != null, 'invalid address: $address');
     return res;
   }
+
 }
 
 

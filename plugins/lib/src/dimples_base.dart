@@ -28,7 +28,7 @@ import 'package:dimp/dimp.dart';
 import 'crypto/aes.dart';
 import 'crypto/digest.dart';
 import 'crypto/ecc.dart';
-import 'crypto/password.dart';
+import 'crypto/plain.dart';
 import 'crypto/rsa.dart';
 import 'format/coders.dart';
 
@@ -79,7 +79,7 @@ void registerPlugins() {
 
   registerKeyFactories();
 
-  registerIDFactory();
+  registerIdentifierFactory();
   registerAddressFactory();
   registerMetaFactories();
   registerDocumentFactories();

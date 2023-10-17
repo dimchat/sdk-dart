@@ -27,41 +27,6 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-///  This is for generating symmetric key with a text string
-class Password {
-
-  static const int _keySize = 32;
-  static const int _blockSize = 16;
-
-  static SymmetricKey generate(String passphrase) {
-    Uint8List data = UTF8.encode(passphrase);
-    Uint8List digest = SHA256.digest(data);
-    // AES key data
-    int filling = _keySize - data.length;
-    if (filling > 0) {
-      // format: {digest_prefix}+{pwd_data}
-      data = Uint8List.fromList(digest.sublist(0, filling) + data);
-    } else if (filling < 0) {
-      // throw Exception('password too long: $passphrase');
-      if (_keySize == digest.length) {
-        data = digest;
-      } else {
-        // FIXME: what about _keySize > digest.length?
-        data = digest.sublist(0, _keySize);
-      }
-    }
-    // AES iv
-    Uint8List iv = digest.sublist(digest.length - _blockSize);
-    // generate AES key
-    Map key = {
-      'algorithm': SymmetricKey.kAES,
-      'data': Base64.encode(data),
-      'iv': Base64.encode(iv),
-    };
-    return SymmetricKey.parse(key)!;
-  }
-}
-
 
 ///  Symmetric key for broadcast message,
 ///  which will do nothing when en/decoding message data

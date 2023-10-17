@@ -61,7 +61,8 @@ class ETHAddress extends ConstantString implements Address {
       return null;
     }
     String lower = address.substring(2).toLowerCase();
-    return '0x${_ETH.eip55(lower)}';
+    String eip55 = _ETH.eip55(lower);
+    return '0x$eip55';
   }
 
   static bool isValidate(String address) {

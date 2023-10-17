@@ -96,16 +96,15 @@ class _BTCMeta extends BaseMeta {
   @override
   Address generateAddress(int? network) {
     assert(type == MetaType.kBTC || type == MetaType.kExBTC, 'meta type error: $type');
-    if (_cachedAddress == null/* || cached.type != network*/) {
-      // if (type == MetaType.kBTC) {
-      //   // TODO: compress public key?
-      //   key['compressed'] = 1;
-      // }
-      Uint8List data = publicKey.data;
+    Address? address = _cachedAddress;
+    if (address == null || address.type != network) {
+      // TODO: compress public key?
+      VerifyKey key = publicKey;
+      Uint8List data = key.data;
       // generate and cache it
-      _cachedAddress = BTCAddress.generate(data, network!);
+      _cachedAddress = address = BTCAddress.generate(data, network!);
     }
-    return _cachedAddress!;
+    return address;
   }
 }
 
@@ -135,13 +134,15 @@ class _ETHMeta extends BaseMeta {
   Address generateAddress(int? network) {
     assert(type == MetaType.kETH || type == MetaType.kExETH, 'meta type error: $type');
     assert(network == null || network == EntityType.kUser, 'address type error: $network');
-    if (_cachedAddress == null/* || cached.type != network*/) {
+    Address? address = _cachedAddress;
+    if (address == null/* || address.type != network*/) {
       // 64 bytes key data without prefix 0x04
-      Uint8List data = publicKey.data;
+      VerifyKey key = publicKey;
+      Uint8List data = key.data;
       // generate and cache it
-      _cachedAddress = ETHAddress.generate(data);
+      _cachedAddress = address = ETHAddress.generate(data);
     }
-    return _cachedAddress!;
+    return address;
   }
 }
 
