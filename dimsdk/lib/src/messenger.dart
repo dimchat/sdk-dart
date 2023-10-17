@@ -134,9 +134,11 @@ abstract class Messenger extends Transceiver implements Packer, Processor {
   @override
   Future<Content?> deserializeContent(Uint8List data, SymmetricKey password, SecureMessage sMsg) async {
     Content? content = await super.deserializeContent(data, password, sMsg);
-    assert(content != null, 'content error: ${data.length}');
 
-    if (content != null) {
+    // cache decrypt key when success
+    if (content == null) {
+      assert(false, 'content error: ${data.length}');
+    } else {
       // cache the key with direction: sender -> receiver(group)
       await cacheDecryptKey(password, sMsg);
     }

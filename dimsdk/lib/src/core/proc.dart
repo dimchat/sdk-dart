@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 
-import '../core/twins.dart';
+import 'twins.dart';
 
 ///  CPU: Content Processing Unit
 ///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -80,44 +80,61 @@ abstract class ContentProcessorFactory {
 
 }
 
-//
-//  Implementations
-//
 
-///  Content Processing Unit
-///  ~~~~~~~~~~~~~~~~~~~~~~~
-class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
-  BaseContentProcessor(super.facebook, super.messenger);
+/// General ContentProcessor Factory
+/// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class GeneralContentProcessorFactory extends TwinsHelper implements ContentProcessorFactory {
+  GeneralContentProcessorFactory(super.facebook, super.messenger, this._creator);
+
+  final ContentProcessorCreator _creator;
+
+  final Map<int,    ContentProcessor> _contentProcessors = {};
+  final Map<String, ContentProcessor> _commandProcessors = {};
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
-    String text = 'Content not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Content (type: \${type}) not support yet!',
-      'replacements': {
-        'type': content.type,
-      },
-    });
+  ContentProcessor? getProcessor(Content content) {
+    ContentProcessor? cpu;
+    int msgType = content.type;
+    if (content is Command) {
+      String name = content.cmd;
+      // assert(name.isNotEmpty, 'command name error: $name');
+      cpu = getCommandProcessor(msgType, name);
+      if (cpu != null) {
+        return cpu;
+      } else if (content is GroupCommand/* || content.containsKey('group')*/) {
+        // assert(name != 'group', 'command name error: $content');
+        cpu = getCommandProcessor(msgType, 'group');
+        if (cpu != null) {
+          return cpu;
+        }
+      }
+    }
+    // content processor
+    return getContentProcessor(msgType);
   }
 
-}
-
-///  Command Processing Unit
-///  ~~~~~~~~~~~~~~~~~~~~~~~
-class BaseCommandProcessor extends BaseContentProcessor {
-  BaseCommandProcessor(super.facebook, super.messenger);
+  @override
+  ContentProcessor? getContentProcessor(int msgType) {
+    ContentProcessor? cpu = _contentProcessors[msgType];
+    if (cpu == null) {
+      cpu = _creator.createContentProcessor(msgType);
+      if (cpu != null) {
+        _contentProcessors[msgType] = cpu;
+      }
+    }
+    return cpu;
+  }
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
-    assert(content is Command, 'command error: $content');
-    Command command = content as Command;
-    String text = 'Command not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Command (name: \${command}) not support yet!',
-      'replacements': {
-        'command': command.cmd,
-      },
-    });
+  ContentProcessor? getCommandProcessor(int msgType, String cmd) {
+    ContentProcessor? cpu = _commandProcessors[cmd];
+    if (cpu == null) {
+      cpu = _creator.createCommandProcessor(msgType, cmd);
+      if (cpu != null) {
+        _commandProcessors[cmd] = cpu;
+      }
+    }
+    return cpu;
   }
 
 }

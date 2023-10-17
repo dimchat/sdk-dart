@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 
-import 'content.dart';
+import 'base.dart';
 
 
 ///  Handler for Customized Content

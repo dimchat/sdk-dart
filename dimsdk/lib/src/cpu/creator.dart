@@ -32,49 +32,63 @@ import 'package:dimp/dimp.dart';
 
 import '../core/proc.dart';
 import '../core/twins.dart';
-import '../facebook.dart';
-import '../messenger.dart';
 
-///  Content Processing Unit
-///  ~~~~~~~~~~~~~~~~~~~~~~~
-class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
-  BaseContentProcessor(super.facebook, super.messenger);
+import 'base.dart';
+import 'commands.dart';
+import 'contents.dart';
 
-  @override
-  Facebook? get facebook => super.facebook as Facebook?;
 
-  @override
-  Messenger? get messenger => super.messenger as Messenger?;
+/// Base ContentProcessor Creator
+/// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessorCreator {
+  BaseContentProcessorCreator(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
-    String text = 'Content not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Content (type: \${type}) not support yet!',
-      'replacements': {
-        'type': content.type,
-      },
-    });
+  ContentProcessor? createContentProcessor(int msgType) {
+    switch (msgType) {
+    // forward content
+      case ContentType.kForward:
+        return ForwardContentProcessor(facebook!, messenger!);
+    // array content
+      case ContentType.kArray:
+        return ArrayContentProcessor(facebook!, messenger!);
+
+    /*
+      // application customized
+      case ContentType.kApplication:
+      case ContentType.kCustomized:
+        return CustomizedContentProcessor(facebook!, messenger!);
+         */
+
+    // default commands
+      case ContentType.kCommand:
+        return BaseCommandProcessor(facebook!, messenger!);
+    /*
+      // default contents
+      case 0:
+        return BaseContentProcessor(facebook!, messenger!);
+         */
+
+    // unknown
+      default:
+        return null;
+    }
   }
 
-}
-
-///  Command Processing Unit
-///  ~~~~~~~~~~~~~~~~~~~~~~~
-class BaseCommandProcessor extends BaseContentProcessor {
-  BaseCommandProcessor(super.facebook, super.messenger);
-
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
-    assert(content is Command, 'command error: $content');
-    Command command = content as Command;
-    String text = 'Command not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Command (name: \${command}) not support yet!',
-      'replacements': {
-        'command': command.cmd,
-      },
-    });
+  ContentProcessor? createCommandProcessor(int msgType, String cmd) {
+    switch (cmd) {
+    // meta command
+      case Command.kMeta:
+        return MetaCommandProcessor(facebook!, messenger!);
+    // document command
+      case Command.kDocument:
+        return DocumentCommandProcessor(facebook!, messenger!);
+
+    // unknown
+      default:
+        return null;
+    }
   }
 
 }

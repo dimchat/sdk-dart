@@ -49,12 +49,9 @@ abstract class Facebook extends Barrack {
   /// @return true on success
   Future<bool> saveDocument(Document doc);
 
-  ///  Create user when visa.key exists
-  ///
-  /// @param identifier - user ID
-  /// @return user, null on not ready
   @override
   Future<User?> createUser(ID identifier) async {
+    assert(identifier.isUser, 'user ID error: $identifier');
     // check visa key
     if (!identifier.isBroadcast) {
       if (await getPublicKeyForEncryption(identifier) == null) {
@@ -74,12 +71,9 @@ abstract class Facebook extends Barrack {
     return BaseUser(identifier);
   }
 
-  ///  Create group when members exist
-  ///
-  /// @param identifier - group ID
-  /// @return group, null on not ready
   @override
   Future<Group?> createGroup(ID identifier) async {
+    assert(identifier.isGroup, 'group ID error: $identifier');
     // check members
     if (!identifier.isBroadcast) {
       List<ID> members = await getMembers(identifier);
@@ -88,7 +82,7 @@ abstract class Facebook extends Barrack {
         return null;
       }
       // NOTICE: if members exist, then owner (founder) must exist,
-      //         and bulletin, meta must exist too.
+      //         and bulletin & meta must exist too.
     }
     int network = identifier.type;
     // check group type

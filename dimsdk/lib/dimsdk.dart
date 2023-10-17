@@ -15,8 +15,9 @@ export 'src/msg/factory.dart';
 
 export 'src/core/factories.dart';
 export 'src/core/twins.dart';
+export 'src/core/proc.dart';
 
-export 'src/cpu/content.dart';
+export 'src/cpu/creator.dart';
 export 'src/cpu/contents.dart';
 export 'src/cpu/commands.dart';
 export 'src/cpu/customized.dart';

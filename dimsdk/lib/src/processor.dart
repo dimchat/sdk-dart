@@ -32,12 +32,13 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import 'core/proc.dart';
 import 'core/twins.dart';
-import 'cpu/base.dart';
-import 'cpu/content.dart';
+
+import 'facebook.dart';
 import 'messenger.dart';
 
-class MessageProcessor extends TwinsHelper implements Processor {
+abstract class MessageProcessor extends TwinsHelper implements Processor {
   MessageProcessor(super.facebook, super.messenger) {
     _factory = createFactory();
   }
@@ -46,12 +47,11 @@ class MessageProcessor extends TwinsHelper implements Processor {
 
   // protected
   ContentProcessorFactory createFactory() =>
-      BaseContentProcessorFactory(facebook!, messenger!, createCreator());
+      GeneralContentProcessorFactory(facebook!, messenger!, createCreator());
 
   // protected
-  ContentProcessorCreator createCreator() =>
-      /// override for creating customized CPUs
-      BaseContentProcessorCreator(facebook!, messenger!);
+  /// override for creating customized CPUs
+  ContentProcessorCreator createCreator();
 
   ContentProcessor? getProcessor(Content content) {
     return _factory.getProcessor(content);
@@ -62,6 +62,16 @@ class MessageProcessor extends TwinsHelper implements Processor {
   ContentProcessor? getCommandProcessor(int msgType, String cmd) {
     return _factory.getCommandProcessor(msgType, cmd);
   }
+
+  @override
+  Facebook? get facebook => super.facebook as Facebook?;
+
+  @override
+  Messenger? get messenger => super.messenger as Messenger?;
+
+  //
+  //  Processing Message
+  //
 
   @override
   Future<List<Uint8List>> processPackage(Uint8List data) async {

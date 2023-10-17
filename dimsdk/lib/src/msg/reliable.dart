@@ -56,7 +56,8 @@ class ReliableMessagePacker {
 
   ///  Verify 'data' and 'signature' field with sender's public key
   ///
-  /// @return SecureMessage object
+  /// @param rMsg     - network message
+  /// @return SecureMessage object if signature matched
   Future<SecureMessage?> verify(ReliableMessage rMsg) async {
     ReliableMessageDelegate transceiver = delegate!;
 

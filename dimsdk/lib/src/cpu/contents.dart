@@ -31,8 +31,8 @@
 import 'package:dimp/dimp.dart';
 
 import '../messenger.dart';
-import 'content.dart';
 
+import 'base.dart';
 
 class ForwardContentProcessor extends BaseContentProcessor {
   ForwardContentProcessor(super.facebook, super.messenger);

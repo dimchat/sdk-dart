@@ -30,24 +30,22 @@
  */
 import 'package:dimp/dimp.dart';
 
-import '../facebook.dart';
-import '../messenger.dart';
-
 abstract class TwinsHelper {
-  TwinsHelper(Facebook facebook, Messenger messenger)
+  TwinsHelper(Barrack facebook, Transceiver messenger)
       : _barrack = WeakReference(facebook),
         _transceiver = WeakReference(messenger);
 
-  final WeakReference<Facebook> _barrack;
-  final WeakReference<Messenger> _transceiver;
+  final WeakReference<Barrack> _barrack;
+  final WeakReference<Transceiver> _transceiver;
 
-  Facebook? get facebook => _barrack.target;
-  Messenger? get messenger => _transceiver.target;
+  Barrack? get facebook => _barrack.target;
+  Transceiver? get messenger => _transceiver.target;
 
   //
   //  Convenient responding
   //
 
+  // protected
   List<ReceiptCommand> respondReceipt(String text,
       {required Envelope envelope, Content? content, Map<String, Object>? extra}) =>
       [

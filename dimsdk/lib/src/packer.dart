@@ -33,10 +33,12 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 import 'core/twins.dart';
-import 'facebook.dart';
 import 'msg/instant.dart';
 import 'msg/reliable.dart';
 import 'msg/secure.dart';
+
+import 'facebook.dart';
+import 'messenger.dart';
 
 class MessagePacker extends TwinsHelper implements Packer {
   MessagePacker(super.facebook, super.messenger)
@@ -48,6 +50,12 @@ class MessagePacker extends TwinsHelper implements Packer {
   final InstantMessagePacker instantPacker;
   final SecureMessagePacker securePacker;
   final ReliableMessagePacker reliablePacker;
+
+  @override
+  Facebook? get facebook => super.facebook as Facebook?;
+
+  @override
+  Messenger? get messenger => super.messenger as Messenger?;
 
   //
   //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
@@ -111,7 +119,7 @@ class MessagePacker extends TwinsHelper implements Packer {
 
   @override
   Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
-    assert((await sMsg.data).isNotEmpty, 'message data cannot be empty');
+    assert((await sMsg.data).isNotEmpty, 'message data cannot be empty: $sMsg');
     // sign 'data' by sender
     return await securePacker.sign(sMsg);
   }
@@ -150,18 +158,17 @@ class MessagePacker extends TwinsHelper implements Packer {
 
   @override
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
-    // TODO: check sender's meta exists before calling this
-    Facebook barrack = facebook!;
+    // TODO: make sure sender's meta exists before verifying message
     ID sender = rMsg.sender;
     // [Meta Protocol]
     Meta? meta = rMsg.meta;
     if (meta != null) {
-      await barrack.saveMeta(meta, sender);
+      await facebook?.saveMeta(meta, sender);
     }
     // [Visa Protocol]
     Visa? visa = rMsg.visa;
     if (visa != null) {
-      await barrack.saveDocument(visa);
+      await facebook?.saveDocument(visa);
     }
     //
     //  TODO: check [Visa Protocol] before calling this
@@ -169,7 +176,7 @@ class MessagePacker extends TwinsHelper implements Packer {
     //        (do it by application)
     //
 
-    assert((await rMsg.signature).isNotEmpty, 'message signature cannot be empty');
+    assert((await rMsg.signature).isNotEmpty, 'message signature cannot be empty: $rMsg');
     // verify 'data' with 'signature'
     return await reliablePacker.verify(rMsg);
   }
