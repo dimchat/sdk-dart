@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Simplify Document.
+
 ## 0.2.3
 
 - Move Password to app level.

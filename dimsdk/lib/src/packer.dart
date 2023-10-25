@@ -33,6 +33,7 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 import 'core/twins.dart';
+import 'msg/helper.dart';
 import 'msg/instant.dart';
 import 'msg/reliable.dart';
 import 'msg/secure.dart';
@@ -156,17 +157,20 @@ class MessagePacker extends TwinsHelper implements Packer {
     return ReliableMessage.parse(dict);
   }
 
-  @override
-  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
-    // TODO: make sure sender's meta exists before verifying message
+  ///  Check meta & visa
+  ///
+  /// @param rMsg - received message
+  /// @return false on error
+  // protected
+  Future<bool> checkAttachments(ReliableMessage rMsg) async {
     ID sender = rMsg.sender;
     // [Meta Protocol]
-    Meta? meta = rMsg.meta;
+    Meta? meta = MessageHelper.getMeta(rMsg);
     if (meta != null) {
       await facebook?.saveMeta(meta, sender);
     }
     // [Visa Protocol]
-    Visa? visa = rMsg.visa;
+    Visa? visa = MessageHelper.getVisa(rMsg);
     if (visa != null) {
       await facebook?.saveDocument(visa);
     }
@@ -175,6 +179,15 @@ class MessagePacker extends TwinsHelper implements Packer {
     //        make sure the sender's meta(visa) exists
     //        (do it by application)
     //
+    return true;
+  }
+
+  @override
+  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
+    // make sure sender's meta exists before verifying message
+    if (await checkAttachments(rMsg)) {} else {
+      return null;
+    }
 
     assert((await rMsg.signature).isNotEmpty, 'message signature cannot be empty: $rMsg');
     // verify 'data' with 'signature'

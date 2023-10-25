@@ -8,6 +8,7 @@ export 'src/mkm/station.dart';
 export 'src/mkm/bot.dart';
 export 'src/mkm/members.dart';
 
+export 'src/msg/helper.dart';
 export 'src/msg/instant.dart';
 export 'src/msg/secure.dart';
 export 'src/msg/reliable.dart';

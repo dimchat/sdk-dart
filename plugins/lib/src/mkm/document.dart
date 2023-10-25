@@ -91,7 +91,7 @@ String _getType(String docType, ID identifier) {
   } else if (identifier.isUser) {
     return Document.kVisa;
   } else {
-    return Document.kProfile;
+    return 'profile';
   }
 }
 
@@ -102,7 +102,7 @@ String _getType(String docType, ID identifier) {
 void registerDocumentFactories() {
 
   Document.setFactory('*', GeneralDocumentFactory('*'));
+  Document.setFactory('profile', GeneralDocumentFactory('*'));
   Document.setFactory(Document.kVisa, GeneralDocumentFactory(Document.kVisa));
-  Document.setFactory(Document.kProfile, GeneralDocumentFactory(Document.kProfile));
   Document.setFactory(Document.kBulletin, GeneralDocumentFactory(Document.kBulletin));
 }

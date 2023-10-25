@@ -129,12 +129,11 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     ID identifier = command.identifier;
     Document? doc = command.document;
     if (doc == null) {
-      // query entity document for ID
-      String docType = command.getString('doc_type', '*')!;
-      return await _getDoc(identifier, docType, content: command, envelope: rMsg.envelope);
+      // query entity documents for ID
+      return await _getDocuments(identifier, content: command, envelope: rMsg.envelope);
     } else if (identifier == doc.identifier) {
       // received a document for ID
-      return await _putDoc(doc, identifier: identifier, content: command, envelope: rMsg.envelope);
+      return await _putDocument(doc, identifier: identifier, content: command, envelope: rMsg.envelope);
     }
     // error
     return respondReceipt('Document ID not match.', content: command, envelope: rMsg.envelope, extra: {
@@ -145,10 +144,10 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     });
   }
 
-  Future<List<Content>> _getDoc(ID identifier, String docType,
+  Future<List<Content>> _getDocuments(ID identifier,
       {required DocumentCommand content, required Envelope envelope}) async {
-    Document? doc = await facebook?.getDocument(identifier, docType);
-    if (doc == null) {
+    List<Document>? documents = await facebook?.getDocuments(identifier);
+    if (documents == null || documents.isEmpty) {
       String text = 'Document not found.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Document not found: \${ID}.',
@@ -157,14 +156,20 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
         },
       });
     }
-    // document got
+    // documents got
     Meta? meta = await facebook?.getMeta(identifier);
-    return [
-      DocumentCommand.response(identifier, meta, doc)
-    ];
+    // respond first document with meta
+    DocumentCommand command = DocumentCommand.response(identifier, meta, documents.first);
+    List<Content> responses = [command];
+    for (int i = 1; i < documents.length; ++i) {
+      // respond other documents
+      command = DocumentCommand.response(identifier, null, documents[i]);
+      responses.add(command);
+    }
+    return responses;
   }
 
-  Future<List<Content>> _putDoc(Document doc,
+  Future<List<Content>> _putDocument(Document doc,
       {required ID identifier, required DocumentCommand content, required Envelope envelope}) async {
     List<Content>? errors;
     Meta? meta = content.meta;

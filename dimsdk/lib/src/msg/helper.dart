@@ -1,10 +1,10 @@
 /* license: https://mit-license.org
  *
- *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *  DIMP : Decentralized Instant Messaging Protocol
  *
- *                               Written in 2023 by Moky <albert.moky@gmail.com>
+ *                                Written in 2023 by Moky <albert.moky@gmail.com>
  *
- * =============================================================================
+ * ==============================================================================
  * The MIT License (MIT)
  *
  * Copyright (c) 2023 Albert Moky
@@ -26,26 +26,36 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * =============================================================================
+ * ==============================================================================
  */
 import 'package:dimp/dimp.dart';
 
-///  Bot User
-class Bot extends BaseUser {
-  Bot(super.id);
+abstract interface class MessageHelper {
 
-  /// Bot Document
-  Future<Document?> get profile async => await visa;
+  ///  Sender's Meta
+  ///  ~~~~~~~~~~~~~
+  ///  Extends for the first message package of 'Handshake' protocol.
 
-  ///  Get provider ID
-  ///
-  /// @return ICP ID, bot group
-  Future<ID?> get provider async {
-    Document? doc = await profile;
-    if (doc == null) {
-      return null;
+  static Meta? getMeta(ReliableMessage rMsg) =>
+      Meta.parse(rMsg['meta']);
+
+  static void setMeta(Meta meta, ReliableMessage rMsg) =>
+      rMsg.setMap('meta', meta);
+
+  ///  Sender's Visa
+  ///  ~~~~~~~~~~~~~
+  ///  Extends for the first message package of 'Handshake' protocol.
+
+  static Visa? getVisa(ReliableMessage rMsg) {
+    Document? doc = Document.parse(rMsg['visa']);
+    if (doc is Visa) {
+      return doc;
     }
-    return ID.parse(doc.getProperty('ICP'));
+    assert(doc == null, 'visa document error: $doc');
+    return null;
   }
+
+  static void setVisa(Visa visa, ReliableMessage rMsg) =>
+      rMsg.setMap('visa', visa);
 
 }

@@ -104,7 +104,7 @@ class Station implements User {
 
   /// Reload station info: host & port, SP ID
   Future<void> reload() async {
-    Document? doc = await getDocument('*');
+    Document? doc = await profile;
     if (doc != null) {
       String? host = Converter.getString(doc.getProperty('host'), null);
       if (host != null) {
@@ -120,6 +120,9 @@ class Station implements User {
       }
     }
   }
+
+  /// Station Document
+  Future<Document?> get profile async => DocumentHelper.lastDocument(await documents);
 
   //-------- Entity
 
@@ -145,8 +148,7 @@ class Station implements User {
   Future<Meta> get meta async => await _user.meta;
 
   @override
-  Future<Document?> getDocument(String? docType) async =>
-      await _user.getDocument(docType);
+  Future<List<Document>> get documents async => await _user.documents;
 
   //-------- User
 

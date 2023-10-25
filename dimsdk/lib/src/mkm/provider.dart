@@ -36,8 +36,11 @@ import 'station.dart';
 class ServiceProvider extends BaseGroup {
   ServiceProvider(super.id);
 
+  /// Station Document
+  Future<Document?> get profile async => DocumentHelper.lastDocument(await documents);
+
   Future<List> get stations async {
-    Document? doc = await getDocument('*');
+    Document? doc = await profile;
     if (doc != null) {
       var stations = doc.getProperty('stations');
       if (stations is List) {
