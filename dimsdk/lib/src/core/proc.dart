@@ -34,7 +34,7 @@ import 'twins.dart';
 
 ///  CPU: Content Processing Unit
 ///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-abstract class ContentProcessor {
+abstract interface class ContentProcessor {
 
   ///  Process message content
   ///
@@ -47,7 +47,7 @@ abstract class ContentProcessor {
 
 ///  CPU Creator
 ///  ~~~~~~~~~~~
-abstract class ContentProcessorCreator {
+abstract interface class ContentProcessorCreator {
 
   ///  Create content processor with type
   ///
@@ -66,7 +66,7 @@ abstract class ContentProcessorCreator {
 
 ///  CPU Factory
 ///  ~~~~~~~~~~~
-abstract class ContentProcessorFactory {
+abstract interface class ContentProcessorFactory {
 
   ///  Get content/command processor
   ///

@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 
-abstract class CipherKeyDelegate {
+abstract interface class CipherKeyDelegate {
 
     /*  Situations:
                       +-------------+-------------+-------------+-------------+

@@ -1,3 +1,7 @@
+## 0.3.1
+
+- Strict interface.
+
 ## 0.3.0
 
 - Simplify Document.

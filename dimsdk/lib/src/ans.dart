@@ -30,7 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 
-abstract class AddressNameService {
+abstract interface class AddressNameService {
 
   static final List<String> keywords = [
     "all", "everyone", "anyone", "owner", "founder",

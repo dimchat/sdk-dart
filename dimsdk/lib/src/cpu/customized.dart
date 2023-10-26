@@ -35,7 +35,7 @@ import 'base.dart';
 
 ///  Handler for Customized Content
 ///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-abstract class CustomizedContentHandler {
+abstract interface class CustomizedContentHandler {
 
   ///  Do your job
   ///
