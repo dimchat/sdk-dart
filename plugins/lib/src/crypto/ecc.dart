@@ -84,6 +84,8 @@ class _ECCPrivateKey extends BasePrivateKey {
       Map info = {
         'algorithm': AsymmetricKey.kECC,
         'data': pem,
+        'curve': 'SECP256k1',
+        'digest': 'SHA256'
       };
       pubKey = PublicKey.parse(info);
       assert(pubKey != null, 'failed to get public key: $info');

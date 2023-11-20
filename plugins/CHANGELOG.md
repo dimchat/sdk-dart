@@ -1,3 +1,7 @@
+## 0.3.2
+
+- Archivist.
+
 ## 0.3.1
 
 - Strict interface.

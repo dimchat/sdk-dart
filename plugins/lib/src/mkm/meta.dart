@@ -177,7 +177,7 @@ class GeneralMetaFactory implements MetaFactory {
   @override
   Meta generateMeta(SignKey sKey, {String? seed}) {
     TransportableData? fingerprint;
-    if (seed == null) {
+    if (seed == null || seed.isEmpty) {
       fingerprint = null;
     } else {
       Uint8List sig = sKey.sign(UTF8.encode(seed));

@@ -157,6 +157,26 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
       });
     }
     // documents got
+    DateTime? queryTime = content.lastTime;
+    if (queryTime != null) {
+      // check last document time
+      Document? last = DocumentHelper.lastDocument(documents);
+      assert(last != null, 'should not happen');
+      DateTime? lastTime = last?.time;
+      if (lastTime == null) {
+        assert(false, 'document error: $last');
+      } else if (!lastTime.isAfter(queryTime)) {
+        // document not updated
+        String text = 'Document not updated.';
+        return respondReceipt(text, content: content, envelope: envelope, extra: {
+          'template': 'Document not updated: \${ID}, last time: \${time}.',
+          'replacements': {
+            'ID': identifier.toString(),
+            'time': lastTime.millisecondsSinceEpoch / 1000.0,
+          },
+        });
+      }
+    }
     Meta? meta = await facebook?.getMeta(identifier);
     // respond first document with meta
     DocumentCommand command = DocumentCommand.response(identifier, meta, documents.first);

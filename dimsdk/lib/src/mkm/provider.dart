@@ -36,7 +36,7 @@ import 'station.dart';
 class ServiceProvider extends BaseGroup {
   ServiceProvider(super.id);
 
-  /// Station Document
+  /// Provider Document
   Future<Document?> get profile async => DocumentHelper.lastDocument(await documents);
 
   Future<List> get stations async {

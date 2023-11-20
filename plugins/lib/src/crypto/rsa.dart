@@ -87,6 +87,9 @@ class _RSAPrivateKey extends BasePrivateKey implements DecryptKey {
       Map info = {
         'algorithm': AsymmetricKey.kRSA,
         'data': pem,
+        'mode': 'ECB',
+        'padding': 'PKCS1',
+        'digest': 'SHA256'
       };
       pubKey = PublicKey.parse(info);
       assert(pubKey != null, 'failed to get public key: $info');
