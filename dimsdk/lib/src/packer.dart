@@ -105,7 +105,7 @@ class MessagePacker extends TwinsHelper implements Packer {
     }
     if (sMsg == null) {
       // public key for encryption not found
-      assert(false, 'failed to encrypt message: $iMsg');
+      assert(false, 'failed to encrypt message: ${iMsg.sender} => $receiver, ${iMsg['group']}');
       // TODO: suspend this message for waiting receiver's meta
       return null;
     }

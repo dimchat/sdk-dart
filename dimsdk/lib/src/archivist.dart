@@ -61,6 +61,20 @@ abstract class Archivist implements EntityDataSource {
   // protected
   bool isMembersQueryExpired(ID identifier) => _membersQueries.isExpired(identifier);
 
+  /// check whether need to query meta
+  // protected
+  Future<bool> needsQueryMeta(ID identifier, Meta? meta) async {
+    if (identifier.isBroadcast) {
+      // broadcast entity has no meta to query
+      return false;
+    } else if (meta == null) {
+      // meta not found, sure to query
+      return true;
+    }
+    assert(meta.matchIdentifier(identifier), 'meta not match: $identifier, $meta');
+    return false;
+  }
+
   //
   //  Last Document Times
   //
@@ -68,15 +82,21 @@ abstract class Archivist implements EntityDataSource {
   bool setLastDocumentTime(ID identifier, DateTime? lastTime) =>
       _lastDocumentTimes.setLastTime(identifier, lastTime);
 
-  Future<bool> needsUpdateDocuments(ID identifier, List<Document> documents) async {
-    if (documents.isEmpty) {
-      // documents not found, sure to update
+  /// check whether need to query documents
+  // protected
+  Future<bool> needsQueryDocuments(ID identifier, List<Document> documents) async {
+    if (identifier.isBroadcast) {
+      // broadcast entity has no document to query
+      return false;
+    } else if (documents.isEmpty) {
+      // documents not found, sure to query
       return true;
     }
     DateTime? current = await getLastDocumentTime(identifier, documents);
     return _lastDocumentTimes.isExpired(identifier, current);
   }
 
+  // protected
   Future<DateTime?> getLastDocumentTime(ID identifier, List<Document> documents) async {
     if (documents.isEmpty) {
       return null;
@@ -87,7 +107,7 @@ abstract class Archivist implements EntityDataSource {
       assert(doc.identifier == identifier, 'document not match: $identifier, $doc');
       docTime = doc.time;
       if (docTime == null) {
-        assert(false, 'document error: $doc');
+        // assert(false, 'document error: $doc');
       } else if (lastTime == null || lastTime.isBefore(docTime)) {
         lastTime = docTime;
       }
@@ -102,15 +122,21 @@ abstract class Archivist implements EntityDataSource {
   bool setLastGroupHistoryTime(ID group, DateTime? lastTime) =>
       _lastHistoryTimes.setLastTime(group, lastTime);
 
-  Future<bool> needsUpdateGroupHistory(ID group, List<ID> members) async {
-    if (members.isEmpty) {
-      // members not found, sure to update
+  /// check whether need to query group members
+  // protected
+  Future<bool> needsQueryMembers(ID group, List<ID> members) async {
+    if (group.isBroadcast) {
+      // broadcast group has no members to query
+      return false;
+    } else if (members.isEmpty) {
+      // members not found, sure to query
       return true;
     }
     DateTime? current = await getLastGroupHistoryTime(group);
     return _lastHistoryTimes.isExpired(group, current);
   }
 
+  // protected
   Future<DateTime?> getLastGroupHistoryTime(ID group);
 
   ///  Check meta for querying
@@ -119,17 +145,16 @@ abstract class Archivist implements EntityDataSource {
   /// @param meta       - exists meta
   /// @return ture on querying
   Future<bool> checkMeta(ID identifier, Meta? meta) async {
-    if (meta == null) {
-      // meta not found, needs to query
+    if (await needsQueryMeta(identifier, meta)) {
+      // if (!isMetaQueryExpired(identifier)) {
+      //   // query not expired yet
+      //   return false;
+      // }
+      return await queryMeta(identifier);
     } else {
-      assert(meta.matchIdentifier(identifier), 'meta not match: $identifier, $meta');
+      // no need to query meta again
       return false;
     }
-    // if (!isMetaQueryExpired(identifier)) {
-    //   // query not expired yet
-    //   return false;
-    // }
-    return await queryMeta(identifier);
   }
 
   ///  Check documents for querying/updating
@@ -138,17 +163,16 @@ abstract class Archivist implements EntityDataSource {
   /// @param documents  - exist document
   /// @return true on querying
   Future<bool> checkDocuments(ID identifier, List<Document> documents) async {
-    if (await needsUpdateDocuments(identifier, documents)) {
-      // documents not found or expired, needs to query
+    if (await needsQueryDocuments(identifier, documents)) {
+      // if (!isDocumentQueryExpired(identifier)) {
+      //   // query not expired yet
+      //   return false;
+      // }
+      return await queryDocuments(identifier, documents);
     } else {
       // no need to update documents now
       return false;
     }
-    // if (!isDocumentQueryExpired(identifier)) {
-    //   // query not expired yet
-    //   return false;
-    // }
-    return await queryDocuments(identifier, documents);
   }
 
   ///  Check group members for querying
@@ -157,17 +181,16 @@ abstract class Archivist implements EntityDataSource {
   /// @param members - exist members
   /// @return true on querying
   Future<bool> checkMembers(ID group, List<ID> members) async {
-    if (await needsUpdateGroupHistory(group, members)) {
-      // group history not found or expired, needs to query
+    if (await needsQueryMembers(group, members)) {
+      // if (!isMembersQueryExpired(identifier)) {
+      //   // query not expired yet
+      //   return false;
+      // }
+      return await queryMembers(group, members);
     } else {
       // no need to update group members now
       return false;
     }
-    // if (!isMembersQueryExpired(identifier)) {
-    //   // query not expired yet
-    //   return false;
-    // }
-    return await queryMembers(group, members);
   }
 
   ///  Request for meta with entity ID
