@@ -58,7 +58,7 @@ class ReliableMessagePacker {
   ///
   /// @param rMsg     - network message
   /// @return SecureMessage object if signature matched
-  Future<SecureMessage?> verify(ReliableMessage rMsg) async {
+  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
     ReliableMessageDelegate transceiver = delegate!;
 
     //

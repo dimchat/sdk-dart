@@ -58,7 +58,7 @@ class SecureMessagePacker {
   /// @param sMsg     - encrypted message
   /// @param receiver - actual receiver (local user)
   /// @return InstantMessage object
-  Future<InstantMessage?> decrypt(SecureMessage sMsg, ID receiver) async {
+  Future<InstantMessage?> decryptMessage(SecureMessage sMsg, ID receiver) async {
     assert(receiver.isUser, 'receiver error: $receiver');
     SecureMessageDelegate transceiver = delegate!;
 
@@ -167,7 +167,7 @@ class SecureMessagePacker {
   ///
   /// @param sMsg - encrypted message
   /// @return ReliableMessage object
-  Future<ReliableMessage> sign(SecureMessage sMsg) async {
+  Future<ReliableMessage> signMessage(SecureMessage sMsg) async {
     SecureMessageDelegate transceiver = delegate!;
 
     //

@@ -98,10 +98,10 @@ class MessagePacker extends TwinsHelper implements Packer {
       // a station will never send group message, so here must be a client;
       // the client messenger should check the group's meta & members before encrypting,
       // so we can trust that the group members MUST exist here.
-      sMsg = await instantPacker.encrypt(iMsg, password!, members: members);
+      sMsg = await instantPacker.encryptMessage(iMsg, password!, members: members);
     } else {
       // personal message (or split group message)
-      sMsg = await instantPacker.encrypt(iMsg, password!);
+      sMsg = await instantPacker.encryptMessage(iMsg, password!);
     }
     if (sMsg == null) {
       // public key for encryption not found
@@ -122,7 +122,7 @@ class MessagePacker extends TwinsHelper implements Packer {
   Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
     assert((await sMsg.data).isNotEmpty, 'message data cannot be empty: $sMsg');
     // sign 'data' by sender
-    return await securePacker.sign(sMsg);
+    return await securePacker.signMessage(sMsg);
   }
 
   @override
@@ -191,7 +191,7 @@ class MessagePacker extends TwinsHelper implements Packer {
 
     assert((await rMsg.signature).isNotEmpty, 'message signature cannot be empty: $rMsg');
     // verify 'data' with 'signature'
-    return await reliablePacker.verify(rMsg);
+    return await reliablePacker.verifyMessage(rMsg);
   }
 
   @override
@@ -208,7 +208,7 @@ class MessagePacker extends TwinsHelper implements Packer {
     assert((await sMsg.data).isNotEmpty, 'message data empty: '
         '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
     // decrypt 'data' to 'content'
-    return await securePacker.decrypt(sMsg, user.identifier);
+    return await securePacker.decryptMessage(sMsg, user.identifier);
 
     // TODO: check top-secret message
     //       (do it by application)

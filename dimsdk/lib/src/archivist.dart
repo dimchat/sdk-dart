@@ -143,7 +143,7 @@ abstract class Archivist implements EntityDataSource {
   ///
   /// @param identifier - entity ID
   /// @param meta       - exists meta
-  /// @return ture on querying
+  /// @return true on querying
   Future<bool> checkMeta(ID identifier, Meta? meta) async {
     if (await needsQueryMeta(identifier, meta)) {
       // if (!isMetaQueryExpired(identifier)) {
@@ -160,7 +160,7 @@ abstract class Archivist implements EntityDataSource {
   ///  Check documents for querying/updating
   ///
   /// @param identifier - entity ID
-  /// @param documents  - exist document
+  /// @param documents  - exist documents
   /// @return true on querying
   Future<bool> checkDocuments(ID identifier, List<Document> documents) async {
     if (await needsQueryDocuments(identifier, documents)) {
@@ -214,7 +214,7 @@ abstract class Archivist implements EntityDataSource {
   /// @param group      - group ID
   /// @param members    - exist members
   /// @return false on duplicated
-  Future<bool> queryMembers(ID identifier, List<ID> members);
+  Future<bool> queryMembers(ID group, List<ID> members);
 
   ///  Save meta for entity ID (must verify first)
   ///

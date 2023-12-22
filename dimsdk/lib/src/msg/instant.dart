@@ -60,7 +60,7 @@ class InstantMessagePacker {
   /// @param password - symmetric key
   /// @param members  - group members for group message
   /// @return SecureMessage object, null on visa not found
-  Future<SecureMessage?> encrypt(InstantMessage iMsg, SymmetricKey password, {List<ID>? members}) async {
+  Future<SecureMessage?> encryptMessage(InstantMessage iMsg, SymmetricKey password, {List<ID>? members}) async {
     // TODO: check attachment for File/Image/Audio/Video message content
     //      (do it by application)
     InstantMessageDelegate transceiver = delegate!;

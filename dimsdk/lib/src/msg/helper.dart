@@ -36,18 +36,18 @@ abstract interface class MessageHelper {
   ///  ~~~~~~~~~~~~~
   ///  Extends for the first message package of 'Handshake' protocol.
 
-  static Meta? getMeta(ReliableMessage rMsg) =>
-      Meta.parse(rMsg['meta']);
+  static Meta? getMeta(Message msg) =>
+      Meta.parse(msg['meta']);
 
-  static void setMeta(Meta meta, ReliableMessage rMsg) =>
-      rMsg.setMap('meta', meta);
+  static void setMeta(Meta meta, Message msg) =>
+      msg.setMap('meta', meta);
 
   ///  Sender's Visa
   ///  ~~~~~~~~~~~~~
   ///  Extends for the first message package of 'Handshake' protocol.
 
-  static Visa? getVisa(ReliableMessage rMsg) {
-    Document? doc = Document.parse(rMsg['visa']);
+  static Visa? getVisa(Message msg) {
+    Document? doc = Document.parse(msg['visa']);
     if (doc is Visa) {
       return doc;
     }
@@ -55,7 +55,7 @@ abstract interface class MessageHelper {
     return null;
   }
 
-  static void setVisa(Visa visa, ReliableMessage rMsg) =>
-      rMsg.setMap('visa', visa);
+  static void setVisa(Visa visa, Message msg) =>
+      msg.setMap('visa', visa);
 
 }

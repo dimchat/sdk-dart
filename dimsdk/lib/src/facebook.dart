@@ -138,7 +138,7 @@ abstract class Facebook extends Barrack {
     // check old meta
     Meta? old = await getMeta(identifier);
     if (old != null) {
-      assert(meta == old, 'meta should not changed');
+      // assert(meta == old, 'meta should not changed');
       return true;
     }
     // meta not exists yet, save it
@@ -174,7 +174,7 @@ abstract class Facebook extends Barrack {
   @override
   Future<Meta?> getMeta(ID identifier) async {
     // if (identifier.isBroadcast) {
-    //   // broadcast ID has not meta
+    //   // broadcast ID has no meta
     //   return null;
     // }
     Meta? meta = await archivist.getMeta(identifier);
@@ -185,7 +185,7 @@ abstract class Facebook extends Barrack {
   @override
   Future<List<Document>> getDocuments(ID identifier) async {
     // if (identifier.isBroadcast) {
-    //   // broadcast ID has not documents
+    //   // broadcast ID has no documents
     //   return null;
     // }
     List<Document> docs = await archivist.getDocuments(identifier);
