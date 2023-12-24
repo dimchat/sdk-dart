@@ -120,7 +120,7 @@ class MessagePacker extends TwinsHelper implements Packer {
 
   @override
   Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
-    assert((await sMsg.data).isNotEmpty, 'message data cannot be empty: $sMsg');
+    assert(sMsg.data.isNotEmpty, 'message data cannot be empty: $sMsg');
     // sign 'data' by sender
     return await securePacker.signMessage(sMsg);
   }
@@ -189,7 +189,7 @@ class MessagePacker extends TwinsHelper implements Packer {
       return null;
     }
 
-    assert((await rMsg.signature).isNotEmpty, 'message signature cannot be empty: $rMsg');
+    assert(rMsg.signature.isNotEmpty, 'message signature cannot be empty: $rMsg');
     // verify 'data' with 'signature'
     return await reliablePacker.verifyMessage(rMsg);
   }
@@ -205,7 +205,7 @@ class MessagePacker extends TwinsHelper implements Packer {
       // not for you?
       throw Exception('receiver error: $receiver, from ${sMsg.sender}, ${sMsg.group}');
     }
-    assert((await sMsg.data).isNotEmpty, 'message data empty: '
+    assert(sMsg.data.isNotEmpty, 'message data empty: '
         '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
     // decrypt 'data' to 'content'
     return await securePacker.decryptMessage(sMsg, user.identifier);

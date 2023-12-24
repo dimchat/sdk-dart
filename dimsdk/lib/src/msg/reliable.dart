@@ -64,7 +64,7 @@ class ReliableMessagePacker {
     //
     //  0. Decode 'message.data' to encrypted content data
     //
-    Uint8List ciphertext = await rMsg.data;
+    Uint8List ciphertext = rMsg.data;
     if (ciphertext.isEmpty) {
       assert(false, 'failed to decode message data: '
           '${rMsg.sender} => ${rMsg.receiver}, ${rMsg.group}');
@@ -74,7 +74,7 @@ class ReliableMessagePacker {
     //
     //  1. Decode 'message.signature' from String (Base64)
     //
-    Uint8List signature = await rMsg.signature;
+    Uint8List signature = rMsg.signature;
     if (signature.isEmpty) {
       assert(false, 'failed to decode message signature: '
           '${rMsg.sender} => ${rMsg.receiver}, ${rMsg.group}');

@@ -65,7 +65,7 @@ class SecureMessagePacker {
     //
     //  1. Decode 'message.key' to encrypted symmetric key data
     //
-    Uint8List? encryptedKey = await sMsg.encryptedKey;
+    Uint8List? encryptedKey = sMsg.encryptedKey;
     Uint8List? keyData;
     if (encryptedKey != null) {
       assert(encryptedKey.isNotEmpty, 'encrypted key data should not be empty: '
@@ -101,7 +101,7 @@ class SecureMessagePacker {
     //
     //  4. Decode 'message.data' to encrypted content data
     //
-    Uint8List ciphertext = await sMsg.data;
+    Uint8List ciphertext = sMsg.data;
     if (ciphertext.isEmpty) {
       assert(false, 'failed to decode message data: '
           '${sMsg.sender} => $receiver, ${sMsg.group}');
@@ -173,7 +173,7 @@ class SecureMessagePacker {
     //
     //  0. decode message data
     //
-    Uint8List ciphertext = await sMsg.data;
+    Uint8List ciphertext = sMsg.data;
     assert(ciphertext.isNotEmpty, 'failed to decode message data: '
         '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
 
