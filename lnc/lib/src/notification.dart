@@ -97,7 +97,7 @@ class NotificationCenter {
 
 }
 
-class BaseCenter {
+class BaseCenter with Logging {
 
   // name => WeakSet<Observer>
   final Map<String, Set<Observer>> _observers = {};
@@ -153,7 +153,7 @@ class BaseCenter {
   Future<void> post(Notification notification) async {
     Set<Observer>? listeners = _observers[notification.name]?.toSet();
     if (listeners == null) {
-      Log.info('no listeners for notification: ${notification.name}');
+      debug('no listeners for notification: ${notification.name}');
       return;
     }
     List<Future> tasks = [];
@@ -163,7 +163,7 @@ class BaseCenter {
             Log.error('observer error: $error, $st, $notification')
         ));
       } catch (ex, stackTrace) {
-        Log.error('sync call observer error: $ex, $stackTrace, $notification');
+        error('observer error: $ex, $stackTrace, $notification');
       }
     }
     // wait all tasks finished

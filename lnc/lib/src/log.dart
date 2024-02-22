@@ -29,6 +29,8 @@
  * =============================================================================
  */
 
+
+/// Simple Log
 class Log {
 
   static const int kDebugFlag   = 1 << 0;
@@ -54,6 +56,33 @@ class Log {
   static void   error(String msg) => logger.error(msg);
 
 }
+
+
+/// Log with class name
+mixin Logging {
+  
+  void debug(String msg) {
+    Type clazz = runtimeType;
+    Log.debug('$clazz >\t$msg');
+  }
+
+  void info(String msg) {
+    Type clazz = runtimeType;
+    Log.info('$clazz >\t$msg');
+  }
+
+  void warning(String msg) {
+    Type clazz = runtimeType;
+    Log.warning('$clazz >\t$msg');
+  }
+
+  void error(String msg) {
+    Type clazz = runtimeType;
+    Log.error('$clazz >\t$msg');
+  }
+
+}
+
 
 class DefaultLogger with LogMixin {
   // override for customized logger
