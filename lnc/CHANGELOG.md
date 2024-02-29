@@ -1,3 +1,7 @@
+## 0.1.2
+
+- Logging interfaces.
+
 ## 0.1.1
 
 - Attachable Log.
