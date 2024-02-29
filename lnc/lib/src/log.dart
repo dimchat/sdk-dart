@@ -61,22 +61,22 @@ class Log {
 /// Log with class name
 mixin Logging {
   
-  void debug(String msg) {
+  void logDebug(String msg) {
     Type clazz = runtimeType;
     Log.debug('$clazz >\t$msg');
   }
 
-  void info(String msg) {
+  void logInfo(String msg) {
     Type clazz = runtimeType;
     Log.info('$clazz >\t$msg');
   }
 
-  void warning(String msg) {
+  void logWarning(String msg) {
     Type clazz = runtimeType;
     Log.warning('$clazz >\t$msg');
   }
 
-  void error(String msg) {
+  void logError(String msg) {
     Type clazz = runtimeType;
     Log.error('$clazz >\t$msg');
   }

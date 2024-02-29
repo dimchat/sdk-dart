@@ -153,7 +153,7 @@ class BaseCenter with Logging {
   Future<void> post(Notification notification) async {
     Set<Observer>? listeners = _observers[notification.name]?.toSet();
     if (listeners == null) {
-      debug('no listeners for notification: ${notification.name}');
+      logDebug('no listeners for notification: ${notification.name}');
       return;
     }
     List<Future> tasks = [];
@@ -163,7 +163,7 @@ class BaseCenter with Logging {
             Log.error('observer error: $error, $st, $notification')
         ));
       } catch (ex, stackTrace) {
-        error('observer error: $ex, $stackTrace, $notification');
+        logError('observer error: $ex, $stackTrace, $notification');
       }
     }
     // wait all tasks finished
