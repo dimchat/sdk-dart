@@ -30,7 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'file_html.dart' if (dart.library.io) 'file_io.dart';
+import 'files.dart';
 import 'paths.dart';
 
 

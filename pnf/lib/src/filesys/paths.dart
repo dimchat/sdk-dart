@@ -30,7 +30,7 @@
  */
 import 'package:path/path.dart' as lib;
 
-import 'file_html.dart' if (dart.library.io) 'file_io.dart';
+import 'files.dart';
 
 
 class Paths {
