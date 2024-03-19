@@ -28,7 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:path/path.dart' as lib;
+import 'package:path/path.dart' as utils;
 
 import 'files.dart';
 
@@ -41,7 +41,7 @@ class Paths {
   /// @param components - sub-dir or filename
   /// @return new path
   static String append(String a, [String? b, String? c, String? d, String? e]) {
-    return lib.join(a, b, c, d, e);
+    return utils.join(a, b, c, d, e);
   }
 
   ///  Get filename from a URL/Path
@@ -49,7 +49,7 @@ class Paths {
   /// @param path - uri string
   /// @return filename
   static String? filename(String path) {
-    return lib.basename(path);
+    return utils.basename(path);
   }
 
   ///  Get extension from a filename
@@ -57,7 +57,7 @@ class Paths {
   /// @param filename - file name
   /// @return file extension without '.'
   static String? extension(String filename) {
-    String ext = lib.extension(filename);
+    String ext = utils.extension(filename);
     if (ext.isEmpty) {
       return null;
     } else if (ext.startsWith('.')) {
@@ -72,7 +72,7 @@ class Paths {
   /// @param path - full path
   /// @return parent path
   static String? parent(String path) {
-    return lib.dirname(path);
+    return utils.dirname(path);
   }
 
   ///  Get absolute path
@@ -109,7 +109,7 @@ class Paths {
   /// @param separator - file separator
   /// @return absolute path
   static String tidy(String path, {required String separator}) {
-    path = lib.normalize(path);
+    path = utils.normalize(path);
     if (separator == '/' && path.contains('\\')) {
       path = path.replaceAll('\\', '/');
     }

@@ -31,7 +31,6 @@
 import 'dart:typed_data';
 
 import 'files.dart';
-import 'paths.dart';
 
 
 abstract class Readable {
@@ -87,7 +86,8 @@ class Resource implements Readable {
 
   @override
   Future<bool> exists(String path) async {
-    return await Paths.exists(path);
+    File file = File(path);
+    return await file.exists();
   }
 
   @override
@@ -95,7 +95,7 @@ class Resource implements Readable {
     File file = File(path);
     if (await file.exists()) {} else {
       // file not found
-      throw Exception('file not exists: $path');
+      throw FileSystemException('file not exists: $path');
     }
     Uint8List bytes = await file.readAsBytes();
     _content = bytes;
@@ -111,18 +111,18 @@ class Storage extends Resource implements Writable {
 
   @override
   Future<bool> remove(String path) async {
-    if (await Paths.delete(path)) {
-      return true;
-    } else {
-      throw Exception('failed to remove: $path');
+    File file = File(path);
+    if (await file.exists()) {
+      await file.delete();
     }
+    return true;
   }
 
   @override
   Future<int> write(String path) async {
     Uint8List? bytes = _content;
     if (bytes == null) {
-      throw Exception('content empty, failed to save file: $path');
+      throw FileSystemException('content empty, failed to save file: $path');
     }
     File file = File(path);
     if (await file.exists()) {} else {
@@ -130,7 +130,7 @@ class Storage extends Resource implements Writable {
       Directory dir = file.parent;
       await dir.create(recursive: true);
       if (await dir.exists()) {} else {
-        throw Exception('failed to create directory: ${dir.path}');
+        throw FileSystemException('failed to create directory: ${dir.path}');
       }
     }
     await file.writeAsBytes(bytes, flush: true);

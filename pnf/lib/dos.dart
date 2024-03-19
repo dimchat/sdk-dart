@@ -1,5 +1,8 @@
 library pnf;
 
-export 'src/filesys/files.dart';
-export 'src/filesys/paths.dart';
-export 'src/filesys/storage.dart';
+export 'src/dos/files.dart';
+export 'src/dos/paths.dart';
+export 'src/dos/storage.dart';
+
+export 'src/external.dart';
+export 'src/cache.dart';
