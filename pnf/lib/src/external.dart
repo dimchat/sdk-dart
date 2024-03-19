@@ -28,11 +28,11 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:mkm/format.dart';
 
+import 'dos/files.dart';
 import 'dos/storage.dart';
 
 
@@ -146,8 +146,8 @@ abstract class ExternalStorage {
   /// @return number of removed files
   static Future<int> cleanupDirectory(Directory dir, DateTime expired) async {
     int total = 0;
-    var files = dir.listSync();
-    for (var item in files) {
+    Stream<FileSystemEntity> files = dir.list();
+    await files.forEach((item) async {
       // directories, files, and links
       // does not include the special entries `'.'` and `'..'`.
       if (item is Directory) {
@@ -157,20 +157,19 @@ abstract class ExternalStorage {
       } else if (await cleanupFile(item, expired)) {
         total += 1;
       }
-    }
+    });
     return total;
   }
   static Future<bool> cleanupFile(File file, DateTime expired) async {
-    DateTime last = file.lastModifiedSync();
+    DateTime last = await file.lastModified();
     if (last.isAfter(expired)) {
       return false;
-    } else {
-      file.delete().onError((error, stackTrace) {
-        print('[DOS] failed to delete file: ${file.path}, $error, $stackTrace');
-        return file;
-      });
-      return true;
     }
+    await file.delete().onError((error, stackTrace) {
+      print('[DOS] failed to delete file: ${file.path}, $error, $stackTrace');
+      return file;
+    });
+    return true;
   }
 
 }

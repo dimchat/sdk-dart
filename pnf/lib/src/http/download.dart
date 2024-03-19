@@ -32,14 +32,14 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:object_key/object_key.dart';
-import 'package:startrek/fsm.dart';
+import 'package:startrek/skywalker.dart';
 
 
 /// HTTP Task
 abstract interface class DownloadTask {
 
   /// Remote URL
-  Uri? get url;
+  Uri? get downloadURL;
 
   /// Prepare the task and get remote URL
   ///
@@ -93,7 +93,7 @@ abstract class FileDownloader extends Runner implements Downloader {
     Uri? that;
     for (DownloadTask item in all) {
       try {
-        if (item.url != downURL) {
+        if (item.downloadURL != downURL) {
           continue;
         }
         // try to process the task with same download URL
