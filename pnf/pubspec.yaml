@@ -11,6 +11,9 @@ environment:
 # Add regular dependencies here.
 dependencies:
    path: ^1.8.0
+   dio: ^5.3.3
+   object_key: ^0.1.1
+   startrek: ^0.4.1
    mkm: ^0.3.2
 
 dev_dependencies:
