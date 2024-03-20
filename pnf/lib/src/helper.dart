@@ -2,12 +2,12 @@
  *
  *  PNF : Portable Network File
  *
- *                               Written in 2023 by Moky <albert.moky@gmail.com>
+ *                               Written in 2024 by Moky <albert.moky@gmail.com>
  *
  * =============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Albert Moky
+ * Copyright (c) 2024 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -100,20 +100,5 @@ class URLHelper {
     return filename.length == 32 && _hex.hasMatch(filename);
   }
   static final _hex = RegExp(r'^[\dA-Fa-f]+$');
-
-}
-
-
-abstract class NotificationNames {
-
-  static const String kPortableNetworkStatusChanged = 'PNF_OnStatusChanged';
-
-  static const String kPortableNetworkReceiveProgress = 'PNF_OnReceiveProgress';
-
-  static const String kPortableNetworkReceived = 'PNF_OnReceived';
-  static const String kPortableNetworkDecrypted = 'PNF_OnDecrypted';
-  static const String kPortableNetworkSuccess = 'PNF_OnSuccess';
-
-  static const String kPortableNetworkError = 'PNF_OnError';
 
 }

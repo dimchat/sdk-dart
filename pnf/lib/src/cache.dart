@@ -35,64 +35,50 @@ import 'external.dart';
 
 
 /// Local Cache
-class FileCache {
-  factory FileCache() => _instance;
-  static final FileCache _instance = FileCache._internal();
-  FileCache._internal();
-
-  String _caches = '';
-  String _tmp = '';
+abstract class FileCache {
 
   ///  Protected caches directory
   ///  (meta/visa/document, image/audio/video, ...)
   ///
   /// Android: "/sdcard/Android/data/chat.dim.sechat/cache"
   ///     iOS: "/Application/{...}/Library/Caches"
-  String get cachesDirectory {
-    assert(_caches.isNotEmpty, 'caches directory not set yet');
-    return _caches;
-  }
-  set cachesDirectory(String dir) => _caches = dir;
+  Future<String> get cachesDirectory;
 
   ///  Protected temporary directory
   ///  (uploading, downloaded)
   ///
   /// Android: "/data/data/chat.dim.sechat/cache"
   ///     iOS: "/Application/{...}/tmp"
-  String get temporaryDirectory {
-    assert(_tmp.isNotEmpty, 'temporary directory not set yet');
-    return _tmp;
-  }
-  set temporaryDirectory(String dir) => _tmp = dir;
+  Future<String> get temporaryDirectory;
 
   ///  Cached file path
   ///  (image, audio, video, ...)
   ///
   /// @param filename - messaged filename: hex(md5(data)) + ext
   /// @return "{caches}/files/{AA}/{BB}/{filename}"
-  String getCacheFilePath(String filename) {
+  Future<String> getCacheFilePath(String filename) async {
     if (filename.indexOf('.') < 4) {
       assert(false, 'invalid filename: $filename');
-      return Paths.append(cachesDirectory, filename);
+      return Paths.append(await cachesDirectory, filename);
     }
     String aa = filename.substring(0, 2);
     String bb = filename.substring(2, 4);
-    return Paths.append(cachesDirectory, 'files', aa, bb, filename);
+    return Paths.append(await cachesDirectory, 'files', aa, bb, filename);
   }
 
   ///  Encrypted data file path
   ///
   /// @param filename - messaged filename: hex(md5(data)) + ext
   /// @return "{tmp}/upload/{filename}"
-  String getUploadFilePath(String filename) =>
-      Paths.append(temporaryDirectory, 'upload', filename);
+  Future<String> getUploadFilePath(String filename) async =>
+      Paths.append(await temporaryDirectory, 'upload', filename);
 
   ///  Encrypted data file path
   ///
   /// @param filename - messaged filename: hex(md5(data)) + ext
   /// @return "{tmp}/download/{filename}"
-  String getDownloadFilePath(String filename) =>
-      Paths.append(temporaryDirectory, 'download', filename);
+  Future<String> getDownloadFilePath(String filename) async =>
+      Paths.append(await temporaryDirectory, 'download', filename);
 
   ///  Remove expired files
   ///
@@ -111,7 +97,7 @@ class FileCache {
     }
     _lastBurned = now;
     // cleanup cached files
-    String path = Paths.append(cachesDirectory, 'files');
+    String path = Paths.append(await cachesDirectory, 'files');
     Directory dir = Directory(path);
     return await ExternalStorage.cleanupDirectory(dir, expired);
   }

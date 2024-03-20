@@ -2,12 +2,12 @@
  *
  *  PNF : Portable Network File
  *
- *                               Written in 2023 by Moky <albert.moky@gmail.com>
+ *                               Written in 2024 by Moky <albert.moky@gmail.com>
  *
  * =============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Albert Moky
+ * Copyright (c) 2024 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,25 +34,12 @@ import 'package:mkm/crypto.dart';
 
 import 'http/download.dart';
 import 'dos/paths.dart';
-import 'cache.dart';
 import 'external.dart';
-import 'helper.dart';
+import 'wrapper.dart';
 
 
-enum PortableNetworkStatus {
-  init,
-  waiting,
-  downloading,
-  decrypting,
-  success,
-  error,
-}
-
-
-class PortableNetworkLoader implements DownloadTask {
-  PortableNetworkLoader(this.pnf);
-
-  final PortableNetworkFile pnf;
+abstract class PortableNetworkLoader extends PortableNetworkWrapper implements DownloadTask {
+  PortableNetworkLoader(super.pnf);
 
   /// file content received
   Uint8List? _bytes;
@@ -66,92 +53,8 @@ class PortableNetworkLoader implements DownloadTask {
   int _total = 0;
   int get total => _total;
 
-  /// loader status
-  PortableNetworkStatus _status = PortableNetworkStatus.init;
-  PortableNetworkStatus get status => _status;
-  Future<void> setStatus(PortableNetworkStatus current) async {
-    PortableNetworkStatus previous = _status;
-    _status = current;
-    if (previous != current) {
-      await postNotification(NotificationNames.kPortableNetworkStatusChanged, {
-        'URL': downloadURL,
-        'previous': previous,
-        'current': current,
-      });
-    }
-  }
-
   @override
   Uri? get downloadURL => pnf.url;
-
-  @override
-  String toString() {
-    Type clazz = runtimeType;
-    Uri? url = downloadURL;
-    if (url != null) {
-      return '<$clazz URL="$url" />';
-    }
-    String? filename = pnf.filename;
-    Uint8List? data = pnf.data;
-    return '<$clazz filename="$filename" length="${data?.length}" />';
-  }
-
-  /// original filename
-  String? get cacheFilename {
-    String? name = pnf.filename;
-    // get name from PNF
-    if (name != null && URLHelper.isFilenameEncoded(name)) {
-      return name;
-    }
-    Uri? url = downloadURL;
-    if (url != null) {
-      return URLHelper.filenameFromURL(url, name);
-    }
-    assert(false, 'PNF error: $pnf');
-    return name;
-  }
-
-  /// encrypted filename
-  String? get temporaryFilename {
-    String? name = pnf.filename;
-    // get name from URL
-    Uri? url = downloadURL;
-    if (url != null) {
-      return URLHelper.filenameFromURL(url, name);
-    }
-    assert(false, 'PNF error: $pnf');
-    return name;
-  }
-
-  /// "{caches}/files/{AA}/{BB}/{filename}"
-  String? get cacheFilePath {
-    String? name = cacheFilename;
-    if (name == null || name.isEmpty) {
-      assert(false, 'PNF error: $pnf');
-      return null;
-    }
-    return FileCache().getCacheFilePath(name);
-  }
-
-  /// "{tmp}/upload/{filename}"
-  String? get uploadFilePath {
-    String? name = temporaryFilename;
-    if (name == null || name.isEmpty) {
-      assert(false, 'PNF error: $pnf');
-      return null;
-    }
-    return FileCache().getUploadFilePath(name);
-  }
-
-  /// "{tmp}/download/{filename}"
-  String? get downloadFilePath {
-    String? name = temporaryFilename;
-    if (name == null || name.isEmpty) {
-      assert(false, 'PNF error: $pnf');
-      return null;
-    }
-    return FileCache().getDownloadFilePath(name);
-  }
 
   Future<Uint8List?> _decrypt(Uint8List data, String cachePath) async {
     //
@@ -185,7 +88,7 @@ class PortableNetworkLoader implements DownloadTask {
       await setStatus(PortableNetworkStatus.error);
       return null;
     }
-    if (_status == PortableNetworkStatus.decrypting) {
+    if (status == PortableNetworkStatus.decrypting) {
       await postNotification(NotificationNames.kPortableNetworkDecrypted, {
         'URL': downloadURL,
         'data': data,
@@ -224,7 +127,7 @@ class PortableNetworkLoader implements DownloadTask {
       data = pnf.data;
       if (data != null && data.isNotEmpty) {
         assert(pnf.url == null, 'PNF error: $pnf');
-        // assert(_status == PortableNetworkStatus.init, 'PNF status: $_status');
+        // assert(status == PortableNetworkStatus.init, 'PNF status: $_status');
         _bytes = data;
         await postNotification(NotificationNames.kPortableNetworkSuccess, {
           // 'URL': pnf.url,
@@ -237,7 +140,7 @@ class PortableNetworkLoader implements DownloadTask {
     //
     //  1. check cached file
     //
-    String? cachePath = cacheFilePath;
+    String? cachePath = await cacheFilePath;
     if (cachePath == null) {
       await setStatus(PortableNetworkStatus.error);
       assert(false, 'failed to get cache file path');
@@ -261,12 +164,12 @@ class PortableNetworkLoader implements DownloadTask {
     //  2. check temporary file
     //
     String? tmpPath;
-    String? down = downloadFilePath;
+    String? down = await downloadFilePath;
     if (down != null && await Paths.exists(down)) {
       // file exists in download directory
       tmpPath = down;
     } else {
-      String? up = uploadFilePath;
+      String? up = await uploadFilePath;
       if (up != null && up != down && await Paths.exists(up)) {
         // file exists in upload directory
         tmpPath = up;
@@ -326,7 +229,7 @@ class PortableNetworkLoader implements DownloadTask {
     //
     //  1.. save data from remote URL
     //
-    String? tmpPath = downloadFilePath;
+    String? tmpPath = await downloadFilePath;
     if (tmpPath == null) {
       await setStatus(PortableNetworkStatus.error);
       assert(false, 'failed to get temporary path');
@@ -346,22 +249,13 @@ class PortableNetworkLoader implements DownloadTask {
     //
     //  2. decrypt data from remote URL
     //
-    String? cachePath = cacheFilePath;
+    String? cachePath = await cacheFilePath;
     if (cachePath == null) {
       await setStatus(PortableNetworkStatus.error);
       assert(false, 'failed to get cache file path');
       return;
     }
     data = await _decrypt(data, cachePath);
-  }
-
-  ///  Post a notification with extra info
-  ///
-  /// @param name   - notification name
-  /// @param sender - who post this notification
-  /// @param info   - extra info
-  Future<void> postNotification(String name, [Map? info]) async {
-    // TODO: post to notification center
   }
 
 }
