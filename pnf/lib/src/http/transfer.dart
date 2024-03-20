@@ -49,23 +49,29 @@ class _HTTPDownloader extends FileDownloader {
 
 
 class FileTransfer {
-  factory FileTransfer() => _instance;
-  static final FileTransfer _instance = FileTransfer._internal();
-  FileTransfer._internal() {
-    _client = HTTPClient();
-    _downloader = _HTTPDownloader(_client)..start();
+  FileTransfer(this.client) {
+    downloader = createDownloader();
   }
 
-  late HTTPClient _client;
-  late Downloader _downloader;
+  final HTTPClient client;
+  late final Downloader downloader;
+
+  // override for customized downloader
+  Downloader createDownloader() {
+    var http = _HTTPDownloader(client);
+    http.start();
+    return http;
+  }
 
   //  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
   //  + ' AppleWebKit/537.36 (KHTML, like Gecko)'
   //  + ' Chrome/118.0.0.0 Safari/537.36'
-  void setUserAgent(String userAgent) => _client.userAgent = userAgent;
+  void setUserAgent(String userAgent) =>
+      client.userAgent = userAgent;
 
   /// Append download task with URL
-  Future<bool> addDownloadTask(DownloadTask task) async => _downloader.addTask(task);
+  Future<bool> addDownloadTask(DownloadTask task) async =>
+      downloader.addTask(task);
 
   /// Upload a file to URL
   ///
@@ -73,7 +79,7 @@ class FileTransfer {
   Future<String?> uploadFile(Uri url, String key, String filename, Uint8List fileData, {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
-  }) async => await _client.upload(url,
+  }) async => await client.upload(url,
     key, filename, fileData,
     onSendProgress: onSendProgress,
     onReceiveProgress: onReceiveProgress,

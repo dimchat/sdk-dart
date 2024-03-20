@@ -36,7 +36,7 @@ import 'package:mkm/format.dart';
 import 'dos/paths.dart';
 
 
-class URLHelper {
+abstract class URLHelper {
 
   ///  Get hashed filename
   ///  1. get ext from URL (or from filename)
