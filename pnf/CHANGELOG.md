@@ -1,3 +1,7 @@
+## 0.1.3
+
+- Build URL with enigma.
+
 ## 0.1.2
 
 - Enigma.

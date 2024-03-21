@@ -42,21 +42,25 @@ import 'template.dart';
 /// Enigma for MD5 secrets
 class Enigma {
 
-  final Set<String> _secrets = <String>{};
+  final Map<String, Uint8List> _dictionary = {};
 
   /// Take all items
-  Set<String> get all => _secrets;
+  Map<String, Uint8List> get all => _dictionary;
 
   /// Take any item
-  String get any => _secrets.first;
-
-  /// Update secrets
-  void update(Iterable<String> secrets) =>
-      _secrets.addAll(secrets);
+  Pair<String, Uint8List>? get any {
+    if (_dictionary.isEmpty) {
+      assert(false, 'enigma secrets not found');
+      return null;
+    }
+    var entry = _dictionary.entries.first;
+    String text = _EnigmaHelper.digest(entry.key);
+    return Pair(text, entry.value);
+  }
 
   /// Remove all secrets
   void clear() =>
-      _secrets.clear();
+      _dictionary.clear();
 
   /// Remove secrets with keys
   void remove(Iterable<String> keys) {
@@ -67,19 +71,29 @@ class Enigma {
         continue;
       }
       // remove all items have this prefix
-      _secrets.removeWhere(
-            (item) => _EnigmaHelper.match(item, enigma: prefix),
+      _dictionary.removeWhere(
+            (text, _) => _EnigmaHelper.match(text, enigma: prefix),
       );
     }
   }
 
+  /// Update secrets
+  void update(Iterable<String> secrets) {
+    Pair<String, Uint8List>? pair;
+    for (String text in secrets) {
+      pair = _EnigmaHelper.decode(text);
+      if (pair == null) {
+        assert(false, 'failed to decode secret: $text');
+        continue;
+      }
+      _dictionary[pair.first] = pair.second;
+    }
+  }
+
   /// Search secret with keys
-  Pair<String, String>? lookup([Iterable<String>? keys]) {
-    String secret;
+  Pair<String, Uint8List>? lookup([Iterable<String>? keys]) {
     if (keys == null) {
-      secret = any;
-      String prefix = _EnigmaHelper.digest(secret);
-      return Pair(prefix, secret);
+      return any;
     }
     // check each key
     for (String prefix in keys) {
@@ -88,14 +102,11 @@ class Enigma {
         continue;
       }
       // search a item that has this prefix
-      secret = _secrets.firstWhere(
-            (item) => _EnigmaHelper.match(item, enigma: prefix),
-        orElse:
-            () => _EnigmaHelper.notFound,
-      );
-      if (secret != _EnigmaHelper.notFound) {
-        // got it
-        return Pair(prefix, secret);
+      for (var entry in _dictionary.entries) {
+        // check secret with prefix
+        if (_EnigmaHelper.match(entry.key, enigma: prefix)) {
+          return Pair(prefix, entry.value);
+        }
       }
     }
     // secret not found
@@ -103,48 +114,44 @@ class Enigma {
   }
 
   //
-  //  URL
+  //  URL: "https://tfs.dim.chat/{ID}/upload?md5={MD5}&salt={SALT}&enigma=123456"
   //
 
   /// Get enigma secret for this API
   Pair<String, Uint8List>? fetch(String api) {
     // get enigma from URL
-    Pair<String, String>? pair;
+    List<String>? keys;
     String? enigma = _EnigmaHelper.from(api);
     // search secret with enigma
     if (enigma == null || enigma.isEmpty || enigma == '{ENIGMA}') {
-      pair = lookup();
+      // enigma not specified, choose any one
     } else {
-      pair = lookup([enigma]);
+      keys = [enigma];
     }
-    if (pair == null) {
-      assert(false, 'enigma secret not found: $api');
-      return null;
-    }
-    // decode secret
-    Uint8List? data = _EnigmaHelper.decode(pair.second);
-    if (data == null) {
-      assert(false, 'failed to decode enigma secret: $pair, $api');
-      return null;
-    }
-    return Pair(pair.first, data);
+    return lookup(keys);
   }
 
   /// Build upload URL
-  String? build(String api,
-      {required String enigma, required Uint8List secret,
-        required Uint8List data, required ID sender}) {
+  String build(String api, ID sender,
+      {Uint8List? data, Uint8List? secret, String? enigma}) {
+    // build URL string with sender
+    String urlString = api;
+    urlString = Template.replace(urlString, 'ID', sender.address.toString());
+    if (data == null || secret == null || enigma == null) {
+      assert(data == null && secret == null && enigma == null, 'enigma'
+          ' params error: ${data?.length}, ${secret?.length}, $enigma');
+      return urlString;
+    } else {
+      assert(data.isNotEmpty && secret.isNotEmpty && enigma.isNotEmpty, 'enigma'
+          ' params error: ${data.length}, ${secret.length}, $enigma');
+    }
     // hash: md5(data + secret + salt)
     Uint8List salt = _EnigmaHelper.random(16);
     Uint8List temp = _EnigmaHelper.concat(data, secret, salt);
     Uint8List hash = MD5.digest(temp);
-    Address address = sender.address;
-    // build URL string
-    String urlString = api;
-    urlString = Template.replace(urlString, 'ID', address.toString());
     urlString = Template.replace(urlString, 'MD5', Hex.encode(hash));
     urlString = Template.replace(urlString, 'SALT', Hex.encode(salt));
-    return _EnigmaHelper.replace(api, enigma);
+    return _EnigmaHelper.replace(urlString, enigma);
   }
 
 }
@@ -156,57 +163,61 @@ class Enigma {
 ///   3. {HEX_ENCODE}
 abstract class _EnigmaHelper {
 
-  static final String notFound = '<ENIGMA NOT EXISTS>';
-
   /// Get enigma for secret
   static String digest(String secret) {
     List<String> pair = secret.split(',');
     assert(pair.length == 1 || pair.length == 2, 'enigma secret error: $secret');
+    String text = pair.last;
     // get first 6 characters from the encoded string
-    String body = pair.last;
-    if (body.length > 6) {
+    if (text.length > 6) {
       // return the head
-      return body.substring(0, 6);
+      return text.substring(0, 6);
     }
     assert(false, 'enigma secret not safe: $secret');
-    return body;
+    return text;
   }
 
   /// Check whether the enigma matches the secret body
   static bool match(String secret, {required String enigma}) {
     List<String> pair = secret.split(',');
     assert(pair.length == 1 || pair.length == 2, 'enigma secret error: $secret');
-    assert(enigma.isNotEmpty, 'should not happen');
-    // check with the encoded string
-    return pair.last.startsWith(enigma);
+    String text = pair.last;
+    // check encoded text with prefix
+    String prefix = enigma.split(',').last;
+    if (prefix.isEmpty) {
+      assert(false, 'enigma error: $enigma');
+      return false;
+    }
+    return text.startsWith(prefix);
   }
 
   /// Decode secret body
-  static Uint8List? decode(String secret) {
+  static Pair<String, Uint8List>? decode(String secret) {
     List<String> pair = secret.split(',');
     assert(pair.length == 1 || pair.length == 2, 'enigma secret error: $secret');
+    String text = pair.last;
     // check algorithm for decoding
-    if (pair.length == 2) {
-      String algorithm = pair.first;
-      if (algorithm == 'base64') {
-        return Base64.decode(pair.last);
-      // } else if (algorithm == 'base58') {
-      //   return Base58.decode(pair.last);
-      }
-      assert(algorithm == 'hex', 'enigma secret error: $secret');
+    Uint8List? data;
+    if (pair.length == 2 && pair.first == 'base64') {
+      // "base64,..."
+      data = Base64.decode(text);
+    } else {
+      // "hex,..."
+      // "..."
+      data = Hex.decode(text);
     }
-    return Hex.decode(pair.last);
+    return data == null ? null : Pair(text, data);
   }
 
   //
-  //  URL
+  //  URL: "https://tfs.dim.chat/{ID}/upload?md5={MD5}&salt={SALT}&enigma=123456"
   //
 
-  /// Get enigma key from URL: 'https://dim.chat/upload?enigma=123456'
+  /// Get enigma key from URL
   static String? from(String url) =>
       Template.getParams(url)['enigma'];
 
-  /// Set enigma key into URL: 'https://dim.chat/upload?enigma={ENIGMA}'
+  /// Set enigma key into URL
   /// replace the tag 'enigma' with new key
   static String replace(String url, String enigma) =>
       Template.replace(url, 'ENIGMA', enigma);
