@@ -1,3 +1,7 @@
+## 0.2.0
+
+- Compatible with startrek 0.5.0.
+
 ## 0.1.3
 
 - Build URL with enigma.
