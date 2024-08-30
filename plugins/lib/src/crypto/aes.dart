@@ -35,42 +35,40 @@ import 'package:encrypt/encrypt.dart';
 ///          algorithm: "AES",
 ///          keySize  : 32,                // optional
 ///          data     : "{BASE64_ENCODE}}" // password data
-///          iv       : "{BASE64_ENCODE}", // initialization vector
 ///      }
 class _AESKey extends BaseSymmetricKey {
-  _AESKey(super.dict) : _keyData = null, _ivData = null {
+  _AESKey(super.dict) {
     // TODO: check algorithm parameters
     // 1. check mode = 'CBC'
     // 2. check padding = 'PKCS7Padding'
-    if (!containsKey('data')) {
-      _generate();
+
+    // check key data
+    if (containsKey('data')) {
+      // lazy load
+      _keyData = null;
+    } else {
+      // new key
+      _keyData = _generateKeyData();
     }
   }
 
   // static const String AES_CBC_PKCS7 = "AES/CBC/PKCS7Padding";
 
   TransportableData? _keyData;
-  TransportableData? _ivData;
 
-  void _generate() {
-    TransportableData ted;
-
+  TransportableData _generateKeyData() {
     // random key data
-    Uint8List pw = _random(_getKeySize());
-    ted = TransportableData.create(pw);
+    int keySize = _getKeySize();
+    var pwd = _randomData(keySize);
+    var ted = TransportableData.create(pwd);
+
     this['data'] = ted.toObject();
-    _keyData = ted;
-
-    // random initialization vector
-    Uint8List iv = _random(_getBlockSize());
-    ted = TransportableData.create(iv);
-    this['iv'] = ted.toObject();
-    _ivData = ted;
-
-    // // other parameters
+    /**
     // this['mod'] = 'CBC';
     // this['padding'] = 'PKCS7';
+    **/
 
+    return ted;
   }
 
   int _getKeySize() {
@@ -83,80 +81,77 @@ class _AESKey extends BaseSymmetricKey {
     return getInt('blockSize', 16)!;  // cipher.getBlockSize();
   }
 
-  /// get init vector
-  TransportableData _getInitVector() {
-    TransportableData? ted = _ivData;
-    if (ted == null) {
-      var base64 = this['iv'];
-      if (base64 == null) {
-        // zero iv
-        Uint8List zeros = Uint8List(_getBlockSize());
-        _ivData = ted = TransportableData.create(zeros);
-      } else {
-        _ivData = ted = TransportableData.parse(base64);
-        assert(ted != null, 'IV error: $base64');
-      }
-    }
-    return ted!;
-  }
-  void _setInitVector(Object? base64) {
-    // if new iv not exists, this will erase the decoded ivData,
-    // and cause reloading from dictionary again.
-    _ivData = TransportableData.parse(base64);
-  }
-
-  /// get key data
-  TransportableData _getKeyData() {
-    if (_keyData == null) {
-      var base64 = this['data'];
-      assert(base64 != null, 'key data not found: $this');
-      _keyData = TransportableData.parse(base64);
-    }
-    return _keyData!;
-  }
-
-  String _iv() {
-    TransportableData ted = _getInitVector();
-    String base64 = ted.toString();
-    return AESKeyFactory.trimBase64String(base64);
-  }
-
-  String _key() {
-    TransportableData ted = _getKeyData();
-    String base64 = ted.toString();
-    return AESKeyFactory.trimBase64String(base64);
-  }
-
   @override
   Uint8List get data {
-    TransportableData ted = _getKeyData();
-    return ted.data!;
+    var ted = _keyData;
+    if (ted == null) {
+      var base64 = this['data'];
+      assert(base64 != null, 'key data not found: $this');
+      ted = _keyData = TransportableData.parse(base64);
+      assert(ted != null, 'key data error: $base64');
+    }
+    return ted!.data!;
+  }
+
+  /// get IV from params
+  IV _getInitVector(Map? params) {
+    // get base64 encoded IV from params
+    String? base64;
+    if (params == null) {
+      assert(false, 'params must provided to fetch IV for AES');
+    } else {
+      base64 = params['IV'];
+      base64 ??= params['iv'];
+    }
+    if (base64 == null) {
+      // compatible with old version
+      base64 = getString('iv', null);
+      base64 ??= getString('IV', null);
+    }
+    // decode IV data
+    var ted = TransportableData.parse(base64);
+    Uint8List? ivData = ted?.data;
+    if (ivData == null) {
+      assert(base64 == null, 'IV data error: $base64');
+      // zero IV
+      int blockSize = _getBlockSize();
+      ivData = Uint8List(blockSize);
+    }
+    return IV(ivData);
+  }
+  IV _newInitVector(Map? extra) {
+    // random IV data
+    int blockSize = _getBlockSize();
+    Uint8List ivData = _randomData(blockSize);
+    // put encoded IV into extra
+    if (extra == null) {
+      assert(false, 'extra dict must provided to store IV for AES');
+    } else {
+      var ted = TransportableData.create(ivData);
+      extra['IV'] = ted.toObject();
+    }
+    // OK
+    return IV(ivData);
   }
 
   @override
   Uint8List encrypt(Uint8List plaintext, Map? extra) {
-    // 0. TODO: random new 'IV'
-    String base64 = _iv();
-    extra?['IV'] = base64;
-    // 1. get key data & initial vector
-    Key key = Key.fromBase64(_key());
-    IV iv = IV.fromBase64(base64);
-    // 2. try to encrypt
+    // 1. random new 'IV'
+    IV iv = _newInitVector(extra);
+    // 2. get key
+    Key key = Key(data);
+    // 3. try to encrypt
     Encrypter cipher = Encrypter(AES(key, mode: AESMode.cbc));
     return cipher.encryptBytes(plaintext, iv: iv).bytes;
   }
 
   @override
   Uint8List? decrypt(Uint8List ciphertext, Map? params) {
-    // 0. get 'IV' from extra params
-    Object? base64 = params?['IV'];
-    if (base64 != null) {
-      _setInitVector(base64);
-    }
-    // 1. get key data & initial vector
-    Key key = Key.fromBase64(_key());
-    IV iv = IV.fromBase64(_iv());
-    // 2. try to decrypt
+    // 1. get 'IV' from extra params
+    IV iv = _getInitVector(params);
+    // 2. get key
+    Key key = Key(data);
+    // 3. try to decrypt
     try {
       Encrypter cipher = Encrypter(AES(key, mode: AESMode.cbc));
       List<int> result = cipher.decryptBytes(Encrypted(ciphertext), iv: iv);
@@ -169,7 +164,7 @@ class _AESKey extends BaseSymmetricKey {
 
 }
 
-Uint8List _random(int size) {
+Uint8List _randomData(int size) {
   Uint8List data = Uint8List(size);
   Random r = Random();
   for (int i = 0; i < size; ++i) {
@@ -179,16 +174,6 @@ Uint8List _random(int size) {
 }
 
 class AESKeyFactory implements SymmetricKeyFactory {
-
-  static String trimBase64String(String b64) {
-    if (b64.contains('\n')) {
-      b64 = b64.replaceAll('\n', '');
-      b64 = b64.replaceAll('\r', '');
-      b64 = b64.replaceAll('\t', '');
-      b64 = b64.replaceAll(' ', '');
-    }
-    return b64.trim();
-  }
 
   @override
   SymmetricKey generateSymmetricKey() {
@@ -200,4 +185,5 @@ class AESKeyFactory implements SymmetricKeyFactory {
   SymmetricKey? parseSymmetricKey(Map key) {
     return _AESKey(key);
   }
+
 }

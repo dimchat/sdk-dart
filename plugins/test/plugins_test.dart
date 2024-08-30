@@ -82,7 +82,7 @@ void testAES() {
   Map dictionary = {
     'algorithm': 'AES',
     'data': 'C2+xGizLL1G1+z9QLPYNdp/bPP/seDvNw45SXPAvQqk=',
-    'iv': 'SxPwi6u4+ZLXLdAFJezvSQ==',
+    // 'iv': 'SxPwi6u4+ZLXLdAFJezvSQ==',
   };
   SymmetricKey key = SymmetricKey.parse(dictionary)!;
   debugLog('key: $key');
@@ -109,6 +109,8 @@ void testAES() {
 
   exp = '0xtbqZN6x2aWTZn0DpCoCA==';
   debugAssert(Base64.encode(ciphertext) == exp, 'AES ($text)');
+
+  extra['IV'] = 'SxPwi6u4+ZLXLdAFJezvSQ==';
 
   SymmetricKey key2 = SymmetricKey.parse(dictionary)!;
   debugAssert(key == key2, 'AES keys equal');

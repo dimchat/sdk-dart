@@ -1,3 +1,7 @@
+## 1.0.0
+
+- Remove IV from AES key
+
 ## 0.3.3
 
 - Message packers.

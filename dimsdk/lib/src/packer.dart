@@ -41,11 +41,13 @@ import 'msg/secure.dart';
 import 'facebook.dart';
 import 'messenger.dart';
 
+
 class MessagePacker extends TwinsHelper implements Packer {
-  MessagePacker(super.facebook, super.messenger)
+  MessagePacker(Facebook facebook, Messenger messenger)
       : instantPacker = InstantMessagePacker(messenger),
         securePacker = SecureMessagePacker(messenger),
-        reliablePacker = ReliableMessagePacker(messenger);
+        reliablePacker = ReliableMessagePacker(messenger),
+        super(facebook, messenger);
 
   // protected
   final InstantMessagePacker instantPacker;

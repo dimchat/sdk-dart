@@ -38,10 +38,18 @@ import 'core/twins.dart';
 import 'facebook.dart';
 import 'messenger.dart';
 
+
 abstract class MessageProcessor extends TwinsHelper implements Processor {
-  MessageProcessor(super.facebook, super.messenger) {
+  MessageProcessor(Facebook facebook, Messenger messenger)
+      : super(facebook, messenger) {
     _factory = createFactory();
   }
+
+  @override
+  Facebook? get facebook => super.facebook as Facebook?;
+
+  @override
+  Messenger? get messenger => super.messenger as Messenger?;
 
   late final ContentProcessorFactory _factory;
 
@@ -62,12 +70,6 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
   ContentProcessor? getCommandProcessor(int msgType, String cmd) {
     return _factory.getCommandProcessor(msgType, cmd);
   }
-
-  @override
-  Facebook? get facebook => super.facebook as Facebook?;
-
-  @override
-  Messenger? get messenger => super.messenger as Messenger?;
 
   //
   //  Processing Message

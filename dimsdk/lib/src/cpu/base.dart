@@ -35,10 +35,12 @@ import '../core/twins.dart';
 import '../facebook.dart';
 import '../messenger.dart';
 
+
 ///  Content Processing Unit
 ///  ~~~~~~~~~~~~~~~~~~~~~~~
 class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
-  BaseContentProcessor(super.facebook, super.messenger);
+  BaseContentProcessor(Facebook facebook, Messenger messenger)
+      : super(facebook, messenger);
 
   @override
   Facebook? get facebook => super.facebook as Facebook?;

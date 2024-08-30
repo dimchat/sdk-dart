@@ -119,13 +119,20 @@ class _BaseNetworkFile extends Dictionary implements PortableNetworkFile {
   }
 
   String? _getURLString() {
+    String? urlString = getString(r'URL', null);
+    if (urlString == null) {
+      return null;
+    } else if (urlString.startsWith(r'data:')) {
+      // 'data:...;...,...'
+      return urlString;
+    }
     int count = length;
     if (count == 1) {
       // if only contains 'URL' field, return the URL string directly
-      return getString('URL', null);
-    } else if (count == 2 && containsKey('filename')) {
+      return urlString;
+    } else if (count == 2 && containsKey(r'filename')) {
       // ignore 'filename' field
-      return getString('URL', null);
+      return urlString;
     } else {
       // not a single URL
       return null;

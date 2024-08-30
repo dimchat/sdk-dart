@@ -178,7 +178,7 @@ abstract class Facebook extends Barrack {
     //   return null;
     // }
     Meta? meta = await archivist.getMeta(identifier);
-    archivist.checkMeta(identifier, meta);
+    /*await */archivist.checkMeta(identifier, meta);
     return meta;
   }
 
@@ -189,7 +189,7 @@ abstract class Facebook extends Barrack {
     //   return null;
     // }
     List<Document> docs = await archivist.getDocuments(identifier);
-    archivist.checkDocuments(identifier, docs);
+    /*await */archivist.checkDocuments(identifier, docs);
     return docs;
   }
 

@@ -32,6 +32,8 @@ import 'package:dimp/dimp.dart';
 
 import '../core/proc.dart';
 import '../core/twins.dart';
+import '../facebook.dart';
+import '../messenger.dart';
 
 import 'base.dart';
 import 'commands.dart';
@@ -41,7 +43,14 @@ import 'contents.dart';
 /// Base ContentProcessor Creator
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessorCreator {
-  BaseContentProcessorCreator(super.facebook, super.messenger);
+  BaseContentProcessorCreator(Facebook facebook, Messenger messenger)
+      : super(facebook, messenger);
+
+  @override
+  Facebook? get facebook => super.facebook as Facebook?;
+
+  @override
+  Messenger? get messenger => super.messenger as Messenger?;
 
   @override
   ContentProcessor? createContentProcessor(int msgType) {

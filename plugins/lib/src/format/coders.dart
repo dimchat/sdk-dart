@@ -29,7 +29,6 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 import 'package:fast_base58/fast_base58.dart';
 
-import '../crypto/aes.dart';
 import 'pnf.dart';
 import 'ted.dart';
 
@@ -133,9 +132,20 @@ class _Base64Coder implements DataCoder {
 
   @override
   Uint8List? decode(String string) {
-    string = AESKeyFactory.trimBase64String(string);
+    string = trimBase64String(string);
     return base64.decode(string);
   }
+
+  static String trimBase64String(String b64) {
+    if (b64.contains('\n')) {
+      b64 = b64.replaceAll('\n', '');
+      b64 = b64.replaceAll('\r', '');
+      b64 = b64.replaceAll('\t', '');
+      b64 = b64.replaceAll(' ', '');
+    }
+    return b64.trim();
+  }
+
 }
 
 void registerDataCoders() {
