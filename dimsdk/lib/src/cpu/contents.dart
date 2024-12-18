@@ -38,7 +38,7 @@ class ForwardContentProcessor extends BaseContentProcessor {
   ForwardContentProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is ForwardContent, 'forward command error: $content');
     List<ReliableMessage> secrets = (content as ForwardContent).secrets;
     // call messenger to process it
@@ -67,7 +67,7 @@ class ArrayContentProcessor extends BaseContentProcessor {
   ArrayContentProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is ArrayContent, 'array command error: $content');
     List<Content> array = (content as ArrayContent).contents;
     // call messenger to process it

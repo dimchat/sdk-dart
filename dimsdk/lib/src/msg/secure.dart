@@ -133,12 +133,12 @@ class SecureMessagePacker {
       return null;
     }
 
-    // TODO: check attachment for File/Image/Audio/Video message content
-    //      if URL exists, means file data was uploaded to a CDN,
-    //          1. save password as 'content.key';
-    //          2. try to download file data from CDN;
-    //          3. decrypt downloaded data with 'content.key'.
-    //      (do it by application)
+    /// TODO: check attachment for File/Image/Audio/Video message content
+    ///      if URL exists, means file data was uploaded to a CDN,
+    ///          1. save password as 'content.key';
+    ///          2. try to download file data from CDN;
+    ///          3. decrypt downloaded data with 'content.key'.
+    ///      (do it by application)
 
     // OK, pack message
     Map info = sMsg.copyMap(false);

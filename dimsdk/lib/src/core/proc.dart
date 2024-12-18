@@ -30,69 +30,22 @@
  */
 import 'package:dimp/dimp.dart';
 
-import 'twins.dart';
-
-///  CPU: Content Processing Unit
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-abstract interface class ContentProcessor {
-
-  ///  Process message content
-  ///
-  /// @param content - content received
-  /// @param rMsg    - reliable message
-  /// @return {Content} response to sender
-  Future<List<Content>> process(Content content, ReliableMessage rMsg);
-
-}
-
-///  CPU Creator
-///  ~~~~~~~~~~~
-abstract interface class ContentProcessorCreator {
-
-  ///  Create content processor with type
-  ///
-  /// @param msgType - content type
-  /// @return ContentProcessor
-  ContentProcessor? createContentProcessor(int msgType);
-
-  ///  Create command processor with name
-  ///
-  /// @param msgType - content type
-  /// @param cmd     - command name
-  /// @return CommandProcessor
-  ContentProcessor? createCommandProcessor(int msgType, String cmd);
-
-}
-
-///  CPU Factory
-///  ~~~~~~~~~~~
-abstract interface class ContentProcessorFactory {
-
-  ///  Get content/command processor
-  ///
-  /// @param content - Content/Command
-  /// @return ContentProcessor
-  ContentProcessor? getProcessor(Content content);
-
-  ContentProcessor? getContentProcessor(int msgType);
-
-  ContentProcessor? getCommandProcessor(int msgType, String cmd);
-
-}
+import '../msg/content.dart';
 
 
 /// General ContentProcessor Factory
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class GeneralContentProcessorFactory extends TwinsHelper implements ContentProcessorFactory {
-  GeneralContentProcessorFactory(super.facebook, super.messenger, this._creator);
+class GeneralContentProcessorFactory implements ContentProcessorFactory {
+  GeneralContentProcessorFactory(this.creator);
 
-  final ContentProcessorCreator _creator;
+  // private
+  final ContentProcessorCreator creator;
 
   final Map<int,    ContentProcessor> _contentProcessors = {};
   final Map<String, ContentProcessor> _commandProcessors = {};
 
   @override
-  ContentProcessor? getProcessor(Content content) {
+  ContentProcessor? getContentProcessor(Content content) {
     ContentProcessor? cpu;
     int msgType = content.type;
     if (content is Command) {
@@ -110,14 +63,14 @@ class GeneralContentProcessorFactory extends TwinsHelper implements ContentProce
       }
     }
     // content processor
-    return getContentProcessor(msgType);
+    return getContentProcessorForType(msgType);
   }
 
   @override
-  ContentProcessor? getContentProcessor(int msgType) {
+  ContentProcessor? getContentProcessorForType(int msgType) {
     ContentProcessor? cpu = _contentProcessors[msgType];
     if (cpu == null) {
-      cpu = _creator.createContentProcessor(msgType);
+      cpu = creator.createContentProcessor(msgType);
       if (cpu != null) {
         _contentProcessors[msgType] = cpu;
       }
@@ -125,11 +78,11 @@ class GeneralContentProcessorFactory extends TwinsHelper implements ContentProce
     return cpu;
   }
 
-  @override
+  // private
   ContentProcessor? getCommandProcessor(int msgType, String cmd) {
     ContentProcessor? cpu = _commandProcessors[cmd];
     if (cpu == null) {
-      cpu = _creator.createCommandProcessor(msgType, cmd);
+      cpu = creator.createCommandProcessor(msgType, cmd);
       if (cpu != null) {
         _commandProcessors[cmd] = cpu;
       }

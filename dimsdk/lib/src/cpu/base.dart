@@ -30,26 +30,18 @@
  */
 import 'package:dimp/dimp.dart';
 
-import '../core/proc.dart';
 import '../core/twins.dart';
-import '../facebook.dart';
-import '../messenger.dart';
+import '../msg/content.dart';
 
 
 ///  Content Processing Unit
 ///  ~~~~~~~~~~~~~~~~~~~~~~~
 class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
-  BaseContentProcessor(Facebook facebook, Messenger messenger)
-      : super(facebook, messenger);
+  BaseContentProcessor(super.facebook, super.messenger);
+
 
   @override
-  Facebook? get facebook => super.facebook as Facebook?;
-
-  @override
-  Messenger? get messenger => super.messenger as Messenger?;
-
-  @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     String text = 'Content not support.';
     return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
       'template': 'Content (type: \${type}) not support yet!',
@@ -57,6 +49,36 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
         'type': content.type,
       },
     });
+  }
+
+  //
+  //  Convenient responding
+  //
+
+  // protected
+  List<ReceiptCommand> respondReceipt(String text, {
+    required Envelope envelope, Content? content, Map<String, Object>? extra
+  }) => [
+    createReceipt(text, envelope: envelope, content: content, extra: extra)
+  ];
+
+  ///  receipt command with text, original envelope, serial number & group
+  ///
+  /// @param text     - respond message
+  /// @param envelope - original message envelope
+  /// @param content  - original message content
+  /// @param extra    - extra info
+  /// @return receipt command
+  static ReceiptCommand createReceipt(String text, {
+    required Envelope envelope, Content? content, Map<String, Object>? extra
+  }) {
+    // create base receipt command with text, original envelope, serial number & group ID
+    ReceiptCommand res = ReceiptCommand.create(text, envelope, content);
+    // add extra key-values
+    if (extra != null) {
+      res.addAll(extra);
+    }
+    return res;
   }
 
 }
@@ -67,7 +89,7 @@ class BaseCommandProcessor extends BaseContentProcessor {
   BaseCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is Command, 'command error: $content');
     Command command = content as Command;
     String text = 'Command not support.';

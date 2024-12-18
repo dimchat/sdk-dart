@@ -37,8 +37,8 @@ import 'provider.dart';
 ///  DIM Server
 class Station implements User {
   Station(ID identifier, String? host, int port) {
-    assert(identifier.type == EntityType.kStation
-        || identifier.type == EntityType.kAny, 'station ID error: $identifier');
+    assert(identifier.type == EntityType.STATION
+        || identifier.type == EntityType.ANY, 'station ID error: $identifier');
     _user = BaseUser(identifier);
     _host = host;
     _port = port;
@@ -46,8 +46,8 @@ class Station implements User {
   }
 
   /// Broadcast
-  static ID kAny = Identifier('station@anywhere', name: 'station', address: Address.kAnywhere);
-  static ID kEvery = Identifier('stations@everywhere', name: 'stations', address: Address.kEverywhere);
+  static ID kAny = Identifier.create(name: 'station', address: Address.ANYWHERE);
+  static ID kEvery = Identifier.create(name: 'stations', address: Address.EVERYWHERE);
 
   // inner user
   late User _user;

@@ -135,45 +135,45 @@ void registerMessageFactories() {
 void registerContentFactories() {
 
   // Text
-  Content.setFactory(ContentType.kText, ContentParser((dict) => BaseTextContent(dict)));
+  Content.setFactory(ContentType.TEXT, ContentParser((dict) => BaseTextContent(dict)));
 
   // File
-  Content.setFactory(ContentType.kFile, ContentParser((dict) => BaseFileContent(dict)));
+  Content.setFactory(ContentType.FILE, ContentParser((dict) => BaseFileContent(dict)));
   // Image
-  Content.setFactory(ContentType.kImage, ContentParser((dict) => ImageFileContent(dict)));
+  Content.setFactory(ContentType.IMAGE, ContentParser((dict) => ImageFileContent(dict)));
   // Audio
-  Content.setFactory(ContentType.kAudio, ContentParser((dict) => AudioFileContent(dict)));
+  Content.setFactory(ContentType.AUDIO, ContentParser((dict) => AudioFileContent(dict)));
   // Video
-  Content.setFactory(ContentType.kVideo, ContentParser((dict) => VideoFileContent(dict)));
+  Content.setFactory(ContentType.VIDEO, ContentParser((dict) => VideoFileContent(dict)));
 
   // Web Page
-  Content.setFactory(ContentType.kPage, ContentParser((dict) => WebPageContent(dict)));
+  Content.setFactory(ContentType.PAGE, ContentParser((dict) => WebPageContent(dict)));
 
   // Name Card
-  Content.setFactory(ContentType.kNameCard, ContentParser((dict) => NameCardContent(dict)));
+  Content.setFactory(ContentType.NAME_CARD, ContentParser((dict) => NameCardContent(dict)));
 
   // Money
-  Content.setFactory(ContentType.kMoney, ContentParser((dict) => BaseMoneyContent(dict)));
-  Content.setFactory(ContentType.kTransfer, ContentParser((dict) => TransferMoneyContent(dict)));
+  Content.setFactory(ContentType.MONEY, ContentParser((dict) => BaseMoneyContent(dict)));
+  Content.setFactory(ContentType.TRANSFER, ContentParser((dict) => TransferMoneyContent(dict)));
   // ...
 
   // Command
-  Content.setFactory(ContentType.kCommand, GeneralCommandFactory());
+  Content.setFactory(ContentType.COMMAND, GeneralCommandFactory());
 
   // History Command
-  Content.setFactory(ContentType.kHistory, HistoryCommandFactory());
+  Content.setFactory(ContentType.HISTORY, HistoryCommandFactory());
 
   /*
   // Application Customized
-  Content.setFactory(ContentType.kCustomized, ContentParser((dict) => AppCustomizedContent(dict)));
-  Content.setFactory(ContentType.kApplication, ContentParser((dict) => AppCustomizedContent(dict)));
+  Content.setFactory(ContentType.CUSTOMIZED, ContentParser((dict) => AppCustomizedContent(dict)));
+  Content.setFactory(ContentType.APPLICATION, ContentParser((dict) => AppCustomizedContent(dict)));
    */
 
   // Content Array
-  Content.setFactory(ContentType.kArray, ContentParser((dict) => ListContent(dict)));
+  Content.setFactory(ContentType.ARRAY, ContentParser((dict) => ListContent(dict)));
 
   // Top-Secret
-  Content.setFactory(ContentType.kForward, ContentParser((dict) => SecretContent(dict)));
+  Content.setFactory(ContentType.FORWARD, ContentParser((dict) => SecretContent(dict)));
 
   // unknown content type
   Content.setFactory(0, ContentParser((dict) => BaseContent(dict)));
@@ -184,27 +184,27 @@ void registerContentFactories() {
 void registerCommandFactories() {
 
   // Meta Command
-  Command.setFactory(Command.kMeta, CommandParser((dict) => BaseMetaCommand(dict)));
+  Command.setFactory(Command.META, CommandParser((dict) => BaseMetaCommand(dict)));
 
   // Document Command
-  Command.setFactory(Command.kDocument, CommandParser((dict) => BaseDocumentCommand(dict)));
+  Command.setFactory(Command.DOCUMENT, CommandParser((dict) => BaseDocumentCommand(dict)));
 
   // Receipt Command
-  Command.setFactory(Command.kReceipt, CommandParser((dict) => BaseReceiptCommand(dict)));
+  Command.setFactory(Command.RECEIPT, CommandParser((dict) => BaseReceiptCommand(dict)));
 
   // Group Commands
   Command.setFactory('group', GroupCommandFactory());
-  Command.setFactory(GroupCommand.kInvite, CommandParser((dict) => InviteGroupCommand(dict)));
+  Command.setFactory(GroupCommand.INVITE, CommandParser((dict) => InviteGroupCommand(dict)));
   /// 'expel' is deprecated (use 'reset' instead)
-  Command.setFactory(GroupCommand.kExpel,  CommandParser((dict) => ExpelGroupCommand(dict)));
-  Command.setFactory(GroupCommand.kJoin,   CommandParser((dict) => JoinGroupCommand(dict)));
-  Command.setFactory(GroupCommand.kQuit,   CommandParser((dict) => QuitGroupCommand(dict)));
-  Command.setFactory(GroupCommand.kQuery,  CommandParser((dict) => QueryGroupCommand(dict)));
-  Command.setFactory(GroupCommand.kReset,  CommandParser((dict) => ResetGroupCommand(dict)));
+  Command.setFactory(GroupCommand.EXPEL,  CommandParser((dict) => ExpelGroupCommand(dict)));
+  Command.setFactory(GroupCommand.JOIN,   CommandParser((dict) => JoinGroupCommand(dict)));
+  Command.setFactory(GroupCommand.QUIT,   CommandParser((dict) => QuitGroupCommand(dict)));
+  Command.setFactory(GroupCommand.QUERY,  CommandParser((dict) => QueryGroupCommand(dict)));
+  Command.setFactory(GroupCommand.RESET,  CommandParser((dict) => ResetGroupCommand(dict)));
   // Group Admin Commands
-  Command.setFactory(GroupCommand.kHire,  CommandParser((dict) => HireGroupCommand(dict)));
-  Command.setFactory(GroupCommand.kFire,  CommandParser((dict) => FireGroupCommand(dict)));
-  Command.setFactory(GroupCommand.kResign,  CommandParser((dict) => ResignGroupCommand(dict)));
+  Command.setFactory(GroupCommand.HIRE,   CommandParser((dict) => HireGroupCommand(dict)));
+  Command.setFactory(GroupCommand.FIRE,   CommandParser((dict) => FireGroupCommand(dict)));
+  Command.setFactory(GroupCommand.RESIGN, CommandParser((dict) => ResignGroupCommand(dict)));
 
 }
 
@@ -221,6 +221,6 @@ void registerAllFactories() {
   //
   //  Register customized factories
   //
-  Content.setFactory(ContentType.kCustomized, ContentParser((dict) => AppCustomizedContent(dict)));
-  Content.setFactory(ContentType.kApplication, ContentParser((dict) => AppCustomizedContent(dict)));
+  Content.setFactory(ContentType.CUSTOMIZED, ContentParser((dict) => AppCustomizedContent(dict)));
+  Content.setFactory(ContentType.APPLICATION, ContentParser((dict) => AppCustomizedContent(dict)));
 }

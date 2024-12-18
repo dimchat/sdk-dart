@@ -30,10 +30,8 @@
  */
 import 'package:dimp/dimp.dart';
 
-import '../core/proc.dart';
 import '../core/twins.dart';
-import '../facebook.dart';
-import '../messenger.dart';
+import '../msg/content.dart';
 
 import 'base.dart';
 import 'commands.dart';
@@ -43,34 +41,27 @@ import 'contents.dart';
 /// Base ContentProcessor Creator
 /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessorCreator {
-  BaseContentProcessorCreator(Facebook facebook, Messenger messenger)
-      : super(facebook, messenger);
-
-  @override
-  Facebook? get facebook => super.facebook as Facebook?;
-
-  @override
-  Messenger? get messenger => super.messenger as Messenger?;
+  BaseContentProcessorCreator(super.facebook, super.messenger);
 
   @override
   ContentProcessor? createContentProcessor(int msgType) {
     switch (msgType) {
     // forward content
-      case ContentType.kForward:
+      case ContentType.FORWARD:
         return ForwardContentProcessor(facebook!, messenger!);
     // array content
-      case ContentType.kArray:
+      case ContentType.ARRAY:
         return ArrayContentProcessor(facebook!, messenger!);
 
     /*
       // application customized
-      case ContentType.kApplication:
-      case ContentType.kCustomized:
+      case ContentType.APPLICATION:
+      case ContentType.CUSTOMIZED:
         return CustomizedContentProcessor(facebook!, messenger!);
          */
 
     // default commands
-      case ContentType.kCommand:
+      case ContentType.COMMAND:
         return BaseCommandProcessor(facebook!, messenger!);
     /*
       // default contents
@@ -88,10 +79,10 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
   ContentProcessor? createCommandProcessor(int msgType, String cmd) {
     switch (cmd) {
     // meta command
-      case Command.kMeta:
+      case Command.META:
         return MetaCommandProcessor(facebook!, messenger!);
     // document command
-      case Command.kDocument:
+      case Command.DOCUMENT:
         return DocumentCommandProcessor(facebook!, messenger!);
 
     // unknown

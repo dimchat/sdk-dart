@@ -30,167 +30,111 @@
  */
 import 'package:dimp/dimp.dart';
 
-import 'mkm/bot.dart';
-import 'mkm/provider.dart';
-import 'mkm/station.dart';
-
-import 'archivist.dart';
-
-abstract class Facebook extends Barrack {
-
-  Archivist get archivist;
+abstract class Facebook extends Barrack implements UserDataSource, GroupDataSource {
 
   @override
-  Future<User?> createUser(ID identifier) async {
-    assert(identifier.isUser, 'user ID error: $identifier');
-    // check visa key
-    if (!identifier.isBroadcast) {
-      if (await getPublicKeyForEncryption(identifier) == null) {
-        assert(false, 'visa.key not found: $identifier');
-        return null;
-      }
-      // NOTICE: if visa.key exists, then visa & meta must exist too.
-    }
-    int network = identifier.type;
-    // check user type
-    if (network == EntityType.kStation) {
-      return Station.fromID(identifier);
-    } else if (network == EntityType.kBot) {
-      return Bot(identifier);
-    }
-    // general user, or 'anyone@anywhere'
-    return BaseUser(identifier);
+  void cacheUser(User user) {
+    user.dataSource ??= this;
+    super.cacheUser(user);
   }
 
   @override
-  Future<Group?> createGroup(ID identifier) async {
-    assert(identifier.isGroup, 'group ID error: $identifier');
-    // check members
-    if (!identifier.isBroadcast) {
-      List<ID> members = await getMembers(identifier);
-      if (members.isEmpty) {
-        assert(false, 'group members not found: $identifier');
-        return null;
-      }
-      // NOTICE: if members exist, then owner (founder) must exist,
-      //         and bulletin & meta must exist too.
-    }
-    int network = identifier.type;
-    // check group type
-    if (network == EntityType.kISP) {
-      return ServiceProvider(identifier);
-    }
-    // general group, or 'everyone@everywhere'
-    return BaseGroup(identifier);
+  void cacheGroup(Group group) {
+    group.dataSource ??= this;
+    super.cacheGroup(group);
   }
 
-  ///  Get all local users (for decrypting received message)
+  ///  Save meta for entity ID (must verify first)
   ///
-  /// @return users with private key
-  Future<List<User>> get localUsers;
+  /// @param meta - entity meta
+  /// @param identifier - entity ID
+  /// @return true on success
+  Future<bool> saveMeta(Meta meta, ID identifier);
+
+  ///  Save entity document with ID (must verify first)
+  ///
+  /// @param doc - entity document
+  /// @return true on success
+  Future<bool> saveDocument(Document doc);
 
   ///  Select local user for receiver
   ///
   /// @param receiver - user/group ID
   /// @return local user
   Future<User?> selectLocalUser(ID receiver) async {
-    List<User> users = await localUsers;
+    if (receiver.isGroup) {
+      // group message (recipient not designated)
+      // TODO: check members of group
+      return null;
+    } else {
+      assert(receiver.isUser, 'receiver error: $receiver');
+    }
+    List<User> users = await archivist.localUsers;
     if (users.isEmpty) {
       assert(false, 'local users should not be empty');
       return null;
     } else if (receiver.isBroadcast) {
       // broadcast message can decrypt by anyone, so just return current user
       return users.first;
-    } else if (receiver.isUser) {
-      // 1. personal message
-      // 2. split group message
-      for (User item in users) {
-        if (item.identifier == receiver) {
-          // DISCUSS: set this item to be current user?
-          return item;
-        }
-      }
-      // not me?
-      return null;
     }
-    // group message (recipient not designated)
-    assert(receiver.isGroup, 'receiver error: $receiver');
-    // the messenger will check group info before decrypting message,
-    // so we can trust that the group's meta & members MUST exist here.
-    List<ID> members = await getMembers(receiver);
-    assert(members.isNotEmpty, "members not found: $receiver");
+    // 1. personal message
+    // 2. split group message
     for (User item in users) {
-      if (members.contains(item.identifier)) {
+      if (item.identifier == receiver) {
         // DISCUSS: set this item to be current user?
         return item;
       }
     }
+    // not mine?
     return null;
   }
 
-  Future<bool> saveMeta(Meta meta, ID identifier) async {
-    if (meta.isValid && meta.matchIdentifier(identifier)) {
-      // meta ok
-    } else {
-      assert(false, 'meta not valid: $identifier');
-      return false;
-    }
-    // check old meta
-    Meta? old = await getMeta(identifier);
-    if (old != null) {
-      // assert(meta == old, 'meta should not changed');
-      return true;
-    }
-    // meta not exists yet, save it
-    return await archivist.saveMeta(meta, identifier);
-  }
+  //
+  //  User Data Source
+  //
 
-  Future<bool> saveDocument(Document doc) async {
-    ID identifier = doc.identifier;
-    if (!doc.isValid) {
-      // try to verify
-      Meta? meta = await getMeta(identifier);
-      if (meta == null) {
-        assert(false, 'meta not found: $identifier');
-        return false;
-      } else if (doc.verify(meta.publicKey)) {
-        // document ok
-      } else {
-        assert(false, 'failed to verify document: $identifier');
-        return false;
-      }
+  @override
+  Future<EncryptKey?> getPublicKeyForEncryption(ID user) async {
+    assert(user.isUser, 'user ID error: $user');
+    Archivist db = archivist;
+    // 1. get pubic key from visa
+    EncryptKey? visaKey = await db.getVisaKey(user);
+    if (visaKey != null) {
+      // if visa.key exists, use it for encryption
+      return visaKey;
     }
-    String type = doc.type ?? '*';
-    // check old documents with type
-    List<Document> documents = await getDocuments(identifier);
-    Document? old = DocumentHelper.lastDocument(documents, type);
-    if (old != null && DocumentHelper.isExpired(doc, old)) {
-      // assert(false, 'drop expired document: $identifier');
-      return false;
+    // 2. get pubic key from meta
+    VerifyKey? metaKey = await db.getMetaKey(user);
+    if (metaKey is EncryptKey) {
+      // if visa.key not exists and meta.key is encrypt key,
+      // use it for encryption
+      return metaKey as EncryptKey;
     }
-    return await archivist.saveDocument(doc);
+    // assert(false, 'failed to get encrypt key for user: $user');
+    return null;
   }
 
   @override
-  Future<Meta?> getMeta(ID identifier) async {
-    // if (identifier.isBroadcast) {
-    //   // broadcast ID has no meta
-    //   return null;
-    // }
-    Meta? meta = await archivist.getMeta(identifier);
-    /*await */archivist.checkMeta(identifier, meta);
-    return meta;
-  }
-
-  @override
-  Future<List<Document>> getDocuments(ID identifier) async {
-    // if (identifier.isBroadcast) {
-    //   // broadcast ID has no documents
-    //   return null;
-    // }
-    List<Document> docs = await archivist.getDocuments(identifier);
-    /*await */archivist.checkDocuments(identifier, docs);
-    return docs;
+  Future<List<VerifyKey>> getPublicKeysForVerification(ID user) async {
+    // assert(user.isUser, 'user ID error: $user');
+    List<VerifyKey> keys = [];
+    Archivist db = archivist;
+    // 1. get pubic key from visa
+    EncryptKey? visaKey = await db.getVisaKey(user);
+    if (visaKey is VerifyKey) {
+      // the sender may use communication key to sign message.data,
+      // so try to verify it with visa.key first
+      keys.add(visaKey as VerifyKey);
+    }
+    // 2. get pubic key from meta
+    VerifyKey? metaKey = await db.getMetaKey(user);
+    if (metaKey != null) {
+      // the sender may use identity key to sign message.data,
+      // try to verify it with meta.key too
+      keys.add(metaKey);
+    }
+    assert(keys.isNotEmpty, 'failed to get verify key for user: $user');
+    return keys;
   }
 
 }

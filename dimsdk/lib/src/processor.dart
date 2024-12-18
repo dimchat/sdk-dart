@@ -32,8 +32,8 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-import 'core/proc.dart';
 import 'core/twins.dart';
+import 'msg/content.dart';
 
 import 'facebook.dart';
 import 'messenger.dart';
@@ -42,34 +42,14 @@ import 'messenger.dart';
 abstract class MessageProcessor extends TwinsHelper implements Processor {
   MessageProcessor(Facebook facebook, Messenger messenger)
       : super(facebook, messenger) {
-    _factory = createFactory();
+    factory = createFactory(facebook, messenger);
   }
 
-  @override
-  Facebook? get facebook => super.facebook as Facebook?;
-
-  @override
-  Messenger? get messenger => super.messenger as Messenger?;
-
-  late final ContentProcessorFactory _factory;
+  // private
+  late final ContentProcessorFactory factory;
 
   // protected
-  ContentProcessorFactory createFactory() =>
-      GeneralContentProcessorFactory(facebook!, messenger!, createCreator());
-
-  // protected
-  /// override for creating customized CPUs
-  ContentProcessorCreator createCreator();
-
-  ContentProcessor? getProcessor(Content content) {
-    return _factory.getProcessor(content);
-  }
-  ContentProcessor? getContentProcessor(int msgType) {
-    return _factory.getContentProcessor(msgType);
-  }
-  ContentProcessor? getCommandProcessor(int msgType, String cmd) {
-    return _factory.getCommandProcessor(msgType, cmd);
-  }
+  ContentProcessorFactory createFactory(Facebook facebook, Messenger messenger);
 
   //
   //  Processing Message
@@ -77,15 +57,15 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
 
   @override
   Future<List<Uint8List>> processPackage(Uint8List data) async {
-    Messenger transceiver = messenger!;
+    Messenger? transceiver = messenger;
     // 1. deserialize message
-    ReliableMessage? rMsg = await transceiver.deserializeMessage(data);
+    ReliableMessage? rMsg = await transceiver?.deserializeMessage(data);
     if (rMsg == null) {
       // no valid message received
       return [];
     }
     // 2. process message
-    List<ReliableMessage> responses = await transceiver.processReliableMessage(rMsg);
+    List<ReliableMessage> responses = await transceiver!.processReliableMessage(rMsg);
     if (responses.isEmpty) {
       // nothing to respond
       return [];
@@ -107,15 +87,15 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
   @override
   Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg) async {
     // TODO: override to check broadcast message before calling it
-    Messenger transceiver = messenger!;
+    Messenger? transceiver = messenger;
     // 1. verify message
-    SecureMessage? sMsg = await transceiver.verifyMessage(rMsg);
+    SecureMessage? sMsg = await transceiver?.verifyMessage(rMsg);
     if (sMsg == null) {
       // TODO: suspend and waiting for sender's meta if not exists
       return [];
     }
     // 2. process message
-    List<SecureMessage> responses = await transceiver.processSecureMessage(sMsg, rMsg);
+    List<SecureMessage> responses = await transceiver!.processSecureMessage(sMsg, rMsg);
     if (responses.isEmpty) {
       // nothing to respond
       return [];
@@ -137,16 +117,16 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
 
   @override
   Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) async {
-    Messenger transceiver = messenger!;
+    Messenger? transceiver = messenger;
     // 1. decrypt message
-    InstantMessage? iMsg = await transceiver.decryptMessage(sMsg);
+    InstantMessage? iMsg = await transceiver?.decryptMessage(sMsg);
     if (iMsg == null) {
       // cannot decrypt this message, not for you?
       // delivering message to other receiver?
       return [];
     }
     // 2. process message
-    List<InstantMessage> responses = await transceiver.processInstantMessage(iMsg, rMsg);
+    List<InstantMessage> responses = await transceiver!.processInstantMessage(iMsg, rMsg);
     if (responses.isEmpty) {
       // nothing to respond
       return [];
@@ -167,10 +147,10 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
 
   @override
   Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) async {
-    Messenger transceiver = messenger!;
+    Messenger? transceiver = messenger;
     // 1. process content
-    List<Content> responses = await transceiver.processContent(iMsg.content, rMsg);
-    if (responses.isEmpty) {
+    List<Content>? responses = await transceiver?.processContent(iMsg.content, rMsg);
+    if (responses == null || responses.isEmpty) {
       // nothing to respond
       return [];
     }
@@ -199,13 +179,13 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     // TODO: override to check group
-    ContentProcessor? cpu = getProcessor(content);
+    ContentProcessor? cpu = factory.getContentProcessor(content);
     if (cpu == null) {
       // default content processor
-      cpu = getContentProcessor(0);
+      cpu = factory.getContentProcessorForType(0);
       assert(cpu != null, 'failed to get default CPU');
     }
-    return cpu!.process(content, rMsg);
+    return cpu!.processContent(content, rMsg);
     // TODO: override to filter the responses
   }
 

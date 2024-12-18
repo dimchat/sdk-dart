@@ -3,13 +3,12 @@
 /// Decentralized Instant Messaging Software Development Kit
 library dimsdk;
 
-export 'src/utils/checkers.dart';
-
 export 'src/mkm/provider.dart';
 export 'src/mkm/station.dart';
 export 'src/mkm/bot.dart';
 export 'src/mkm/members.dart';
 
+export 'src/msg/content.dart';
 export 'src/msg/helper.dart';
 export 'src/msg/instant.dart';
 export 'src/msg/secure.dart';
@@ -27,7 +26,6 @@ export 'src/cpu/customized.dart';
 export 'src/cpu/base.dart';
 
 export 'src/ans.dart';
-export 'src/archivist.dart';
 export 'src/delegate.dart';
 export 'src/facebook.dart';
 export 'src/messenger.dart';

@@ -36,7 +36,7 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   MetaCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is MetaCommand, 'meta command error: $content');
     MetaCommand command = content as MetaCommand;
     Meta? meta = command.meta;
@@ -49,8 +49,9 @@ class MetaCommandProcessor extends BaseCommandProcessor {
     return await _putMeta(meta, identifier: identifier, content: command, envelope: rMsg.envelope);
   }
 
-  Future<List<Content>> _getMeta(ID identifier,
-      {required MetaCommand content, required Envelope envelope}) async {
+  Future<List<Content>> _getMeta(ID identifier, {
+    required MetaCommand content, required Envelope envelope
+  }) async {
     Meta? meta = await facebook?.getMeta(identifier);
     if (meta == null) {
       String text = 'Meta not found.';
@@ -67,8 +68,9 @@ class MetaCommandProcessor extends BaseCommandProcessor {
     ];
   }
 
-  Future<List<Content>> _putMeta(Meta meta,
-      {required ID identifier, required MetaCommand content, required Envelope envelope}) async {
+  Future<List<Content>> _putMeta(Meta meta, {
+    required ID identifier, required MetaCommand content, required Envelope envelope
+  }) async {
     List<Content>? errors;
     // 1. try to save meta
     errors = await saveMeta(meta, identifier: identifier, content: content, envelope: envelope);
@@ -87,8 +89,9 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   }
 
   // protected
-  Future<List<Content>?> saveMeta(Meta meta,
-      {required ID identifier, required MetaCommand content, required Envelope envelope}) async {
+  Future<List<Content>?> saveMeta(Meta meta, {
+    required ID identifier, required MetaCommand content, required Envelope envelope
+  }) async {
     // check meta
     if (!await checkMeta(meta, identifier: identifier)) {
       String text = 'Meta not valid.';
@@ -123,7 +126,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
   DocumentCommandProcessor(super.facebook, super.messenger);
 
   @override
-  Future<List<Content>> process(Content content, ReliableMessage rMsg) async {
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is DocumentCommand, 'document command error: $content');
     DocumentCommand command = content as DocumentCommand;
     ID identifier = command.identifier;
@@ -144,8 +147,9 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     });
   }
 
-  Future<List<Content>> _getDocuments(ID identifier,
-      {required DocumentCommand content, required Envelope envelope}) async {
+  Future<List<Content>> _getDocuments(ID identifier, {
+    required DocumentCommand content, required Envelope envelope
+  }) async {
     List<Document>? documents = await facebook?.getDocuments(identifier);
     if (documents == null || documents.isEmpty) {
       String text = 'Document not found.';
@@ -189,8 +193,9 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     return responses;
   }
 
-  Future<List<Content>> _putDocument(Document doc,
-      {required ID identifier, required DocumentCommand content, required Envelope envelope}) async {
+  Future<List<Content>> _putDocument(Document doc, {
+    required ID identifier, required DocumentCommand content, required Envelope envelope
+  }) async {
     List<Content>? errors;
     Meta? meta = content.meta;
     // 0. check meta
@@ -230,9 +235,10 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
   }
 
   // protected
-  Future<List<Content>?> saveDocument(Document doc,
-      {required Meta meta, required ID identifier,
-      required DocumentCommand content, required Envelope envelope}) async {
+  Future<List<Content>?> saveDocument(Document doc, {
+    required Meta meta, required ID identifier,
+    required DocumentCommand content, required Envelope envelope
+  }) async {
     // check document
     if (!await checkDocument(doc, meta: meta)) {
       // document error

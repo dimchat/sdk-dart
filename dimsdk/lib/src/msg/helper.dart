@@ -30,6 +30,9 @@
  */
 import 'package:dimp/dimp.dart';
 
+
+/// 1. [Meta Protocol]
+/// 2. [Visa Protocol]
 abstract interface class MessageHelper {
 
   ///  Sender's Meta
@@ -39,7 +42,7 @@ abstract interface class MessageHelper {
   static Meta? getMeta(Message msg) =>
       Meta.parse(msg['meta']);
 
-  static void setMeta(Meta meta, Message msg) =>
+  static void setMeta(Meta? meta, Message msg) =>
       msg.setMap('meta', meta);
 
   ///  Sender's Visa
@@ -55,7 +58,7 @@ abstract interface class MessageHelper {
     return null;
   }
 
-  static void setVisa(Visa visa, Message msg) =>
+  static void setVisa(Visa? visa, Message msg) =>
       msg.setMap('visa', visa);
 
 }

@@ -44,21 +44,24 @@ import 'messenger.dart';
 
 class MessagePacker extends TwinsHelper implements Packer {
   MessagePacker(Facebook facebook, Messenger messenger)
-      : instantPacker = InstantMessagePacker(messenger),
-        securePacker = SecureMessagePacker(messenger),
-        reliablePacker = ReliableMessagePacker(messenger),
-        super(facebook, messenger);
+      : super(facebook, messenger) {
+    instantPacker  = createInstantMessagePacker(messenger);
+    securePacker   = createSecureMessagePacker(messenger);
+    reliablePacker = createReliableMessagePacker(messenger);
+  }
 
   // protected
-  final InstantMessagePacker instantPacker;
-  final SecureMessagePacker securePacker;
-  final ReliableMessagePacker reliablePacker;
+  late final InstantMessagePacker  instantPacker;
+  late final SecureMessagePacker   securePacker;
+  late final ReliableMessagePacker reliablePacker;
 
-  @override
-  Facebook? get facebook => super.facebook as Facebook?;
-
-  @override
-  Messenger? get messenger => super.messenger as Messenger?;
+  // protected: create message packers
+  InstantMessagePacker createInstantMessagePacker(InstantMessageDelegate delegate) =>
+      InstantMessagePacker(delegate);
+  SecureMessagePacker createSecureMessagePacker(SecureMessageDelegate delegate) =>
+      SecureMessagePacker(delegate);
+  ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate delegate) =>
+      ReliableMessagePacker(delegate);
 
   //
   //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
