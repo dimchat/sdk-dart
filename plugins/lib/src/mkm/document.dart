@@ -44,18 +44,18 @@ class GeneralDocumentFactory implements DocumentFactory {
     String docType = _getType(_type, identifier);
     if (data == null || signature == null/* || data.isEmpty || signature.isEmpty*/) {
       // create empty document
-      if (docType == Document.kVisa) {
+      if (docType == Document.VISA) {
         return BaseVisa.from(identifier);
-      } else if (docType == Document.kBulletin) {
+      } else if (docType == Document.BULLETIN) {
         return BaseBulletin.from(identifier);
       } else {
         return BaseDocument.from(identifier, docType);
       }
     } else {
       // create document with data & signature from local storage
-      if (docType == Document.kVisa) {
+      if (docType == Document.VISA) {
         return BaseVisa.from(identifier, data: data, signature: signature);
-      } else if (docType == Document.kBulletin) {
+      } else if (docType == Document.BULLETIN) {
         return BaseBulletin.from(identifier, data: data, signature: signature);
       } else {
         return BaseDocument.from(identifier, docType, data: data, signature: signature);
@@ -73,9 +73,9 @@ class GeneralDocumentFactory implements DocumentFactory {
     AccountFactoryManager man = AccountFactoryManager();
     String? docType = man.generalFactory.getDocumentType(doc, null);
     docType ??= _getType('*', identifier);
-    if (docType == Document.kVisa) {
+    if (docType == Document.VISA) {
       return BaseVisa(doc);
-    } else if (docType == Document.kBulletin) {
+    } else if (docType == Document.BULLETIN) {
       return BaseBulletin(doc);
     } else {
       return BaseDocument(doc);
@@ -87,11 +87,11 @@ String _getType(String docType, ID identifier) {
   if (docType != '*') {
     return docType;
   } else if (identifier.isGroup) {
-    return Document.kBulletin;
+    return Document.BULLETIN;
   } else if (identifier.isUser) {
-    return Document.kVisa;
+    return Document.VISA;
   } else {
-    return Document.kProfile;
+    return Document.PROFILE;
   }
 }
 
@@ -102,7 +102,7 @@ String _getType(String docType, ID identifier) {
 void registerDocumentFactories() {
 
   Document.setFactory('*', GeneralDocumentFactory('*'));
-  Document.setFactory(Document.kProfile, GeneralDocumentFactory('*'));
-  Document.setFactory(Document.kVisa, GeneralDocumentFactory(Document.kVisa));
-  Document.setFactory(Document.kBulletin, GeneralDocumentFactory(Document.kBulletin));
+  Document.setFactory(Document.VISA, GeneralDocumentFactory(Document.VISA));
+  Document.setFactory(Document.PROFILE, GeneralDocumentFactory(Document.PROFILE));
+  Document.setFactory(Document.BULLETIN, GeneralDocumentFactory(Document.BULLETIN));
 }

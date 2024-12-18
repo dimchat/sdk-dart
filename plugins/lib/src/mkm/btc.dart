@@ -52,15 +52,6 @@ class BTCAddress extends ConstantString implements Address {
   @override
   int get type => _network;
 
-  @override
-  bool get isBroadcast => false;
-
-  @override
-  bool get isUser => EntityType.isUser(_network);
-
-  @override
-  bool get isGroup => EntityType.isGroup(_network);
-
 
   ///  Generate BTC address with fingerprint and network ID
   ///

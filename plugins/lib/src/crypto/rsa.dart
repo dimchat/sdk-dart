@@ -85,7 +85,7 @@ class _RSAPrivateKey extends BasePrivateKey implements DecryptKey {
       var publicKey = RSAKeyUtils.publicKeyFromPrivateKey(privateKey);
       String pem = RSAKeyUtils.encodeKey(publicKey: publicKey);
       Map info = {
-        'algorithm': AsymmetricKey.kRSA,
+        'algorithm': AsymmetricKey.RSA,
         'data': pem,
         'mode': 'ECB',
         'padding': 'PKCS1',
@@ -161,7 +161,7 @@ class RSAPrivateKeyFactory implements PrivateKeyFactory {
 
   @override
   PrivateKey generatePrivateKey() {
-    Map key = {'algorithm': AsymmetricKey.kRSA};
+    Map key = {'algorithm': AsymmetricKey.RSA};
     return _RSAPrivateKey(key);
   }
 

@@ -46,18 +46,18 @@ void registerKeyFactories() {
 
   var rsaPub = RSAPublicKeyFactory();
   var rsaPri = RSAPrivateKeyFactory();
-  PublicKey.setFactory(AsymmetricKey.kRSA, rsaPub);
+  PublicKey.setFactory(AsymmetricKey.RSA, rsaPub);
   PublicKey.setFactory('SHA256withRSA', rsaPub);
   PublicKey.setFactory('RSA/ECB/PKCS1Padding', rsaPub);
-  PrivateKey.setFactory(AsymmetricKey.kRSA, rsaPri);
+  PrivateKey.setFactory(AsymmetricKey.RSA, rsaPri);
   PrivateKey.setFactory('SHA256withRSA', rsaPri);
   PrivateKey.setFactory('RSA/ECB/PKCS1Padding', rsaPri);
 
   var eccPub = ECCPublicKeyFactory();
   var eccPri = ECCPrivateKeyFactory();
-  PublicKey.setFactory(AsymmetricKey.kECC, eccPub);
+  PublicKey.setFactory(AsymmetricKey.ECC, eccPub);
   PublicKey.setFactory('SHA256withECDSA', eccPub);
-  PrivateKey.setFactory(AsymmetricKey.kECC, eccPri);
+  PrivateKey.setFactory(AsymmetricKey.ECC, eccPri);
   PrivateKey.setFactory('SHA256withECDSA', eccPri);
 
   //
@@ -65,7 +65,7 @@ void registerKeyFactories() {
   //
 
   var aes = AESKeyFactory();
-  SymmetricKey.setFactory(SymmetricKey.kAES, aes);
+  SymmetricKey.setFactory(SymmetricKey.AES, aes);
   SymmetricKey.setFactory('AES/CBC/PKCS7Padding', aes);
 
   SymmetricKey.setFactory(PlainKey.kPLAIN, PlainKeyFactory());

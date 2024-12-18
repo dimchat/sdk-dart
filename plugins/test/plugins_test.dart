@@ -122,7 +122,7 @@ void testAES() {
   String? res;
 
   // random key
-  key = SymmetricKey.generate(SymmetricKey.kAES)!;
+  key = SymmetricKey.generate(SymmetricKey.AES)!;
   ciphertext = key.encrypt(data, extra);
   plaintext = key.decrypt(ciphertext, extra)!;
   res = UTF8.decode(plaintext);
@@ -141,7 +141,7 @@ void testRSA() {
   PrivateKey sKey;
   PublicKey pKey;
 
-  sKey = PrivateKey.generate(AsymmetricKey.kRSA)!;
+  sKey = PrivateKey.generate(AsymmetricKey.RSA)!;
   debugLog('RSA private key: $sKey');
 
   pKey = sKey.publicKey;

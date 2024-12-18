@@ -44,16 +44,7 @@ class ETHAddress extends ConstantString implements Address {
   ETHAddress(super.string);
 
   @override
-  int get type => EntityType.kUser;
-
-  @override
-  bool get isBroadcast => false;
-
-  @override
-  bool get isUser => true;
-
-  @override
-  bool get isGroup => false;
+  int get type => EntityType.USER;
 
   static String? getValidateAddress(String address) {
     if (!_ETH.isETH(address)) {

@@ -82,7 +82,7 @@ class _ECCPrivateKey extends BasePrivateKey {
       var publicKey = ECCKeyUtils.publicKeyFromPrivateKey(privateKey);
       String pem = ECCKeyUtils.encodeKey(publicKey: publicKey);
       Map info = {
-        'algorithm': AsymmetricKey.kECC,
+        'algorithm': AsymmetricKey.ECC,
         'data': pem,
         'curve': 'SECP256k1',
         'digest': 'SHA256'
@@ -140,7 +140,7 @@ class ECCPrivateKeyFactory implements PrivateKeyFactory {
 
   @override
   PrivateKey generatePrivateKey() {
-    Map key = {'algorithm': AsymmetricKey.kECC};
+    Map key = {'algorithm': AsymmetricKey.ECC};
     return _ECCPrivateKey(key);
   }
 

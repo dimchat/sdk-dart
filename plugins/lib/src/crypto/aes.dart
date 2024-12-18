@@ -177,7 +177,7 @@ class AESKeyFactory implements SymmetricKeyFactory {
 
   @override
   SymmetricKey generateSymmetricKey() {
-    Map key = {'algorithm': SymmetricKey.kAES};
+    Map key = {'algorithm': SymmetricKey.AES};
     return _AESKey(key);
   }
 

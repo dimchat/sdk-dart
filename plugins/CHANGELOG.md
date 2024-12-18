@@ -1,3 +1,7 @@
+## 1.1.0
+
+- Upgrade for meta types.
+
 ## 1.0.0
 
 - Remove IV from AES key

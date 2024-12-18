@@ -46,7 +46,7 @@ abstract class BaseAddressFactory implements AddressFactory {
   /// @return number of survivors
   int reduceMemory() {
     int finger = 0;
-    finger = thanos(_addresses, finger);
+    finger = Barrack.thanos(_addresses, finger);
     return finger >> 1;
   }
 
@@ -74,23 +74,33 @@ class _AddressFactory extends BaseAddressFactory {
 
   @override
   Address? createAddress(String address) {
-    assert(address.isNotEmpty, 'address should not be empty');
     int len = address.length;
-    if (len == 8) {
-      if (address.toLowerCase() == Address.kAnywhere.toString()) {
-        return Address.kAnywhere;
+    if (len == 0) {
+      assert(false, 'address should not be empty');
+      return null;
+    } else if (len == 8) {
+      // "anywhere"
+      if (address.toLowerCase() == Address.ANYWHERE.toString()) {
+        return Address.ANYWHERE;
       }
     } else if (len == 10) {
-      if (address.toLowerCase() == Address.kEverywhere.toString()) {
-        return Address.kEverywhere;
+      // "everywhere"
+      if (address.toLowerCase() == Address.EVERYWHERE.toString()) {
+        return Address.EVERYWHERE;
       }
     }
     Address? res;
-    if (len == 42) {
-      res = ETHAddress.parse(address);
-    } else if (26 <= len && len <= 35) {
+    if (26 <= len && len <= 35) {
+      // BTC
       res = BTCAddress.parse(address);
+    } else if (len == 42) {
+      // ETH
+      res = ETHAddress.parse(address);
+    } else {
+      assert(false, 'invalid address: $address');
+      res = null;
     }
+    // TODO: other types of address
     assert(res != null, 'invalid address: $address');
     return res;
   }

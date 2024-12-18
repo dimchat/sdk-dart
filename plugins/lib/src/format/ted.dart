@@ -34,7 +34,7 @@ class _Base64Data extends Dictionary implements TransportableData {
 
   _Base64Data.fromData(Uint8List binary) : super(null) {
     // encode algorithm
-    _wrapper.algorithm = TransportableData.kBASE_64;
+    _wrapper.algorithm = TransportableData.BASE_64;
     // binary data
     if (binary.isNotEmpty) {
       _wrapper.data = binary;

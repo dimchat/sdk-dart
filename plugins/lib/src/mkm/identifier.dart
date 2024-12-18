@@ -33,6 +33,7 @@ import 'package:dimp/dimp.dart';
 
 ///
 /// General ID Factory
+/// ~~~~~~~~~~~~~~~~~~
 ///
 class IdentifierFactory implements IDFactory {
 
@@ -44,7 +45,7 @@ class IdentifierFactory implements IDFactory {
   /// @return number of survivors
   int reduceMemory() {
     int finger = 0;
-    finger = thanos(_identifiers, finger);
+    finger = Barrack.thanos(_identifiers, finger);
     return finger >> 1;
   }
 
@@ -56,7 +57,7 @@ class IdentifierFactory implements IDFactory {
 
   @override
   ID createIdentifier({String? name, required Address address, String? terminal}) {
-    String identifier = _concat(name: name, address: address, terminal: terminal);
+    String identifier = Identifier.concat(name: name, address: address, terminal: terminal);
     ID? res = _identifiers[identifier];
     if (res == null) {
       res = newID(identifier, name: name, address: address, terminal: terminal);
@@ -122,17 +123,6 @@ class IdentifierFactory implements IDFactory {
     }
     return newID(identifier, name: name, address: address, terminal: terminal);
   }
-}
-
-String _concat({String? name, required Address address, String? terminal}) {
-  String string = address.toString();
-  if (name != null && name.isNotEmpty) {
-    string = '$name@$string';
-  }
-  if (terminal != null && terminal.isNotEmpty) {
-    string = '$string/$terminal';
-  }
-  return string;
 }
 
 

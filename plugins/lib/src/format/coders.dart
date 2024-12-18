@@ -165,7 +165,6 @@ void registerDataCoders() {
 
   // TED
   var tedFactory = Base64DataFactory();
-  TransportableData.setFactory(TransportableData.kBASE_64, tedFactory);
-  // TransportableData.setFactory(TransportableData.kDefault, tedFactory);
+  TransportableData.setFactory(TransportableData.BASE_64, tedFactory);
   TransportableData.setFactory('*', tedFactory);
 }
