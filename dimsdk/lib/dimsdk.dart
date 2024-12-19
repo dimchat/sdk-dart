@@ -3,6 +3,10 @@
 /// Decentralized Instant Messaging Software Development Kit
 library dimsdk;
 
+export 'src/mkm/helper.dart';
+export 'src/mkm/entity.dart';
+export 'src/mkm/user.dart';
+export 'src/mkm/group.dart';
 export 'src/mkm/provider.dart';
 export 'src/mkm/station.dart';
 export 'src/mkm/bot.dart';
