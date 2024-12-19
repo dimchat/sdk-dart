@@ -32,6 +32,8 @@ import 'package:dimp/dimp.dart';
 
 abstract class Facebook extends Barrack implements UserDataSource, GroupDataSource {
 
+  Archivist get archivist;
+
   @override
   void cacheUser(User user) {
     user.dataSource ??= this;
@@ -44,18 +46,39 @@ abstract class Facebook extends Barrack implements UserDataSource, GroupDataSour
     super.cacheGroup(group);
   }
 
-  ///  Save meta for entity ID (must verify first)
-  ///
-  /// @param meta - entity meta
-  /// @param identifier - entity ID
-  /// @return true on success
-  Future<bool> saveMeta(Meta meta, ID identifier);
+  //
+  //  Entity Delegate
+  //
 
-  ///  Save entity document with ID (must verify first)
-  ///
-  /// @param doc - entity document
-  /// @return true on success
-  Future<bool> saveDocument(Document doc);
+  @override
+  Future<User?> getUser(ID identifier) async {
+    assert(identifier.isUser, 'user ID error: $identifier');
+    // 1. get from user cache
+    User? user = await super.getUser(identifier);
+    if (user == null) {
+      // 2. create user and cache it
+      user = await archivist.createUser(identifier);
+      if (user != null) {
+        cacheUser(user);
+      }
+    }
+    return user;
+  }
+
+  @override
+  Future<Group?> getGroup(ID identifier) async {
+    assert(identifier.isGroup, 'group ID error: $identifier');
+    // 1. get from group cache
+    Group? group = await super.getGroup(identifier);
+    if (group == null) {
+      // 2. create group and cache it
+      group = await archivist.createGroup(identifier);
+      if (group != null) {
+        cacheGroup(group);
+      }
+    }
+    return group;
+  }
 
   ///  Select local user for receiver
   ///
@@ -88,6 +111,19 @@ abstract class Facebook extends Barrack implements UserDataSource, GroupDataSour
     // not mine?
     return null;
   }
+
+  ///  Save meta for entity ID (must verify first)
+  ///
+  /// @param meta - entity meta
+  /// @param identifier - entity ID
+  /// @return true on success
+  Future<bool> saveMeta(Meta meta, ID identifier);
+
+  ///  Save entity document with ID (must verify first)
+  ///
+  /// @param doc - entity document
+  /// @return true on success
+  Future<bool> saveDocument(Document doc);
 
   //
   //  User Data Source

@@ -46,8 +46,9 @@ class Station implements User {
   }
 
   /// Broadcast
-  static ID kAny = Identifier.create(name: 'station', address: Address.ANYWHERE);
-  static ID kEvery = Identifier.create(name: 'stations', address: Address.EVERYWHERE);
+  static ID ANY = Identifier.create(name: 'station', address: Address.ANYWHERE);
+  static ID EVERY = Identifier.create(name: 'stations', address: Address.EVERYWHERE);
+  // ignore_for_file: non_constant_identifier_names
 
   // inner user
   late User _user;
@@ -58,7 +59,7 @@ class Station implements User {
   ID? _isp;
 
   Station.fromID(ID identifier) : this(identifier, null, 0);
-  Station.fromRemote(String host, int port) : this(kAny, host, port);
+  Station.fromRemote(String host, int port) : this(ANY, host, port);
 
   @override
   ID get identifier => _user.identifier;
