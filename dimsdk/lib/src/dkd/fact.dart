@@ -28,20 +28,62 @@
  * SOFTWARE.
  * =============================================================================
  */
-import '../facebook.dart';
-import '../messenger.dart';
+import 'package:dimp/dkd.dart';
 
 
-abstract class TwinsHelper {
+///  General Command Factory
+///  ~~~~~~~~~~~~~~~~~~~~~~~
+class GeneralCommandFactory implements ContentFactory, CommandFactory {
 
-  TwinsHelper(Facebook facebook, Messenger messenger)
-      : _barrack = WeakReference(facebook),
-        _transceiver = WeakReference(messenger);
+  @override
+  Content? parseContent(Map content) {
+    CommandFactoryManager man = CommandFactoryManager();
+    // get factory by command name
+    String cmd = man.generalFactory.getCmd(content, '*')!;
+    CommandFactory? factory = man.generalFactory.getCommandFactory(cmd);
+    if (factory == null) {
+      // check for group command
+      if (content.containsKey('group')/* && cmd != 'group'*/) {
+        factory = man.generalFactory.getCommandFactory('group');
+      }
+      factory ??= this;
+    }
+    return factory.parseCommand(content);
+  }
 
-  final WeakReference<Facebook> _barrack;
-  final WeakReference<Messenger> _transceiver;
+  @override
+  Command? parseCommand(Map content) {
+    return BaseCommand(content);
+  }
 
-  Facebook? get facebook => _barrack.target;
-  Messenger? get messenger => _transceiver.target;
+}
+
+
+class HistoryCommandFactory extends GeneralCommandFactory {
+
+  @override
+  Command? parseCommand(Map content) {
+    return BaseHistoryCommand(content);
+  }
+
+}
+
+
+class GroupCommandFactory extends HistoryCommandFactory {
+
+  @override
+  Content? parseContent(Map content) {
+    CommandFactoryManager man = CommandFactoryManager();
+    // get factory by command name
+    String cmd = man.generalFactory.getCmd(content, '*')!;
+    CommandFactory? factory = man.generalFactory.getCommandFactory(cmd);
+    factory ??= this;
+    return factory.parseCommand(content);
+  }
+
+  @override
+  Command? parseCommand(Map content) {
+    return BaseGroupCommand(content);
+  }
 
 }

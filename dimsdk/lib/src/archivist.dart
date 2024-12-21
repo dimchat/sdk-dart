@@ -30,6 +30,9 @@
  */
 import 'package:dimp/dimp.dart';
 
+import 'mkm/group.dart';
+import 'mkm/user.dart';
+
 
 ///  Entity Database
 ///  ~~~~~~~~~~~~~~~

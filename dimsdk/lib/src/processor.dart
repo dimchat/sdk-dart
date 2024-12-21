@@ -32,11 +32,13 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-import 'core/twins.dart';
-import 'msg/content.dart';
+import 'core/processor.dart';
+import 'dkd/proc.dart';
+import 'mkm/user.dart';
 
 import 'facebook.dart';
 import 'messenger.dart';
+import 'twins.dart';
 
 
 abstract class MessageProcessor extends TwinsHelper implements Processor {
@@ -45,6 +47,7 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
     factory = createFactory(facebook, messenger);
   }
 
+  /// CPU factory
   // private
   late final ContentProcessorFactory factory;
 

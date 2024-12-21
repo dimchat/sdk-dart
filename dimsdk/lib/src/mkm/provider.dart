@@ -28,16 +28,22 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimp/mkm.dart';
 
+import 'group.dart';
+import 'helper.dart';
 import 'station.dart';
+
 
 ///  DIM Station Owner
 class ServiceProvider extends BaseGroup {
-  ServiceProvider(super.id);
+  ServiceProvider(super.id) {
+    assert(identifier.type == EntityType.ISP, 'SP ID error: $identifier');
+  }
 
   /// Provider Document
-  Future<Document?> get profile async => DocumentHelper.lastDocument(await documents);
+  Future<Document?> get profile async =>
+      DocumentHelper.lastDocument(await documents);
 
   Future<List> get stations async {
     Document? doc = await profile;

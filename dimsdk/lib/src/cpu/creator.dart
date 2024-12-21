@@ -30,8 +30,8 @@
  */
 import 'package:dimp/dimp.dart';
 
-import '../core/twins.dart';
-import '../msg/content.dart';
+import '../dkd/proc.dart';
+import '../twins.dart';
 
 import 'base.dart';
 import 'commands.dart';
@@ -46,49 +46,46 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
   @override
   ContentProcessor? createContentProcessor(int msgType) {
     switch (msgType) {
-    // forward content
+      // forward content
       case ContentType.FORWARD:
         return ForwardContentProcessor(facebook!, messenger!);
-    // array content
+      // array content
       case ContentType.ARRAY:
         return ArrayContentProcessor(facebook!, messenger!);
 
-    /*
+      /*
       // application customized
       case ContentType.APPLICATION:
       case ContentType.CUSTOMIZED:
         return CustomizedContentProcessor(facebook!, messenger!);
-         */
+       */
 
-    // default commands
+      // default commands
       case ContentType.COMMAND:
         return BaseCommandProcessor(facebook!, messenger!);
-    /*
+
       // default contents
-      case 0:
+      case ContentType.ANY:
         return BaseContentProcessor(facebook!, messenger!);
-         */
+    }
 
     // unknown
-      default:
-        return null;
-    }
+    return null;
   }
 
   @override
   ContentProcessor? createCommandProcessor(int msgType, String cmd) {
     switch (cmd) {
-    // meta command
+      // meta command
       case Command.META:
         return MetaCommandProcessor(facebook!, messenger!);
-    // document command
+      // document command
       case Command.DOCUMENT:
         return DocumentCommandProcessor(facebook!, messenger!);
+    }
 
     // unknown
-      default:
-        return null;
-    }
+    return null;
   }
 
 }

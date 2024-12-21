@@ -32,7 +32,10 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-import 'delegate.dart';
+import 'core/delegate.dart';
+import 'core/packer.dart';
+import 'core/processor.dart';
+import 'core/transceiver.dart';
 
 
 abstract class Messenger extends Transceiver implements Packer, Processor {

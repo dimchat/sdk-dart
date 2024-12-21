@@ -28,11 +28,16 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimp/mkm.dart';
+
+import 'user.dart';
+
 
 ///  Bot User
 class Bot extends BaseUser {
-  Bot(super.id);
+  Bot(super.id) {
+    assert(identifier.type == EntityType.BOT, 'Bot ID error: $identifier');
+  }
 
   /// Bot Document
   Future<Document?> get profile async => await visa;

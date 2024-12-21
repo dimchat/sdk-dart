@@ -30,6 +30,66 @@
  */
 import 'package:dimp/mkm.dart';
 
+import 'entity.dart';
+import 'helper.dart';
+
+
+/// This class is for creating group
+///
+///     roles:
+///         founder
+///         owner
+///         members
+///         administrators - Optional
+///         assistants     - group bots
+abstract interface class Group implements Entity {
+
+  /// group document
+  Future<Bulletin?> get bulletin;
+
+  Future<ID> get founder;
+  Future<ID> get owner;
+
+  // NOTICE: the owner must be a member
+  //         (usually the first one)
+  Future<List<ID>> get members;
+
+  /// group bots
+  Future<List<ID>> get assistants;
+}
+
+
+/// This interface is for getting information for group
+///
+/// 1. founder has the same public key with the group's meta.key
+/// 2. owner and members should be set complying with the consensus algorithm
+abstract interface class GroupDataSource implements EntityDataSource {
+
+  ///  Get group founder
+  ///
+  /// @param group - group ID
+  /// @return fonder ID
+  Future<ID?> getFounder(ID group);
+
+  ///  Get group owner
+  ///
+  /// @param group - group ID
+  /// @return owner ID
+  Future<ID?> getOwner(ID group);
+
+  ///  Get group members list
+  ///
+  /// @param group - group ID
+  /// @return members list (ID)
+  Future<List<ID>> getMembers(ID group);
+
+  ///  Get assistants for this group
+  ///
+  /// @param group - group ID
+  /// @return bot ID list
+  Future<List<ID>> getAssistants(ID group);
+}
+
 //
 //  Base Group
 //

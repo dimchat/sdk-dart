@@ -33,6 +33,130 @@ import 'dart:typed_data';
 import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
 
+import 'entity.dart';
+import 'helper.dart';
+
+
+///  User account for communication
+///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+///  This class is for creating user account
+///
+///  functions:
+///      (User)
+///      1. verify(data, signature) - verify (encrypted content) data and signature
+///      2. encrypt(data)           - encrypt (symmetric key) data
+///      (LocalUser)
+///      3. sign(data)    - calculate signature of (encrypted content) data
+///      4. decrypt(data) - decrypt (symmetric key) data
+abstract interface class User implements Entity {
+
+  /// user document
+  Future<Visa?> get visa;
+
+  ///  Get all contacts of the user
+  ///
+  /// @return contact list
+  Future<List<ID>> get contacts;
+
+  ///  Verify data and signature with user's public keys
+  ///
+  /// @param data - message data
+  /// @param signature - message signature
+  /// @return true on correct
+  Future<bool> verify(Uint8List data, Uint8List signature);
+
+  ///  Encrypt data, try visa.key first, if not found, use meta.key
+  ///
+  /// @param plaintext - message data
+  /// @return encrypted data
+  Future<Uint8List> encrypt(Uint8List plaintext);
+
+  //
+  //  Interfaces for Local User
+  //
+
+  ///  Sign data with user's private key
+  ///
+  /// @param data - message data
+  /// @return signature
+  Future<Uint8List> sign(Uint8List data);
+
+  ///  Decrypt data with user's private key(s)
+  ///
+  /// @param ciphertext - encrypted data
+  /// @return plain text
+  Future<Uint8List?> decrypt(Uint8List ciphertext);
+
+  //
+  //  Interfaces for Visa
+  //
+  Future<Visa?> signVisa(Visa doc);
+  Future<bool> verifyVisa(Visa doc);
+}
+
+///  This interface is for getting information for user
+///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+///
+///  (Encryption/decryption)
+///  1. public key for encryption
+///     if visa.key not exists, means it is the same key with meta.key
+///  2. private keys for decryption
+///     the private keys paired with [visa.key, meta.key]
+///
+///  (Signature/Verification)
+///  3. private key for signature
+///     the private key paired with visa.key or meta.key
+///  4. public keys for verification
+///     [visa.key, meta.key]
+///
+///  (Visa Document)
+///  5. private key for visa signature
+///     the private key paired with meta.key
+///  6. public key for visa verification
+///     meta.key only
+abstract interface class UserDataSource implements EntityDataSource {
+
+  ///  Get contacts list
+  ///
+  /// @param user - user ID
+  /// @return contacts list (ID)
+  Future<List<ID>> getContacts(ID user);
+
+  ///  Get user's public key for encryption
+  ///  (visa.key or meta.key)
+  ///
+  /// @param user - user ID
+  /// @return visa.key or meta.key
+  Future<EncryptKey?> getPublicKeyForEncryption(ID user);
+
+  ///  Get user's public keys for verification
+  ///  [visa.key, meta.key]
+  ///
+  /// @param user - user ID
+  /// @return public keys
+  Future<List<VerifyKey>> getPublicKeysForVerification(ID user);
+
+  ///  Get user's private keys for decryption
+  ///  (which paired with [visa.key, meta.key])
+  ///
+  /// @param user - user ID
+  /// @return private keys
+  Future<List<DecryptKey>> getPrivateKeysForDecryption(ID user);
+
+  ///  Get user's private key for signature
+  ///  (which paired with visa.key or meta.key)
+  ///
+  /// @param user - user ID
+  /// @return private key
+  Future<SignKey?> getPrivateKeyForSignature(ID user);
+
+  ///  Get user's private key for signing visa
+  ///
+  /// @param user - user ID
+  /// @return private key
+  Future<SignKey?> getPrivateKeyForVisaSignature(ID user);
+}
+
 //
 //  Base User
 //

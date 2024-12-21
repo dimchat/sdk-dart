@@ -30,6 +30,13 @@
  */
 import 'package:dimp/dimp.dart';
 
+import 'core/barrack.dart';
+import 'mkm/group.dart';
+import 'mkm/user.dart';
+
+import 'archivist.dart';
+
+
 abstract class Facebook extends Barrack implements UserDataSource, GroupDataSource {
 
   Archivist get archivist;
@@ -126,7 +133,7 @@ abstract class Facebook extends Barrack implements UserDataSource, GroupDataSour
   Future<bool> saveDocument(Document doc);
 
   //
-  //  User Data Source
+  //  User DataSource
   //
 
   @override

@@ -3,35 +3,10 @@
 /// Decentralized Instant Messaging Software Development Kit
 library dimsdk;
 
-export 'src/mkm/helper.dart';
-export 'src/mkm/entity.dart';
-export 'src/mkm/user.dart';
-export 'src/mkm/group.dart';
-export 'src/mkm/provider.dart';
-export 'src/mkm/station.dart';
-export 'src/mkm/bot.dart';
-export 'src/mkm/members.dart';
+// export 'package:dimp/dimp.dart';
 
-export 'src/msg/content.dart';
-export 'src/msg/helper.dart';
-export 'src/msg/instant.dart';
-export 'src/msg/secure.dart';
-export 'src/msg/reliable.dart';
-export 'src/msg/factory.dart';
+export 'mkm.dart';   // includes 'mkm/*'
+export 'msg.dart';   // includes 'msg/*'
+export 'core.dart';  // includes 'core/*', 'src/*'
 
-export 'src/core/factories.dart';
-export 'src/core/twins.dart';
-export 'src/core/proc.dart';
-
-export 'src/cpu/creator.dart';
-export 'src/cpu/contents.dart';
-export 'src/cpu/commands.dart';
-export 'src/cpu/customized.dart';
-export 'src/cpu/base.dart';
-
-export 'src/ans.dart';
-export 'src/delegate.dart';
-export 'src/facebook.dart';
-export 'src/messenger.dart';
-export 'src/processor.dart';
-export 'src/packer.dart';
+export 'cpu.dart';   // includes 'cpu/*'

@@ -30,6 +30,7 @@
  */
 import 'package:dimp/dimp.dart';
 
+import '../mkm/helper.dart';
 import 'base.dart';
 
 class MetaCommandProcessor extends BaseCommandProcessor {

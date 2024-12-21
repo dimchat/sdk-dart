@@ -30,9 +30,14 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
+import 'package:dimp/mkm.dart';
 
+import 'entity.dart';
+import 'helper.dart';
 import 'provider.dart';
+import 'user.dart';
+
 
 ///  DIM Server
 class Station implements User {
@@ -54,30 +59,12 @@ class Station implements User {
   late User _user;
 
   String? _host;
-  late int _port = 0;
+  int _port = 0;
 
   ID? _isp;
 
   Station.fromID(ID identifier) : this(identifier, null, 0);
   Station.fromRemote(String host, int port) : this(ANY, host, port);
-
-  @override
-  ID get identifier => _user.identifier;
-
-  set identifier(ID sid) {
-    User inner = BaseUser(sid);
-    inner.dataSource = dataSource;
-    _user = inner;
-  }
-
-  /// Station IP
-  String? get host => _host;
-
-  /// Station Port
-  int get port => _port;
-
-  ///  ISP ID, station group
-  ID? get provider => _isp;
 
   @override
   bool operator ==(Object other) {
@@ -123,7 +110,26 @@ class Station implements User {
   }
 
   /// Station Document
-  Future<Document?> get profile async => DocumentHelper.lastDocument(await documents);
+  Future<Document?> get profile async =>
+      DocumentHelper.lastDocument(await documents);
+
+  /// Station IP
+  String? get host => _host;
+
+  /// Station Port
+  int get port => _port;
+
+  ///  ISP ID, station group
+  ID? get provider => _isp;
+
+  @override
+  ID get identifier => _user.identifier;
+
+  set identifier(ID sid) {
+    User inner = BaseUser(sid);
+    inner.dataSource = dataSource;
+    _user = inner;
+  }
 
   //-------- Entity
 

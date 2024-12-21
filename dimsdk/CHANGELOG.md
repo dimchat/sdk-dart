@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Core Loader.
+
 ## 1.1.0
 
 - Slimming Facebook.

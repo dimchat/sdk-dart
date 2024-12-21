@@ -28,53 +28,20 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'facebook.dart';
+import 'messenger.dart';
 
 
-///  CPU: Content Processing Unit
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-abstract interface class ContentProcessor {
+abstract class TwinsHelper {
 
-  ///  Process message content
-  ///
-  /// @param content - content received
-  /// @param rMsg    - reliable message
-  /// @return {Content} response to sender
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg);
+  TwinsHelper(Facebook facebook, Messenger messenger)
+      : _barrack = WeakReference(facebook),
+        _transceiver = WeakReference(messenger);
 
-}
+  final WeakReference<Facebook> _barrack;
+  final WeakReference<Messenger> _transceiver;
 
-
-///  CPU Creator
-///  ~~~~~~~~~~~
-abstract interface class ContentProcessorCreator {
-
-  ///  Create content processor with type
-  ///
-  /// @param msgType - content type
-  /// @return ContentProcessor
-  ContentProcessor? createContentProcessor(int msgType);
-
-  ///  Create command processor with name
-  ///
-  /// @param msgType - content type
-  /// @param cmd     - command name
-  /// @return CommandProcessor
-  ContentProcessor? createCommandProcessor(int msgType, String cmd);
-
-}
-
-
-///  CPU Factory
-///  ~~~~~~~~~~~
-abstract interface class ContentProcessorFactory {
-
-  ///  Get content/command processor
-  ///
-  /// @param content - Content/Command
-  /// @return ContentProcessor
-  ContentProcessor? getContentProcessor(Content content);
-
-  ContentProcessor? getContentProcessorForType(int msgType);
+  Facebook? get facebook => _barrack.target;
+  Messenger? get messenger => _transceiver.target;
 
 }
