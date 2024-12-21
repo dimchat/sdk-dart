@@ -25,14 +25,14 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
 
-class _BaseNetworkFile extends Dictionary implements PortableNetworkFile {
-  _BaseNetworkFile(super.dict);
+class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
+  BaseNetworkFile(super.dict);
 
   late final BaseFileWrapper _wrapper = BaseFileWrapper(toMap());
 
-  _BaseNetworkFile.from(TransportableData? data, String? filename,
+  BaseNetworkFile.from(TransportableData? data, String? filename,
       Uri? url, DecryptKey? password) : super(null) {
     // file data
     if (data != null) {
@@ -146,12 +146,12 @@ class BaseNetworkFileFactory implements PortableNetworkFileFactory {
   @override
   PortableNetworkFile createPortableNetworkFile(TransportableData? data, String? filename,
                                                 Uri? url, DecryptKey? password) {
-    return _BaseNetworkFile.from(data, filename, url, password);
+    return BaseNetworkFile.from(data, filename, url, password);
   }
 
   @override
   PortableNetworkFile? parsePortableNetworkFile(Map pnf) {
-    return _BaseNetworkFile(pnf);
+    return BaseNetworkFile(pnf);
   }
 
 }

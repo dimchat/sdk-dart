@@ -30,7 +30,8 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
+import 'package:dimp/mkm.dart';
 
 import 'btc.dart';
 import 'eth.dart';
@@ -46,10 +47,10 @@ import 'eth.dart';
 ///      hash    = ripemd160(sha256(CT));
 ///      code    = sha256(sha256(network + hash)).prefix(4);
 ///      address = base58_encode(network + hash + code);
-class _DefaultMeta extends BaseMeta {
-  _DefaultMeta(super.dict);
+class DefaultMeta extends BaseMeta {
+  DefaultMeta(super.dict);
 
-  _DefaultMeta.from(String type, VerifyKey key, String seed, TransportableData fingerprint)
+  DefaultMeta.from(String type, VerifyKey key, String seed, TransportableData fingerprint)
       : super.from(type, key, seed: seed, fingerprint: fingerprint);
 
   @override
@@ -87,14 +88,14 @@ class _DefaultMeta extends BaseMeta {
 ///      hash    = ripemd160(sha256(CT));
 ///      code    = sha256(sha256(network + hash)).prefix(4);
 ///      address = base58_encode(network + hash + code);
-class _BTCMeta extends BaseMeta {
-  _BTCMeta(super.dict);
+class BTCMeta extends BaseMeta {
+  BTCMeta(super.dict);
 
-  _BTCMeta.from(String type, VerifyKey key, {String? seed, TransportableData? fingerprint})
+  BTCMeta.from(String type, VerifyKey key, {String? seed, TransportableData? fingerprint})
       : super.from(type, key, seed: seed, fingerprint: fingerprint);
 
   @override
-  bool get hasSeed => true;
+  bool get hasSeed => false;
 
   // caches
   final Map<int, Address> _cachedAddresses = {};
@@ -127,14 +128,14 @@ class _BTCMeta extends BaseMeta {
 ///      CT      = key.data;  // without prefix byte
 ///      digest  = keccak256(CT);
 ///      address = hex_encode(digest.suffix(20));
-class _ETHMeta extends BaseMeta {
-  _ETHMeta(super.dict);
+class ETHMeta extends BaseMeta {
+  ETHMeta(super.dict);
 
-  _ETHMeta.from(String type, VerifyKey key, {String? seed, TransportableData? fingerprint})
+  ETHMeta.from(String type, VerifyKey key, {String? seed, TransportableData? fingerprint})
       : super.from(type, key, seed: seed, fingerprint: fingerprint);
 
   @override
-  bool get hasSeed => true;
+  bool get hasSeed => false;
 
   // cache
   Address? _cachedAddress;
@@ -184,15 +185,15 @@ class GeneralMetaFactory implements MetaFactory {
     switch (type) {
 
       case Meta.MKM:
-        out = _DefaultMeta.from(type, pKey, seed!, fingerprint!);
+        out = DefaultMeta.from(type, pKey, seed!, fingerprint!);
         break;
 
       case Meta.BTC:
-        out = _BTCMeta.from(type, pKey);
+        out = BTCMeta.from(type, pKey);
         break;
 
       case Meta.ETH:
-        out = _ETHMeta.from(type, pKey);
+        out = ETHMeta.from(type, pKey);
         break;
 
       default:
@@ -210,15 +211,15 @@ class GeneralMetaFactory implements MetaFactory {
     switch (version) {
 
       case Meta.MKM:
-        out = _DefaultMeta(meta);
+        out = DefaultMeta(meta);
         break;
 
       case Meta.BTC:
-        out = _BTCMeta(meta);
+        out = BTCMeta(meta);
         break;
 
       case Meta.ETH:
-        out = _ETHMeta(meta);
+        out = ETHMeta(meta);
         break;
 
       default:
@@ -226,14 +227,4 @@ class GeneralMetaFactory implements MetaFactory {
     }
     return out.isValid ? out : null;
   }
-}
-
-
-///
-/// Register
-///
-void registerMetaFactories() {
-  Meta.setFactory(Meta.MKM, GeneralMetaFactory(Meta.MKM));
-  Meta.setFactory(Meta.BTC, GeneralMetaFactory(Meta.BTC));
-  Meta.setFactory(Meta.ETH, GeneralMetaFactory(Meta.ETH));
 }

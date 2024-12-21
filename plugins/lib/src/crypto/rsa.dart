@@ -25,7 +25,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
 
 import 'rsa_utils.dart';
 
@@ -35,8 +35,8 @@ import 'rsa_utils.dart';
 ///          algorithm : "RSA",
 ///          data      : "..." // base64_encode()
 ///      }
-class _RSAPublicKey extends BasePublicKey implements EncryptKey {
-  _RSAPublicKey(super.dict);
+class RSAPublicKey extends BasePublicKey implements EncryptKey {
+  RSAPublicKey(super.dict);
 
   @override
   Uint8List get data {
@@ -72,8 +72,8 @@ class _RSAPublicKey extends BasePublicKey implements EncryptKey {
 ///          algorithm : "RSA",
 ///          data      : "..." // base64_encode()
 ///      }
-class _RSAPrivateKey extends BasePrivateKey implements DecryptKey {
-  _RSAPrivateKey(super.dict) : _publicKey = null;
+class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
+  RSAPrivateKey(super.dict) : _publicKey = null;
 
   PublicKey? _publicKey;
 
@@ -153,7 +153,7 @@ class RSAPublicKeyFactory implements PublicKeyFactory {
 
   @override
   PublicKey parsePublicKey(Map key) {
-    return _RSAPublicKey(key);
+    return RSAPublicKey(key);
   }
 }
 
@@ -162,11 +162,11 @@ class RSAPrivateKeyFactory implements PrivateKeyFactory {
   @override
   PrivateKey generatePrivateKey() {
     Map key = {'algorithm': AsymmetricKey.RSA};
-    return _RSAPrivateKey(key);
+    return RSAPrivateKey(key);
   }
 
   @override
   PrivateKey? parsePrivateKey(Map key) {
-    return _RSAPrivateKey(key);
+    return RSAPrivateKey(key);
   }
 }

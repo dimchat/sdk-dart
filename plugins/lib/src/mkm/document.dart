@@ -28,20 +28,35 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
+import 'package:dimp/mkm.dart';
 
 
 ///
 /// General Document Factory
 ///
 class GeneralDocumentFactory implements DocumentFactory {
-  GeneralDocumentFactory(String docType) : _type = docType;
+  GeneralDocumentFactory(this.type);
 
-  final String _type;
+  // protected
+  final String type;
+
+  // protected
+  String getType(String docType, ID identifier) {
+    if (docType != '*') {
+      return docType;
+    } else if (identifier.isGroup) {
+      return Document.BULLETIN;
+    } else if (identifier.isUser) {
+      return Document.VISA;
+    } else {
+      return Document.PROFILE;
+    }
+  }
 
   @override
   Document createDocument(ID identifier, {String? data, TransportableData? signature}) {
-    String docType = _getType(_type, identifier);
+    String docType = getType(type, identifier);
     if (data == null || signature == null/* || data.isEmpty || signature.isEmpty*/) {
       // create empty document
       if (docType == Document.VISA) {
@@ -72,7 +87,7 @@ class GeneralDocumentFactory implements DocumentFactory {
     }
     AccountFactoryManager man = AccountFactoryManager();
     String? docType = man.generalFactory.getDocumentType(doc, null);
-    docType ??= _getType('*', identifier);
+    docType ??= getType('*', identifier);
     if (docType == Document.VISA) {
       return BaseVisa(doc);
     } else if (docType == Document.BULLETIN) {
@@ -81,28 +96,4 @@ class GeneralDocumentFactory implements DocumentFactory {
       return BaseDocument(doc);
     }
   }
-}
-
-String _getType(String docType, ID identifier) {
-  if (docType != '*') {
-    return docType;
-  } else if (identifier.isGroup) {
-    return Document.BULLETIN;
-  } else if (identifier.isUser) {
-    return Document.VISA;
-  } else {
-    return Document.PROFILE;
-  }
-}
-
-
-///
-/// Register
-///
-void registerDocumentFactories() {
-
-  Document.setFactory('*', GeneralDocumentFactory('*'));
-  Document.setFactory(Document.VISA, GeneralDocumentFactory(Document.VISA));
-  Document.setFactory(Document.PROFILE, GeneralDocumentFactory(Document.PROFILE));
-  Document.setFactory(Document.BULLETIN, GeneralDocumentFactory(Document.BULLETIN));
 }

@@ -28,7 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimp/mkm.dart';
 
 
 ///
@@ -37,17 +37,8 @@ import 'package:dimp/dimp.dart';
 ///
 class IdentifierFactory implements IDFactory {
 
-  final Map<String, ID> _identifiers = {};
-
-  /// Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
-  /// this will remove 50% of cached objects
-  ///
-  /// @return number of survivors
-  int reduceMemory() {
-    int finger = 0;
-    finger = Barrack.thanos(_identifiers, finger);
-    return finger >> 1;
-  }
+  // protected
+  final Map<String, ID> identifiers = {};
 
   @override
   ID generateIdentifier(Meta meta, int? network, {String? terminal}) {
@@ -58,21 +49,21 @@ class IdentifierFactory implements IDFactory {
   @override
   ID createIdentifier({String? name, required Address address, String? terminal}) {
     String identifier = Identifier.concat(name: name, address: address, terminal: terminal);
-    ID? res = _identifiers[identifier];
+    ID? res = identifiers[identifier];
     if (res == null) {
       res = newID(identifier, name: name, address: address, terminal: terminal);
-      _identifiers[identifier] = res;
+      identifiers[identifier] = res;
     }
     return res;
   }
 
   @override
   ID? parseIdentifier(String identifier) {
-    ID? res = _identifiers[identifier];
+    ID? res = identifiers[identifier];
     if (res == null) {
       res = parse(identifier);
       if (res != null) {
-        _identifiers[identifier] = res;
+        identifiers[identifier] = res;
       }
     }
     return res;
@@ -123,12 +114,4 @@ class IdentifierFactory implements IDFactory {
     }
     return newID(identifier, name: name, address: address, terminal: terminal);
   }
-}
-
-
-///
-/// Register
-///
-void registerIdentifierFactory() {
-  ID.setFactory(IdentifierFactory());
 }

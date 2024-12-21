@@ -25,7 +25,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
 
 
 ///  Symmetric key for broadcast message,
@@ -33,7 +33,8 @@ import 'package:dimp/dimp.dart';
 class PlainKey extends BaseSymmetricKey {
   PlainKey(super.dict);
 
-  static const String kPLAIN = 'PLAIN';
+  // ignore: constant_identifier_names
+  static const String PLAIN = 'PLAIN';
 
   @override
   Uint8List get data => Uint8List(0);
@@ -50,7 +51,7 @@ class PlainKey extends BaseSymmetricKey {
 
   //-------- Singleton --------
 
-  static final PlainKey _instance = PlainKey({'algorithm': kPLAIN});
+  static final PlainKey _instance = PlainKey({'algorithm': PLAIN});
   factory PlainKey.getInstance() => _instance;
 }
 

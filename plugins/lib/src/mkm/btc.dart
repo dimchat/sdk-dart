@@ -30,7 +30,8 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
+import 'package:dimp/mkm.dart';
 
 ///  Address like BitCoin
 ///

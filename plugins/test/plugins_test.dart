@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:dim_plugins/dim_plugins.dart';
-import 'package:dimp/dimp.dart';
+import 'package:dim_plugins/plugins.dart';
+import 'package:dimp/crypto.dart';
 import 'package:test/test.dart';
 
 void debugAssert(bool cond, String msg) {
@@ -245,7 +245,8 @@ void main() {
 
     setUp(() {
       // Additional setup goes here.
-      registerPlugins();
+      var loader = PluginLoader();
+      loader.run();
     });
 
     test('First Test', () {

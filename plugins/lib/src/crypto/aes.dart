@@ -26,7 +26,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
 import 'package:encrypt/encrypt.dart';
 
 ///  AES Key
@@ -36,8 +36,8 @@ import 'package:encrypt/encrypt.dart';
 ///          keySize  : 32,                // optional
 ///          data     : "{BASE64_ENCODE}}" // password data
 ///      }
-class _AESKey extends BaseSymmetricKey {
-  _AESKey(super.dict) {
+class AESKey extends BaseSymmetricKey {
+  AESKey(super.dict) {
     // TODO: check algorithm parameters
     // 1. check mode = 'CBC'
     // 2. check padding = 'PKCS7Padding'
@@ -178,12 +178,12 @@ class AESKeyFactory implements SymmetricKeyFactory {
   @override
   SymmetricKey generateSymmetricKey() {
     Map key = {'algorithm': SymmetricKey.AES};
-    return _AESKey(key);
+    return AESKey(key);
   }
 
   @override
   SymmetricKey? parseSymmetricKey(Map key) {
-    return _AESKey(key);
+    return AESKey(key);
   }
 
 }

@@ -25,14 +25,14 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
 
-class _Base64Data extends Dictionary implements TransportableData {
-  _Base64Data(super.dict);
+class Base64Data extends Dictionary implements TransportableData {
+  Base64Data(super.dict);
 
   late final BaseDataWrapper _wrapper = BaseDataWrapper(toMap());
 
-  _Base64Data.fromData(Uint8List binary) : super(null) {
+  Base64Data.fromData(Uint8List binary) : super(null) {
     // encode algorithm
     _wrapper.algorithm = TransportableData.BASE_64;
     // binary data
@@ -76,14 +76,14 @@ class Base64DataFactory implements TransportableDataFactory {
 
   @override
   TransportableData createTransportableData(Uint8List data) {
-    return _Base64Data.fromData(data);
+    return Base64Data.fromData(data);
   }
 
   @override
   TransportableData? parseTransportableData(Map ted) {
     // TODO: 1. check algorithm
     //       2. check data format
-    return _Base64Data(ted);
+    return Base64Data(ted);
   }
 
 }

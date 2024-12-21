@@ -25,7 +25,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
 import 'package:pointycastle/export.dart';
 
 Uint8List _hash(Uint8List data, Digest digester) {
@@ -33,7 +33,7 @@ Uint8List _hash(Uint8List data, Digest digester) {
   return digester.process(data);
 }
 
-class _MD5Digester implements DataDigester {
+class MD5Digester implements DataDigester {
 
   @override
   Uint8List digest(Uint8List data) {
@@ -41,7 +41,7 @@ class _MD5Digester implements DataDigester {
   }
 }
 
-class _SHA1Digester implements DataDigester {
+class SHA1Digester implements DataDigester {
 
   @override
   Uint8List digest(Uint8List data) {
@@ -49,7 +49,7 @@ class _SHA1Digester implements DataDigester {
   }
 }
 
-class _SHA256Digester implements DataDigester {
+class SHA256Digester implements DataDigester {
 
   @override
   Uint8List digest(Uint8List data) {
@@ -57,7 +57,7 @@ class _SHA256Digester implements DataDigester {
   }
 }
 
-class _Keccak256Digester implements DataDigester {
+class Keccak256Digester implements DataDigester {
 
   @override
   Uint8List digest(Uint8List data) {
@@ -65,18 +65,10 @@ class _Keccak256Digester implements DataDigester {
   }
 }
 
-class _RIPEMD160Digester implements DataDigester {
+class RIPEMD160Digester implements DataDigester {
 
   @override
   Uint8List digest(Uint8List data) {
     return _hash(data, RIPEMD160Digest());
   }
-}
-
-void registerDataDigesters() {
-  MD5.digester = _MD5Digester();
-  SHA1.digester = _SHA1Digester();
-  SHA256.digester = _SHA256Digester();
-  Keccak256.digester = _Keccak256Digester();
-  RIPEMD160.digester = _RIPEMD160Digester();
 }

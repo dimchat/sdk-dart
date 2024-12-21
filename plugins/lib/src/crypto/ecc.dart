@@ -25,7 +25,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
 
 import 'ecc_utils.dart';
 
@@ -37,8 +37,8 @@ import 'ecc_utils.dart';
 ///          data         : "..." // base64_encode(),
 ///          compressed   : 0
 ///      }
-class _ECCPublicKey extends BasePublicKey {
-  _ECCPublicKey(super.dict);
+class ECCPublicKey extends BasePublicKey {
+  ECCPublicKey(super.dict);
 
   @override
   Uint8List get data {
@@ -69,8 +69,8 @@ class _ECCPublicKey extends BasePublicKey {
 ///          curve        : "secp256k1",
 ///          data         : "..." // base64_encode()
 ///      }
-class _ECCPrivateKey extends BasePrivateKey {
-  _ECCPrivateKey(super.dict) : _publicKey = null;
+class ECCPrivateKey extends BasePrivateKey {
+  ECCPrivateKey(super.dict) : _publicKey = null;
 
   PublicKey? _publicKey;
 
@@ -132,7 +132,7 @@ class ECCPublicKeyFactory implements PublicKeyFactory {
 
   @override
   PublicKey parsePublicKey(Map key) {
-    return _ECCPublicKey(key);
+    return ECCPublicKey(key);
   }
 }
 
@@ -141,11 +141,11 @@ class ECCPrivateKeyFactory implements PrivateKeyFactory {
   @override
   PrivateKey generatePrivateKey() {
     Map key = {'algorithm': AsymmetricKey.ECC};
-    return _ECCPrivateKey(key);
+    return ECCPrivateKey(key);
   }
 
   @override
   PrivateKey? parsePrivateKey(Map key) {
-    return _ECCPrivateKey(key);
+    return ECCPrivateKey(key);
   }
 }

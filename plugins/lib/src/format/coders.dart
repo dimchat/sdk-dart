@@ -26,14 +26,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
 import 'package:fast_base58/fast_base58.dart';
 
-import 'pnf.dart';
-import 'ted.dart';
-
 /// UTF-8
-class _UTF8Coder implements StringCoder {
+class UTF8Coder implements StringCoder {
 
   @override
   Uint8List encode(String string) {
@@ -51,7 +48,7 @@ class _UTF8Coder implements StringCoder {
 }
 
 /// JsON
-class _JSONCoder implements ObjectCoder<dynamic> {
+class JSONCoder implements ObjectCoder<dynamic> {
 
   @override
   String encode(dynamic object) {
@@ -65,7 +62,7 @@ class _JSONCoder implements ObjectCoder<dynamic> {
 }
 
 /// Hex
-class _HexCoder implements DataCoder {
+class HexCoder implements DataCoder {
 
   @override
   String encode(Uint8List data) {
@@ -109,7 +106,7 @@ class _HexCoder implements DataCoder {
 }
 
 /// Base-58
-class _Base58Coder implements DataCoder {
+class Base58Coder implements DataCoder {
 
   @override
   String encode(Uint8List data) {
@@ -123,7 +120,7 @@ class _Base58Coder implements DataCoder {
 }
 
 /// Base-64
-class _Base64Coder implements DataCoder {
+class Base64Coder implements DataCoder {
 
   @override
   String encode(Uint8List data) {
@@ -146,25 +143,4 @@ class _Base64Coder implements DataCoder {
     return b64.trim();
   }
 
-}
-
-void registerDataCoders() {
-
-  // UTF-8
-  UTF8.coder = _UTF8Coder();
-  // JSON
-  JSON.coder = _JSONCoder();
-
-  // HEX, BASE-58, BASE-64
-  Hex.coder = _HexCoder();
-  Base58.coder = _Base58Coder();
-  Base64.coder = _Base64Coder();
-
-  // PNF
-  PortableNetworkFile.setFactory(BaseNetworkFileFactory());
-
-  // TED
-  var tedFactory = Base64DataFactory();
-  TransportableData.setFactory(TransportableData.BASE_64, tedFactory);
-  TransportableData.setFactory('*', tedFactory);
 }

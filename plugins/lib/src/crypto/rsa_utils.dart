@@ -26,11 +26,13 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart' as dim;
 import 'package:encrypt/encrypt.dart';
 import 'package:pointycastle/asn1.dart' show ASN1Integer, ASN1Sequence;
 import 'package:pointycastle/export.dart' show RSAPrivateKey, RSAPublicKey;
 import 'package:pointycastle/export.dart' as pc;
+
+import 'package:dimp/crypto.dart' as dim;
+
 
 class RSAKeyUtils {
 

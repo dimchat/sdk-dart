@@ -28,7 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimp/mkm.dart';
 
 import 'btc.dart';
 import 'eth.dart';
@@ -36,41 +36,29 @@ import 'eth.dart';
 
 ///  Base Address Factory
 ///  ~~~~~~~~~~~~~~~~~~~~
-abstract class BaseAddressFactory implements AddressFactory {
+class BaseAddressFactory implements AddressFactory {
 
-  final Map<String, Address> _addresses = {};
-
-  /// Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
-  /// this will remove 50% of cached objects
-  ///
-  /// @return number of survivors
-  int reduceMemory() {
-    int finger = 0;
-    finger = Barrack.thanos(_addresses, finger);
-    return finger >> 1;
-  }
+  // protected
+  final Map<String, Address> addresses = {};
 
   @override
   Address generateAddress(Meta meta, int? network) {
     Address address = meta.generateAddress(network);
-    _addresses[address.toString()] = address;
+    addresses[address.toString()] = address;
     return address;
   }
 
   @override
   Address? parseAddress(String address) {
-    Address? res = _addresses[address];
+    Address? res = addresses[address];
     if (res == null) {
       res = Address.create(address);
       if (res != null) {
-        _addresses[address] = res;
+        addresses[address] = res;
       }
     }
     return res;
   }
-}
-
-class _AddressFactory extends BaseAddressFactory {
 
   @override
   Address? createAddress(String address) {
@@ -105,12 +93,4 @@ class _AddressFactory extends BaseAddressFactory {
     return res;
   }
 
-}
-
-
-///
-/// Register
-///
-void registerAddressFactory() {
-  Address.setFactory(_AddressFactory());
 }

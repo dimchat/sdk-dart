@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Plugin Loader.
+
 ## 1.1.0
 
 - Upgrade for meta types.

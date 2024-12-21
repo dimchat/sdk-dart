@@ -27,9 +27,11 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:basic_utils/basic_utils.dart';
-import 'package:dimp/dimp.dart' as dim;
 import 'package:pointycastle/asn1.dart';
 import 'package:pointycastle/export.dart' as pc;
+
+import 'package:dimp/crypto.dart' as dim;
+
 
 class ECCKeyUtils {
 
