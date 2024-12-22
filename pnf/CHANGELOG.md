@@ -1,3 +1,7 @@
+## 0.2.2
+
+- Duration.
+
 ## 0.2.1
 
 - Upgrade for MingKeMing

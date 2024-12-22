@@ -66,7 +66,7 @@ abstract interface class Downloader {
 }
 
 abstract class FileDownloader extends Runner implements Downloader {
-  FileDownloader() : super(Runner.intervalSlow << 2);
+  FileDownloader() : super(Runner.INTERVAL_SLOW * 4);
 
   final List<DownloadTask> _tasks = WeakList();
 
