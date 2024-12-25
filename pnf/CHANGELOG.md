@@ -1,3 +1,7 @@
+## 0.2.3
+
+- Upgrade for mkm 1.2.0.
+
 ## 0.2.2
 
 - Duration.
