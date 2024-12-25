@@ -30,8 +30,8 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/crypto.dart';
-import 'package:dimp/mkm.dart';
+import 'package:dimp/dimp.dart';
+import 'package:dimp/plugins.dart';
 
 import 'btc.dart';
 import 'eth.dart';
@@ -159,8 +159,10 @@ class ETHMeta extends BaseMeta {
 }
 
 
-class GeneralMetaFactory implements MetaFactory {
-  GeneralMetaFactory(this.type);
+///  Base Meta Factory
+///  ~~~~~~~~~~~~~~~~~
+class BaseMetaFactory implements MetaFactory {
+  BaseMetaFactory(this.type);
 
   // protected
   final String type;
@@ -206,8 +208,8 @@ class GeneralMetaFactory implements MetaFactory {
   @override
   Meta? parseMeta(Map meta) {
     Meta out;
-    AccountFactoryManager man = AccountFactoryManager();
-    String? version = man.generalFactory.getMetaType(meta, '');
+    var holder = SharedAccountHolder();
+    String? version = holder.helper!.getMetaType(meta, '');
     switch (version) {
 
       case Meta.MKM:

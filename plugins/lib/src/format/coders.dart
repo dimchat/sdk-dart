@@ -80,17 +80,18 @@ class HexCoder implements DataCoder {
 
   @override
   Uint8List? decode(String string) {
-    int offset = 0;
-    String item;
     Uint8List data;
+    String item;
+    int offset;
     bool odd = string.length & 1 == 1;
     if (odd) {
       data = Uint8List((string.length ~/ 2) + 1);
       item = string.substring(0, 1);
       data.add(int.parse(item, radix: 16));
-      offset += 1;
+      offset = 1;
     } else {
       data = Uint8List(string.length ~/ 2);
+      offset = 0;
     }
     int? value;
     for (int i = offset; i < string.length; i += 2, offset += 1) {
@@ -129,18 +130,6 @@ class Base64Coder implements DataCoder {
 
   @override
   Uint8List? decode(String string) {
-    string = trimBase64String(string);
     return base64.decode(string);
   }
-
-  static String trimBase64String(String b64) {
-    if (b64.contains('\n')) {
-      b64 = b64.replaceAll('\n', '');
-      b64 = b64.replaceAll('\r', '');
-      b64 = b64.replaceAll('\t', '');
-      b64 = b64.replaceAll(' ', '');
-    }
-    return b64.trim();
-  }
-
 }

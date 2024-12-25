@@ -28,69 +28,70 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dimp/mkm.dart';
+import 'package:dimp/dimp.dart';
+// import 'package:dimsdk/core.dart';
+import 'package:dim_plugins/mkm.dart';
 
-import 'btc.dart';
-import 'eth.dart';
 
+class CompatibleAddressFactory extends BaseAddressFactory {
 
-///  Base Address Factory
-///  ~~~~~~~~~~~~~~~~~~~~
-class BaseAddressFactory implements AddressFactory {
-
-  // protected
-  final Map<String, Address> addresses = {};
-
-  @override
-  Address generateAddress(Meta meta, int? network) {
-    Address address = meta.generateAddress(network);
-    addresses[address.toString()] = address;
-    return address;
+  /// Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
+  /// this will remove 50% of cached objects
+  ///
+  /// @return number of survivors
+  int reduceMemory() {
+    int finger = 0;
+    // finger = Barrack.thanos(addresses, finger);
+    return finger >> 1;
   }
 
   @override
-  Address? parseAddress(String address) {
-    Address? res = addresses[address];
-    if (res == null) {
-      res = parse(address);
-      if (res != null) {
-        addresses[address] = res;
-      }
-    }
-    return res;
-  }
-
-  // protected
   Address? parse(String address) {
     int len = address.length;
     if (len == 0) {
-      assert(false, 'address should not be empty');
+      assert(false, 'address empty');
       return null;
     } else if (len == 8) {
       // "anywhere"
-      if (address.toLowerCase() == Address.ANYWHERE.toString()) {
+      String lower = address.toLowerCase();
+      if (lower == Address.ANYWHERE.toString()) {
         return Address.ANYWHERE;
       }
     } else if (len == 10) {
       // "everywhere"
-      if (address.toLowerCase() == Address.EVERYWHERE.toString()) {
+      String lower = address.toLowerCase();
+      if (lower == Address.EVERYWHERE.toString()) {
         return Address.EVERYWHERE;
       }
     }
     Address? res;
     if (26 <= len && len <= 35) {
-      // BTC
       res = BTCAddress.parse(address);
     } else if (len == 42) {
-      // ETH
       res = ETHAddress.parse(address);
     } else {
-      assert(false, 'invalid address: $address');
+      // throw AssertionError('invalid address: $address');
       res = null;
     }
-    // TODO: other types of address
+    //
+    //  TODO: parse for other types of address
+    //
+    if (res == null && 4 <= len && len <= 64) {
+      res = _UnknownAddress(address);
+    }
     assert(res != null, 'invalid address: $address');
     return res;
   }
+
+}
+
+
+/// Unsupported Address
+/// ~~~~~~~~~~~~~~~~~~~
+class _UnknownAddress extends ConstantString implements Address {
+  _UnknownAddress(super.string);
+
+  @override
+  int get network => 0;
 
 }

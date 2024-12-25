@@ -25,7 +25,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/crypto.dart';
+import 'package:dimp/dimp.dart';
 
 
 ///  Symmetric key for broadcast message,

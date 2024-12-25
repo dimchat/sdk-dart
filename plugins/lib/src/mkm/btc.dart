@@ -34,6 +34,7 @@ import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
 
 ///  Address like BitCoin
+///  ~~~~~~~~~~~~~~~~~~~~
 ///
 ///      data format: "network+digest+code"
 ///          network    --  1 byte
@@ -45,13 +46,14 @@ import 'package:dimp/mkm.dart';
 ///          digest      = ripemd160(sha256(fingerprint));
 ///          code        = sha256(sha256(network + digest)).prefix(4);
 ///          address     = base58_encode(network + digest + code);
+///
 class BTCAddress extends ConstantString implements Address {
-  BTCAddress(super.string, int network) : _network = network;
+  BTCAddress(super.string, int network) : _type = network;
 
-  final int _network;
+  final int _type;
 
   @override
-  int get type => _network;
+  int get network => _type;
 
 
   ///  Generate BTC address with fingerprint and network ID

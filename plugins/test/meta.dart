@@ -28,69 +28,70 @@
  * SOFTWARE.
  * ==============================================================================
  */
+import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
+import 'package:dimp/plugins.dart';
+import 'package:dim_plugins/mkm.dart';
 
-import 'btc.dart';
-import 'eth.dart';
 
-
-///  Base Address Factory
-///  ~~~~~~~~~~~~~~~~~~~~
-class BaseAddressFactory implements AddressFactory {
-
-  // protected
-  final Map<String, Address> addresses = {};
+class CompatibleMetaFactory extends BaseMetaFactory {
+  CompatibleMetaFactory(super.type);
 
   @override
-  Address generateAddress(Meta meta, int? network) {
-    Address address = meta.generateAddress(network);
-    addresses[address.toString()] = address;
-    return address;
+  Meta createMeta(VerifyKey pKey, {String? seed, TransportableData? fingerprint}) {
+    Meta out;
+    switch (type) {
+
+      case Meta.MKM:
+        out = DefaultMeta.from('1', pKey, seed!, fingerprint!);
+        break;
+
+      case Meta.BTC:
+        out = BTCMeta.from('2', pKey);
+        break;
+
+      case Meta.ETH:
+        out = ETHMeta.from('4', pKey);
+        break;
+
+      default:
+        // TODO: other types of meta
+        throw Exception('unknown meta type: $type');
+    }
+    assert(out.isValid, 'meta error: $out');
+    return out;
   }
 
   @override
-  Address? parseAddress(String address) {
-    Address? res = addresses[address];
-    if (res == null) {
-      res = parse(address);
-      if (res != null) {
-        addresses[address] = res;
-      }
-    }
-    return res;
-  }
+  Meta? parseMeta(Map meta) {
+    Meta out;
+    var holder = SharedAccountHolder();
+    String? version = holder.helper!.getMetaType(meta, '');
+    switch (version) {
 
-  // protected
-  Address? parse(String address) {
-    int len = address.length;
-    if (len == 0) {
-      assert(false, 'address should not be empty');
-      return null;
-    } else if (len == 8) {
-      // "anywhere"
-      if (address.toLowerCase() == Address.ANYWHERE.toString()) {
-        return Address.ANYWHERE;
-      }
-    } else if (len == 10) {
-      // "everywhere"
-      if (address.toLowerCase() == Address.EVERYWHERE.toString()) {
-        return Address.EVERYWHERE;
-      }
+      case 'MKM':
+      case 'mkm':
+      case '1':
+        out = DefaultMeta(meta);
+        break;
+
+      case 'BTC':
+      case 'btc':
+      case '2':
+        out = BTCMeta(meta);
+        break;
+
+      case 'ETH':
+      case 'eth':
+      case '4':
+        out = ETHMeta(meta);
+        break;
+
+      default:
+        // TODO: other types of meta
+        throw Exception('unknown meta type: $type');
     }
-    Address? res;
-    if (26 <= len && len <= 35) {
-      // BTC
-      res = BTCAddress.parse(address);
-    } else if (len == 42) {
-      // ETH
-      res = ETHAddress.parse(address);
-    } else {
-      assert(false, 'invalid address: $address');
-      res = null;
-    }
-    // TODO: other types of address
-    assert(res != null, 'invalid address: $address');
-    return res;
+    return out.isValid ? out : null;
   }
 
 }

@@ -1,3 +1,7 @@
+## 1.2.0
+
+- Reuse IV for AES.
+
 ## 1.1.1
 
 - Plugin Loader.

@@ -25,7 +25,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/crypto.dart';
+import 'package:dimp/dimp.dart';
 
 import 'ecc_utils.dart';
 

@@ -34,6 +34,7 @@ import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
 
 ///  Address like Ethereum
+///  ~~~~~~~~~~~~~~~~~~~~~
 ///
 ///      data format: "0x{address}"
 ///
@@ -41,11 +42,12 @@ import 'package:dimp/mkm.dart';
 ///          fingerprint = PK.data;
 ///          digest      = keccak256(fingerprint);
 ///          address     = hex_encode(digest.suffix(20));
+///
 class ETHAddress extends ConstantString implements Address {
   ETHAddress(super.string);
 
   @override
-  int get type => EntityType.USER;
+  int get network => EntityType.USER;
 
   static String? getValidateAddress(String address) {
     if (!_ETH.isETH(address)) {

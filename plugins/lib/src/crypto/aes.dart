@@ -26,8 +26,9 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:dimp/crypto.dart';
 import 'package:encrypt/encrypt.dart';
+
+import 'package:dimp/dimp.dart';
 
 ///  AES Key
 ///
@@ -48,7 +49,7 @@ class AESKey extends BaseSymmetricKey {
       _keyData = null;
     } else {
       // new key
-      _keyData = _generateKeyData();
+      _keyData = generateKeyData();
     }
   }
 
@@ -56,9 +57,10 @@ class AESKey extends BaseSymmetricKey {
 
   TransportableData? _keyData;
 
-  TransportableData _generateKeyData() {
+  // protected
+  TransportableData generateKeyData() {
     // random key data
-    int keySize = _getKeySize();
+    int keySize = getKeySize();
     var pwd = _randomData(keySize);
     var ted = TransportableData.create(pwd);
 
@@ -71,12 +73,14 @@ class AESKey extends BaseSymmetricKey {
     return ted;
   }
 
-  int _getKeySize() {
+  // protected
+  int getKeySize() {
     // TODO: get from key data
     return getInt('keySize', 32)!;
   }
 
-  int _getBlockSize() {
+  // protected
+  int getBlockSize() {
     // TODO: get from iv data
     return getInt('blockSize', 16)!;  // cipher.getBlockSize();
   }
@@ -93,8 +97,12 @@ class AESKey extends BaseSymmetricKey {
     return ted!.data!;
   }
 
+  // protected
+  Key getCipherKey() => Key(data);
+
   /// get IV from params
-  IV _getInitVector(Map? params) {
+  // protected
+  IV? getInitVector(Map? params) {
     // get base64 encoded IV from params
     String? base64;
     if (params == null) {
@@ -111,17 +119,23 @@ class AESKey extends BaseSymmetricKey {
     // decode IV data
     var ted = TransportableData.parse(base64);
     Uint8List? ivData = ted?.data;
-    if (ivData == null) {
+    if (ivData == null || ivData.isEmpty) {
       assert(base64 == null, 'IV data error: $base64');
-      // zero IV
-      int blockSize = _getBlockSize();
-      ivData = Uint8List(blockSize);
+      return null;
     }
     return IV(ivData);
   }
-  IV _newInitVector(Map? extra) {
+  // protected
+  IV zeroInitVector() {
+    // zero IV
+    int blockSize = getBlockSize();
+    Uint8List ivData = Uint8List(blockSize);
+    return IV(ivData);
+  }
+  // protected
+  IV newInitVector(Map? extra) {
     // random IV data
-    int blockSize = _getBlockSize();
+    int blockSize = getBlockSize();
     Uint8List ivData = _randomData(blockSize);
     // put encoded IV into extra
     if (extra == null) {
@@ -136,10 +150,11 @@ class AESKey extends BaseSymmetricKey {
 
   @override
   Uint8List encrypt(Uint8List plaintext, Map? extra) {
-    // 1. random new 'IV'
-    IV iv = _newInitVector(extra);
-    // 2. get key
-    Key key = Key(data);
+    // 1. if 'IV' not found in extra params, new a random 'IV'
+    IV? iv = getInitVector(extra);
+    iv ??= newInitVector(extra);
+    // 2. get cipher key
+    Key key = getCipherKey();
     // 3. try to encrypt
     Encrypter cipher = Encrypter(AES(key, mode: AESMode.cbc));
     return cipher.encryptBytes(plaintext, iv: iv).bytes;
@@ -147,16 +162,18 @@ class AESKey extends BaseSymmetricKey {
 
   @override
   Uint8List? decrypt(Uint8List ciphertext, Map? params) {
-    // 1. get 'IV' from extra params
-    IV iv = _getInitVector(params);
-    // 2. get key
-    Key key = Key(data);
+    // 1. if 'IV' not found in extra params, use an empty 'IV'
+    IV? iv = getInitVector(params);
+    iv ??= zeroInitVector();
+    // 2. get cipher key
+    Key key = getCipherKey();
     // 3. try to decrypt
     try {
       Encrypter cipher = Encrypter(AES(key, mode: AESMode.cbc));
       List<int> result = cipher.decryptBytes(Encrypted(ciphertext), iv: iv);
       return Uint8List.fromList(result);
     } catch (e, st) {
+      print('AES: failed to decrypt: $e, ${params?["IV"]}');
       print('AES: failed to decrypt: $e, $st');
       return null;
     }

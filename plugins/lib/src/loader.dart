@@ -53,7 +53,7 @@ class PluginLoader {
       // mark it to loaded
       _loaded = true;
     }
-    // try to load extensions
+    // try to load all plugins
     load();
   }
 
@@ -117,6 +117,7 @@ class PluginLoader {
     /// TED
     var tedFactory = Base64DataFactory();
     TransportableData.setFactory(TransportableData.BASE_64, tedFactory);
+    // TransportableData.setFactory(TransportableData.DEFAULT, tedFactory);
     TransportableData.setFactory('*', tedFactory);
   }
 
@@ -223,9 +224,9 @@ class PluginLoader {
   // protected
   ///  Meta factories
   void registerMetaFactories() {
-    Meta.setFactory(Meta.MKM, GeneralMetaFactory(Meta.MKM));
-    Meta.setFactory(Meta.BTC, GeneralMetaFactory(Meta.BTC));
-    Meta.setFactory(Meta.ETH, GeneralMetaFactory(Meta.ETH));
+    Meta.setFactory(Meta.MKM, BaseMetaFactory(Meta.MKM));
+    Meta.setFactory(Meta.BTC, BaseMetaFactory(Meta.BTC));
+    Meta.setFactory(Meta.ETH, BaseMetaFactory(Meta.ETH));
   }
 
   // protected

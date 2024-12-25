@@ -25,7 +25,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/crypto.dart';
+import 'package:dimp/dimp.dart';
 
 import 'rsa_utils.dart';
 
@@ -140,8 +140,7 @@ class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
 
   @override
   bool matchEncryptKey(EncryptKey pKey) {
-    CryptographyKeyFactoryManager man = CryptographyKeyFactoryManager();
-    return man.generalFactory.matchSymmetricKeys(pKey, this);
+    return BaseKey.matchEncryptKey(pKey, this);
   }
 }
 

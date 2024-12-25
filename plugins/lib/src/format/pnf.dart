@@ -25,15 +25,18 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/crypto.dart';
+import 'package:dimp/dimp.dart';
 
 class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
-  BaseNetworkFile(super.dict);
+  BaseNetworkFile(super.dict) {
+    _wrapper = BaseFileWrapper(toMap());
+  }
 
-  late final BaseFileWrapper _wrapper = BaseFileWrapper(toMap());
+  late final BaseFileWrapper _wrapper;
 
   BaseNetworkFile.from(TransportableData? data, String? filename,
       Uri? url, DecryptKey? password) : super(null) {
+    _wrapper = BaseFileWrapper(toMap());
     // file data
     if (data != null) {
       _wrapper.data = data;
