@@ -40,7 +40,6 @@ import '../twins.dart';
 class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   BaseContentProcessor(super.facebook, super.messenger);
 
-
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     String text = 'Content not support.';
@@ -97,7 +96,7 @@ class BaseCommandProcessor extends BaseContentProcessor {
     return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
       'template': 'Command (name: \${command}) not support yet!',
       'replacements': {
-        'command': command.cmd,
+        'command': command.commandName,
       },
     });
   }

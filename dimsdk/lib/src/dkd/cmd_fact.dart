@@ -28,7 +28,8 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dkd.dart';
+import 'package:dimp/dimp.dart';
+import 'package:dimp/plugins.dart';
 
 
 ///  General Command Factory
@@ -37,14 +38,14 @@ class GeneralCommandFactory implements ContentFactory, CommandFactory {
 
   @override
   Content? parseContent(Map content) {
-    CommandFactoryManager man = CommandFactoryManager();
+    var holder = SharedCommandHolder();
     // get factory by command name
-    String cmd = man.generalFactory.getCmd(content, '*')!;
-    CommandFactory? factory = man.generalFactory.getCommandFactory(cmd);
+    String cmd = holder.helper!.getCommandName(content, '*')!;
+    CommandFactory? factory = holder.commandHelper!.getCommandFactory(cmd);
     if (factory == null) {
       // check for group command
       if (content.containsKey('group')/* && cmd != 'group'*/) {
-        factory = man.generalFactory.getCommandFactory('group');
+        factory = holder.commandHelper!.getCommandFactory('group');
       }
       factory ??= this;
     }
@@ -73,10 +74,10 @@ class GroupCommandFactory extends HistoryCommandFactory {
 
   @override
   Content? parseContent(Map content) {
-    CommandFactoryManager man = CommandFactoryManager();
+    var holder = SharedCommandHolder();
     // get factory by command name
-    String cmd = man.generalFactory.getCmd(content, '*')!;
-    CommandFactory? factory = man.generalFactory.getCommandFactory(cmd);
+    String cmd = holder.helper!.getCommandName(content, '*')!;
+    CommandFactory? factory = holder.commandHelper!.getCommandFactory(cmd);
     factory ??= this;
     return factory.parseCommand(content);
   }

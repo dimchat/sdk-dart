@@ -70,7 +70,7 @@ abstract class Messenger extends Transceiver implements Packer, Processor {
     ID sender = sMsg.sender;
     ID target = CipherKeyDelegate.getDestinationForMessage(sMsg);
     var db = cipherKeyDelegate;
-    return await db?.cacheCipherKey(sender: sender, receiver: target, key: key);
+    await db?.cacheCipherKey(sender: sender, receiver: target, key: key);
   }
 
   //

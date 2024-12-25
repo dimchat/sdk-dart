@@ -65,7 +65,7 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
         return BaseCommandProcessor(facebook!, messenger!);
 
       // default contents
-      case ContentType.ANY:
+      case 0: // ContentType.ANY:
         return BaseContentProcessor(facebook!, messenger!);
     }
 

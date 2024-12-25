@@ -31,7 +31,7 @@
 import 'package:dimp/mkm.dart';
 
 import 'entity.dart';
-import 'helper.dart';
+import 'utils.dart';
 
 
 /// This class is for creating group
@@ -95,7 +95,7 @@ abstract interface class GroupDataSource implements EntityDataSource {
 //
 
 class BaseGroup extends BaseEntity implements Group {
-  BaseGroup(super.id) : _founder = null;
+  BaseGroup(super.id);
 
   /// once the group founder is set, it will never change
   ID? _founder;
@@ -112,7 +112,7 @@ class BaseGroup extends BaseEntity implements Group {
 
   @override
   Future<Bulletin?> get bulletin async =>
-      DocumentHelper.lastBulletin(await documents);
+      DocumentUtils.lastBulletin(await documents);
 
   @override
   Future<ID> get founder async {

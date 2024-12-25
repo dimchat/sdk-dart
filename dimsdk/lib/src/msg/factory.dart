@@ -77,7 +77,7 @@ class MessageFactory implements EnvelopeFactory, InstantMessageFactory, SecureMe
   ///
 
   @override
-  int generateSerialNumber(int msgType, DateTime now) {
+  int generateSerialNumber(int? msgType, DateTime? now) {
     // because we must make sure all messages in a same chat box won't have
     // same serial numbers, so we can't use time-related numbers, therefore
     // the best choice is a totally random number, maybe.

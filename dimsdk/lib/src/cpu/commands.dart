@@ -30,7 +30,8 @@
  */
 import 'package:dimp/dimp.dart';
 
-import '../mkm/helper.dart';
+import '../mkm/utils.dart';
+
 import 'base.dart';
 
 class MetaCommandProcessor extends BaseCommandProcessor {
@@ -118,7 +119,7 @@ class MetaCommandProcessor extends BaseCommandProcessor {
 
   // protected
   Future<bool> checkMeta(Meta meta, {required ID identifier}) async =>
-      meta.isValid && meta.matchIdentifier(identifier);
+      meta.isValid && MetaUtils.matchIdentifier(identifier, meta);
 
 }
 
@@ -165,7 +166,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     DateTime? queryTime = content.lastTime;
     if (queryTime != null) {
       // check last document time
-      Document? last = DocumentHelper.lastDocument(documents);
+      Document? last = DocumentUtils.lastDocument(documents);
       assert(last != null, 'should not happen');
       DateTime? lastTime = last?.time;
       if (lastTime == null) {

@@ -28,15 +28,22 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dkd.dart';
+import 'package:dimp/dimp.dart';
+import 'package:dimp/plugins.dart';
 
-import '../dkd/fact.dart';
+import '../dkd/cmd_fact.dart';
 import '../msg/factory.dart';
 
+import 'account.dart';
+import 'command.dart';
+import 'crypto.dart';
+import 'format.dart';
+import 'message.dart';
 
-/// Extensions Loader
-/// ~~~~~~~~~~~~~~~~~
-class CoreLoader {
+
+/// Core Extensions Loader
+/// ~~~~~~~~~~~~~~~~~~~~~~
+class ExtensionLoader {
 
   bool _loaded = false;
 
@@ -48,7 +55,7 @@ class CoreLoader {
       // mark it to loaded
       _loaded = true;
     }
-    // try to load extensions
+    // try to load all extensions
     load();
   }
 
@@ -56,12 +63,74 @@ class CoreLoader {
   // protected
   void load() {
 
+    registerCoreHelpers();
+
     registerMessageFactories();
     registerContentFactories();
     registerCommandFactories();
 
     registerCustomizedFactories();
 
+  }
+
+  ///  Core extensions
+  // protected
+  void registerCoreHelpers() {
+
+    registerCryptoHelpers();
+    registerFormatHelpers();
+
+    registerAccountHelpers();
+
+    registerMessageHelpers();
+    registerCommandHelpers();
+
+  }
+  void registerCryptoHelpers() {
+    // crypto
+    var cryptoHelper = CryptoKeyGeneralFactory();
+    var holder = SharedCryptoHolder();
+    holder.symmetricHelper = cryptoHelper;
+    holder.privateHelper   = cryptoHelper;
+    holder.publicHelper    = cryptoHelper;
+    holder.helper          = cryptoHelper;
+  }
+  void registerFormatHelpers() {
+    // format
+    var formatHelper = FormatGeneralFactory();
+    var holder = SharedFormatHolder();
+    holder.pnfHelper = formatHelper;
+    holder.tedHelper = formatHelper;
+    holder.helper    = formatHelper;
+  }
+  void registerAccountHelpers() {
+    // mkm
+    var accountHelper = AccountGeneralFactory();
+    var holder = SharedAccountHolder();
+    // holder.accountHelper = accountHelper;
+    holder.tedHelper     = accountHelper;  // FIXME: typo
+    holder.idHelper      = accountHelper;
+    holder.metaHelper    = accountHelper;
+    holder.docHelper     = accountHelper;
+    holder.helper        = accountHelper;
+  }
+  void registerMessageHelpers() {
+    // dkd
+    var msgHelper = MessageGeneralFactory();
+    var holder = SharedMessageHolder();
+    holder.contentHelper  = msgHelper;
+    holder.envelopeHelper = msgHelper;
+    holder.instantHelper  = msgHelper;
+    holder.secureHelper   = msgHelper;
+    holder.reliableHelper = msgHelper;
+    holder.helper         = msgHelper;
+  }
+  void registerCommandHelpers() {
+    // cmd
+    var cmdHelper = CommandGeneralFactory();
+    var holder = SharedCommandHolder();
+    holder.commandHelper = cmdHelper;
+    holder.helper        = cmdHelper;
   }
 
   ///  Message factories
@@ -101,6 +170,9 @@ class CoreLoader {
     // Name Card
     Content.setFactory(ContentType.NAME_CARD, ContentParser((dict) => NameCardContent(dict)));
 
+    // Quote
+    Content.setFactory(ContentType.QUOTE, ContentParser((dict) => BaseQuoteContent(dict)));
+
     // Money
     Content.setFactory(ContentType.MONEY, ContentParser((dict) => BaseMoneyContent(dict)));
     Content.setFactory(ContentType.TRANSFER, ContentParser((dict) => TransferMoneyContent(dict)));
@@ -121,11 +193,23 @@ class CoreLoader {
     // Content Array
     Content.setFactory(ContentType.ARRAY, ContentParser((dict) => ListContent(dict)));
 
+    // Combine and Forward
+    Content.setFactory(ContentType.COMBINE_FORWARD, ContentParser((dict) => CombineForwardContent(dict)));
+
     // Top-Secret
     Content.setFactory(ContentType.FORWARD, ContentParser((dict) => SecretContent(dict)));
 
     // unknown content type
     Content.setFactory(ContentType.ANY, ContentParser((dict) => BaseContent(dict)));
+
+  }
+
+  /// Customized content factories
+  // protected
+  void registerCustomizedFactories() {
+
+    Content.setFactory(ContentType.CUSTOMIZED, ContentParser((dict) => AppCustomizedContent(dict)));
+    Content.setFactory(ContentType.APPLICATION, ContentParser((dict) => AppCustomizedContent(dict)));
 
   }
 
@@ -155,15 +239,6 @@ class CoreLoader {
     Command.setFactory(GroupCommand.HIRE,   CommandParser((dict) => HireGroupCommand(dict)));
     Command.setFactory(GroupCommand.FIRE,   CommandParser((dict) => FireGroupCommand(dict)));
     Command.setFactory(GroupCommand.RESIGN, CommandParser((dict) => ResignGroupCommand(dict)));
-
-  }
-
-  /// Customized content factories
-  // protected
-  void registerCustomizedFactories() {
-
-    Content.setFactory(ContentType.CUSTOMIZED, ContentParser((dict) => AppCustomizedContent(dict)));
-    Content.setFactory(ContentType.APPLICATION, ContentParser((dict) => AppCustomizedContent(dict)));
 
   }
 

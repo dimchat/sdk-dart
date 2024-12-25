@@ -100,7 +100,7 @@ abstract interface class EntityDelegate {
 //
 
 class BaseEntity implements Entity {
-  BaseEntity(ID id) : _id = id, _barrack = null;
+  BaseEntity(this._id);
 
   // entity ID
   final ID _id;
@@ -127,7 +127,7 @@ class BaseEntity implements Entity {
   @override
   String toString() {
     Type clazz = runtimeType;
-    int network = _id.address.type;
+    int network = _id.address.network;
     return '<$clazz id="$_id" network=$network />';
   }
 

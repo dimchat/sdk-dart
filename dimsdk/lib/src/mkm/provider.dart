@@ -31,8 +31,8 @@
 import 'package:dimp/mkm.dart';
 
 import 'group.dart';
-import 'helper.dart';
 import 'station.dart';
+import 'utils.dart';
 
 
 ///  DIM Station Owner
@@ -43,7 +43,7 @@ class ServiceProvider extends BaseGroup {
 
   /// Provider Document
   Future<Document?> get profile async =>
-      DocumentHelper.lastDocument(await documents);
+      DocumentUtils.lastDocument(await documents, '*');
 
   Future<List> get stations async {
     Document? doc = await profile;

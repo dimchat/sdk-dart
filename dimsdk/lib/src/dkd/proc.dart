@@ -58,9 +58,9 @@ abstract interface class ContentProcessorCreator {
   ///  Create command processor with name
   ///
   /// @param msgType - content type
-  /// @param cmd     - command name
+  /// @param cmdName - command name
   /// @return CommandProcessor
-  ContentProcessor? createCommandProcessor(int msgType, String cmd);
+  ContentProcessor? createCommandProcessor(int msgType, String cmdName);
 
 }
 
@@ -96,9 +96,9 @@ class GeneralContentProcessorFactory implements ContentProcessorFactory {
     ContentProcessor? cpu;
     int msgType = content.type;
     if (content is Command) {
-      String name = content.cmd;
+      String cmd = content.commandName;
       // assert(name.isNotEmpty, 'command name error: $name');
-      cpu = getCommandProcessor(msgType, name);
+      cpu = getCommandProcessor(msgType, cmd);
       if (cpu != null) {
         return cpu;
       } else if (content is GroupCommand/* || content.containsKey('group')*/) {

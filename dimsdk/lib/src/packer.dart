@@ -34,10 +34,10 @@ import 'package:dimp/dimp.dart';
 
 import 'core/packer.dart';
 import 'mkm/user.dart';
-import 'msg/helper.dart';
 import 'msg/instant.dart';
 import 'msg/reliable.dart';
 import 'msg/secure.dart';
+import 'msg/utils.dart';
 
 import 'facebook.dart';
 import 'messenger.dart';
@@ -172,12 +172,12 @@ class MessagePacker extends TwinsHelper implements Packer {
   Future<bool> checkAttachments(ReliableMessage rMsg) async {
     ID sender = rMsg.sender;
     // [Meta Protocol]
-    Meta? meta = MessageHelper.getMeta(rMsg);
+    Meta? meta = MessageUtils.getMeta(rMsg);
     if (meta != null) {
       await facebook?.saveMeta(meta, sender);
     }
     // [Visa Protocol]
-    Visa? visa = MessageHelper.getVisa(rMsg);
+    Visa? visa = MessageUtils.getVisa(rMsg);
     if (visa != null) {
       await facebook?.saveDocument(visa);
     }

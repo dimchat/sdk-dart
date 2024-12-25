@@ -34,9 +34,9 @@ import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
 
 import 'entity.dart';
-import 'helper.dart';
 import 'provider.dart';
 import 'user.dart';
+import 'utils.dart';
 
 
 ///  DIM Server
@@ -85,7 +85,7 @@ class Station implements User {
   @override
   String toString() {
     Type clazz = runtimeType;
-    int network = identifier.address.type;
+    int network = identifier.address.network;
     // TODO: check (host:port)
     return '<$clazz id="$identifier" network=$network host="$host" port=$port />';
   }
@@ -111,7 +111,7 @@ class Station implements User {
 
   /// Station Document
   Future<Document?> get profile async =>
-      DocumentHelper.lastDocument(await documents);
+      DocumentUtils.lastDocument(await documents, '*');
 
   /// Station IP
   String? get host => _host;

@@ -28,10 +28,68 @@
  * SOFTWARE.
  * ==============================================================================
  */
+import 'dart:typed_data';
+
+import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
 
 
-abstract interface class DocumentHelper {
+abstract interface class MetaUtils {
+
+  ///  Check whether meta matches with entity ID
+  ///  (must call this when received a new meta from network)
+  ///
+  /// @param identifier - entity ID
+  /// @return true on matched
+  static bool matchIdentifier(ID identifier, Meta meta) {
+    assert(meta.isValid, 'meta not valid: $meta');
+    // check ID.name
+    String? seed = meta.seed;
+    String? name = identifier.name;
+    if (name == null || name.isEmpty) {
+      if (seed != null && seed.isNotEmpty) {
+        return false;
+      }
+    } else if (name != seed) {
+      return false;
+    }
+    // check ID.address
+    Address old = identifier.address;
+    Address gen = Address.generate(meta, old.network);
+    return old == gen;
+  }
+
+  ///  Check whether meta matches with public key
+  ///
+  /// @param pKey - public key
+  /// @return true on matched
+  static bool matchPublicKey(VerifyKey pKey, Meta meta) {
+    assert(meta.isValid, 'meta not valid: $meta');
+    // check whether the public key equals to meta.key
+    if (pKey == meta.publicKey) {
+      return true;
+    }
+    // check with seed & fingerprint
+    String? seed = meta.seed;
+    if (seed == null || seed.isEmpty) {
+      // NOTICE: ID with BTC/ETH address has no name, so
+      //         just compare the key.data to check matching
+      return false;
+    }
+    Uint8List? fingerprint = meta.fingerprint;
+    if (fingerprint == null || fingerprint.isEmpty) {
+      // fingerprint should not be empty here
+      return false;
+    }
+    // check whether keys equal by verifying signature
+    Uint8List data = UTF8.encode(seed);
+    return pKey.verify(data, fingerprint);
+  }
+
+}
+
+
+abstract interface class DocumentUtils {
 
   /// Check whether this time is before old time
   static bool isBefore(DateTime? oldTime, DateTime? thisTime) {

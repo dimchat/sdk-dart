@@ -33,7 +33,7 @@ import 'package:dimp/dimp.dart';
 
 /// 1. [Meta Protocol]
 /// 2. [Visa Protocol]
-abstract interface class MessageHelper {
+abstract interface class MessageUtils {
 
   ///  Sender's Meta
   ///  ~~~~~~~~~~~~~

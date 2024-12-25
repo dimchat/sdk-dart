@@ -1,3 +1,7 @@
+## 1.2.0
+
+- Extensions.
+
 ## 1.1.1
 
 - Core Loader.

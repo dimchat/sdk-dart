@@ -34,7 +34,7 @@ import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
 
 import 'entity.dart';
-import 'helper.dart';
+import 'utils.dart';
 
 
 ///  User account for communication
@@ -176,7 +176,7 @@ class BaseUser extends BaseEntity implements User {
 
   @override
   Future<Visa?> get visa async =>
-      DocumentHelper.lastVisa(await documents);
+      DocumentUtils.lastVisa(await documents);
 
   @override
   Future<List<ID>> get contacts async =>

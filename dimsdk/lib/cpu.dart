@@ -1,9 +1,7 @@
-/// DIM-SDK
+/// DIM-CPU
 /// ~~~~~~~
-/// Decentralized Instant Messaging Software Development Kit
+/// Content Processing Units
 library dimsdk;
-
-export 'src/dkd/proc.dart';        // CPU interfaces
 
 export 'src/cpu/base.dart';        // require 'dkd/proc.dart'
 export 'src/cpu/commands.dart';    // require 'base.dart'
