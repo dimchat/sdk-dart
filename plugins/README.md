@@ -12,7 +12,7 @@
 [![Stars](https://img.shields.io/github/stars/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/stargazers)
 [![Followers](https://img.shields.io/github/followers/dimchat)](https://github.com/orgs/dimchat/followers)
 
-### Plugins
+## Plugins
 
 1. Data Coding
    * Base-58
@@ -44,9 +44,9 @@
    * Profile
    * Bulletin _(Group)_
 
-### Extends
+## Extends
 
-* Extends new address
+### Address
 
 ```dart
 import 'package:dimp/dimp.dart';
@@ -105,7 +105,7 @@ class _UnknownAddress extends ConstantString implements Address {
 }
 ```
 
-* Compatible with all metas
+### Meta
 
 ```dart
 import 'package:dimp/crypto.dart';
@@ -144,8 +144,8 @@ class CompatibleMetaFactory extends BaseMetaFactory {
   @override
   Meta? parseMeta(Map meta) {
     Meta out;
-    var holder = SharedAccountHolder();
-    String? version = holder.helper!.getMetaType(meta, '');
+    var ext = SharedAccountExtensions();
+    String? version = ext.helper!.getMetaType(meta, '');
     switch (version) {
 
       case 'MKM':
@@ -176,7 +176,7 @@ class CompatibleMetaFactory extends BaseMetaFactory {
 }
 ```
 
-* Extends plugin loader
+### Plugin Loader
 
 ```dart
 import 'dart:typed_data';
@@ -242,7 +242,9 @@ class _Base64Coder extends Base64Coder {
 }
 ```
 
-### Usage
+## Usage
+
+You must load all plugins before your business run:
 
 ```dart
 import 'package:dimsdk/plugins.dart';
@@ -258,7 +260,11 @@ void main() {
   // do your jobs after all extensions & plugins loaded
   
 }
-
 ```
 
+You must ensure that every ```Address``` you extend has a ```Meta``` type that can correspond to it one by one.
+
+----
+
 Copyright &copy; 2023 Albert Moky
+[![Followers](https://img.shields.io/github/followers/moky)](https://github.com/moky?tab=followers)

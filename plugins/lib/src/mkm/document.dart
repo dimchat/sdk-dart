@@ -85,8 +85,8 @@ class GeneralDocumentFactory implements DocumentFactory {
       // assert(false, 'document ID not found: $doc');
       return null;
     }
-    var holder = SharedAccountHolder();
-    String? docType = holder.helper!.getDocumentType(doc, null);
+    var ext = SharedAccountExtensions();
+    String? docType = ext.helper!.getDocumentType(doc, null);
     docType ??= getType('*', identifier);
     if (docType == Document.VISA) {
       return BaseVisa(doc);

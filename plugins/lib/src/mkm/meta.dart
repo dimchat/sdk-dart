@@ -208,8 +208,8 @@ class BaseMetaFactory implements MetaFactory {
   @override
   Meta? parseMeta(Map meta) {
     Meta out;
-    var holder = SharedAccountHolder();
-    String? version = holder.helper!.getMetaType(meta, '');
+    var ext = SharedAccountExtensions();
+    String? version = ext.helper!.getMetaType(meta, '');
     switch (version) {
 
       case Meta.MKM:

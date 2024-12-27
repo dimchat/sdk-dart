@@ -1,3 +1,7 @@
+## 1.2.1
+
+- Plain Key.
+
 ## 1.2.0
 
 - Reuse IV for AES.
