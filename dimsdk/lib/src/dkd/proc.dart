@@ -96,7 +96,7 @@ class GeneralContentProcessorFactory implements ContentProcessorFactory {
     ContentProcessor? cpu;
     int msgType = content.type;
     if (content is Command) {
-      String cmd = content.commandName;
+      String cmd = content.cmd;
       // assert(name.isNotEmpty, 'command name error: $name');
       cpu = getCommandProcessor(msgType, cmd);
       if (cpu != null) {

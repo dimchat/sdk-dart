@@ -96,7 +96,7 @@ class BaseCommandProcessor extends BaseContentProcessor {
     return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
       'template': 'Command (name: \${command}) not support yet!',
       'replacements': {
-        'command': command.commandName,
+        'command': command.cmd,
       },
     });
   }

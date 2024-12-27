@@ -66,10 +66,9 @@ class ExtensionLoader {
     registerCoreHelpers();
 
     registerMessageFactories();
+
     registerContentFactories();
     registerCommandFactories();
-
-    registerCustomizedFactories();
 
   }
 
@@ -89,48 +88,47 @@ class ExtensionLoader {
   void registerCryptoHelpers() {
     // crypto
     var cryptoHelper = CryptoKeyGeneralFactory();
-    var holder = SharedCryptoHolder();
-    holder.symmetricHelper = cryptoHelper;
-    holder.privateHelper   = cryptoHelper;
-    holder.publicHelper    = cryptoHelper;
-    holder.helper          = cryptoHelper;
+    var ext = SharedCryptoExtensions();
+    ext.symmetricHelper = cryptoHelper;
+    ext.privateHelper   = cryptoHelper;
+    ext.publicHelper    = cryptoHelper;
+    ext.helper          = cryptoHelper;
   }
   void registerFormatHelpers() {
     // format
     var formatHelper = FormatGeneralFactory();
-    var holder = SharedFormatHolder();
-    holder.pnfHelper = formatHelper;
-    holder.tedHelper = formatHelper;
-    holder.helper    = formatHelper;
+    var ext = SharedFormatExtensions();
+    ext.pnfHelper = formatHelper;
+    ext.tedHelper = formatHelper;
+    ext.helper    = formatHelper;
   }
   void registerAccountHelpers() {
     // mkm
     var accountHelper = AccountGeneralFactory();
-    var holder = SharedAccountHolder();
-    // holder.accountHelper = accountHelper;
-    holder.tedHelper     = accountHelper;  // FIXME: typo
-    holder.idHelper      = accountHelper;
-    holder.metaHelper    = accountHelper;
-    holder.docHelper     = accountHelper;
-    holder.helper        = accountHelper;
+    var ext = SharedAccountExtensions();
+    ext.addressHelper = accountHelper;
+    ext.idHelper      = accountHelper;
+    ext.metaHelper    = accountHelper;
+    ext.docHelper     = accountHelper;
+    ext.helper        = accountHelper;
   }
   void registerMessageHelpers() {
     // dkd
     var msgHelper = MessageGeneralFactory();
-    var holder = SharedMessageHolder();
-    holder.contentHelper  = msgHelper;
-    holder.envelopeHelper = msgHelper;
-    holder.instantHelper  = msgHelper;
-    holder.secureHelper   = msgHelper;
-    holder.reliableHelper = msgHelper;
-    holder.helper         = msgHelper;
+    var ext = SharedMessageExtensions();
+    ext.contentHelper  = msgHelper;
+    ext.envelopeHelper = msgHelper;
+    ext.instantHelper  = msgHelper;
+    ext.secureHelper   = msgHelper;
+    ext.reliableHelper = msgHelper;
+    ext.helper         = msgHelper;
   }
   void registerCommandHelpers() {
     // cmd
     var cmdHelper = CommandGeneralFactory();
-    var holder = SharedCommandHolder();
-    holder.commandHelper = cmdHelper;
-    holder.helper        = cmdHelper;
+    var ext = SharedCommandExtensions();
+    ext.cmdHelper = cmdHelper;
+    ext.helper    = cmdHelper;
   }
 
   ///  Message factories
@@ -184,12 +182,6 @@ class ExtensionLoader {
     // History Command
     Content.setFactory(ContentType.HISTORY, HistoryCommandFactory());
 
-    /*
-    // Application Customized
-    Content.setFactory(ContentType.CUSTOMIZED, ContentParser((dict) => AppCustomizedContent(dict)));
-    Content.setFactory(ContentType.APPLICATION, ContentParser((dict) => AppCustomizedContent(dict)));
-     */
-
     // Content Array
     Content.setFactory(ContentType.ARRAY, ContentParser((dict) => ListContent(dict)));
 
@@ -201,15 +193,6 @@ class ExtensionLoader {
 
     // unknown content type
     Content.setFactory(ContentType.ANY, ContentParser((dict) => BaseContent(dict)));
-
-  }
-
-  /// Customized content factories
-  // protected
-  void registerCustomizedFactories() {
-
-    Content.setFactory(ContentType.CUSTOMIZED, ContentParser((dict) => AppCustomizedContent(dict)));
-    Content.setFactory(ContentType.APPLICATION, ContentParser((dict) => AppCustomizedContent(dict)));
 
   }
 

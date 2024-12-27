@@ -1,3 +1,7 @@
+## 1.2.1
+
+- CMD: Command, Method, Declaration.
+
 ## 1.2.0
 
 - Extensions.

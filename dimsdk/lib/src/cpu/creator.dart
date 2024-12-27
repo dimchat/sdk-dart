@@ -46,45 +46,43 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
   @override
   ContentProcessor? createContentProcessor(int msgType) {
     switch (msgType) {
+
       // forward content
       case ContentType.FORWARD:
         return ForwardContentProcessor(facebook!, messenger!);
+
       // array content
       case ContentType.ARRAY:
         return ArrayContentProcessor(facebook!, messenger!);
-
-      /*
-      // application customized
-      case ContentType.APPLICATION:
-      case ContentType.CUSTOMIZED:
-        return CustomizedContentProcessor(facebook!, messenger!);
-       */
 
       // default commands
       case ContentType.COMMAND:
         return BaseCommandProcessor(facebook!, messenger!);
 
-      // default contents
-      case 0: // ContentType.ANY:
+      // case ContentType.ANY:
+      case 0:
+        // must return a default processor for type==0
         return BaseContentProcessor(facebook!, messenger!);
-    }
 
-    // unknown
+    }
+    // unknown content
     return null;
   }
 
   @override
   ContentProcessor? createCommandProcessor(int msgType, String cmd) {
     switch (cmd) {
+
       // meta command
       case Command.META:
         return MetaCommandProcessor(facebook!, messenger!);
+
       // document command
       case Command.DOCUMENT:
         return DocumentCommandProcessor(facebook!, messenger!);
-    }
 
-    // unknown
+    }
+    // unknown command
     return null;
   }
 
