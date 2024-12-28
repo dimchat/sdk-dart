@@ -58,10 +58,10 @@ abstract class URLHelper {
     String? ext;
     if (filename != null) {
       ext = Paths.extension(filename);
-      if (_isEncoded(filename, ext)) {
-        // filename already encoded
-        return filename;
-      }
+      // if (_isEncoded(filename, ext)) {
+      //   // filename already encoded
+      //   return filename;
+      // }
     }
     ext ??= urlExt;
     // get filename from URL
@@ -78,10 +78,10 @@ abstract class URLHelper {
   static String filenameFromData(Uint8List data, String filename) {
     // split file extension
     String? ext = Paths.extension(filename);
-    if (_isEncoded(filename, ext)) {
-      // already encoded
-      return filename;
-    }
+    // if (_isEncoded(filename, ext)) {
+    //   // already encoded
+    //   return filename;
+    // }
     // get filename from data
     filename = Hex.encode(MD5.digest(data));
     return ext == null || ext.isEmpty ? filename : '$filename.$ext';

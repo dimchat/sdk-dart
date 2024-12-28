@@ -124,6 +124,9 @@ abstract class PortableNetworkWrapper {
     // get name from PNF
     if (name != null && URLHelper.isFilenameEncoded(name)) {
       return name;
+    } else {
+      // this file must be not encrypted
+      assert(pnf.password == null, 'PNF error: $pnf');
     }
     Uri? url = pnf.url;
     if (url != null) {

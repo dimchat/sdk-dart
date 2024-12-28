@@ -55,17 +55,32 @@ class Paths {
   ///  Get extension from a filename
   ///
   /// @param filename - file name
-  /// @return file extension without '.'
+  /// @return file extension without prefix '.'
   static String? extension(String filename) {
     String ext = utils.extension(filename);
-    if (ext.isEmpty) {
-      return null;
-    } else if (ext.startsWith('.')) {
-      return ext.substring(1);
-    } else {
+    return ext.isEmpty ? null : trimExtension(ext);
+  }
+
+  static String trimExtension(String ext) {
+    int start = 0, end = ext.length;
+    // seek for start
+    for (; start < ext.length; ++start) {
+      if (ext.codeUnitAt(start) != dot) {
+        break;
+      }
+    }
+    // seek for end
+    for (; end > 0; --end) {
+      if (ext.codeUnitAt(end - 1) != dot) {
+        break;
+      }
+    }
+    if (0 == start && end == ext.length) {
       return ext;
     }
+    return ext.substring(start, end);
   }
+  static final int dot = '.'.codeUnitAt(0);
 
   ///  Get parent directory
   ///
