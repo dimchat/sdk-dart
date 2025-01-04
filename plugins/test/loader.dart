@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
-// import 'package:dimsdk/plugins.dart';
 import 'package:dim_plugins/format.dart';
 import 'package:dim_plugins/plugins.dart';
 
@@ -11,12 +10,6 @@ import 'meta.dart';
 
 
 class ClientPluginLoader extends PluginLoader {
-
-  @override
-  void registerBase64Coder() {
-    /// Base64 coding
-    Base64.coder = _Base64Coder();
-  }
 
   @override
   void registerAddressFactory() {
@@ -42,18 +35,16 @@ class ClientPluginLoader extends PluginLoader {
     Meta.setFactory('ETH', eth);
   }
 
-  static void loadAll() {
-
-    // ExtensionLoader().run();
-
-    ClientPluginLoader().run();
-
+  @override
+  void registerBase64Coder() {
+    /// Base64 coding
+    Base64.coder = PatchBase64Coder();
   }
 
 }
 
 /// Base-64
-class _Base64Coder extends Base64Coder {
+class PatchBase64Coder extends Base64Coder {
 
   @override
   Uint8List? decode(String string) {

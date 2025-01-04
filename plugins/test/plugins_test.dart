@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:test/test.dart';
 
+// import 'package:dimsdk/plugins.dart';
 import 'package:dimp/crypto.dart';
 
 import 'loader.dart';
@@ -248,7 +249,10 @@ void main() {
     setUp(() {
       // Additional setup goes here.
 
-      ClientPluginLoader.loadAll();
+      // ExtensionLoader().run();
+
+      ClientPluginLoader().run();
+
     });
 
     test('First Test', () {

@@ -4,8 +4,9 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/sdk-dart/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Dart%203-brightgreen.svg)](https://github.com/dimchat/sdk-dart/wiki)
 [![Issues](https://img.shields.io/github/issues/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/issues)
-[![Version](https://img.shields.io/github/tag/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/tags)
 [![Repo Size](https://img.shields.io/github/repo-size/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/archive/refs/heads/main.zip)
+[![Tags](https://img.shields.io/github/tag/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/tags)
+[![Version](https://img.shields.io/pub/v/dim_plugins)](https://pub.dev/packages/dim_plugins)
 
 [![Watchers](https://img.shields.io/github/watchers/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/watchers)
 [![Forks](https://img.shields.io/github/forks/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/forks)
@@ -52,6 +53,7 @@
 import 'package:dimp/dimp.dart';
 import 'package:dim_plugins/mkm.dart';
 
+
 class CompatibleAddressFactory extends BaseAddressFactory {
 
   @override
@@ -86,7 +88,7 @@ class CompatibleAddressFactory extends BaseAddressFactory {
     //  TODO: parse for other types of address
     //
     if (res == null && 4 <= len && len <= 64) {
-      res = _UnknownAddress(address);
+      res = UnknownAddress(address);
     }
     assert(res != null, 'invalid address: $address');
     return res;
@@ -94,10 +96,11 @@ class CompatibleAddressFactory extends BaseAddressFactory {
 
 }
 
+
 /// Unsupported Address
 /// ~~~~~~~~~~~~~~~~~~~
-class _UnknownAddress extends ConstantString implements Address {
-  _UnknownAddress(super.string);
+class UnknownAddress extends ConstantString implements Address {
+  UnknownAddress(super.string);
 
   @override
   int get network => 0;
@@ -112,6 +115,7 @@ import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
 import 'package:dimp/plugins.dart';
 import 'package:dim_plugins/mkm.dart';
+
 
 class CompatibleMetaFactory extends BaseMetaFactory {
   CompatibleMetaFactory(super.type);
@@ -181,12 +185,14 @@ class CompatibleMetaFactory extends BaseMetaFactory {
 ```dart
 import 'dart:typed_data';
 
+import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
 import 'package:dim_plugins/format.dart';
 import 'package:dim_plugins/plugins.dart';
 
 import 'compat_address.dart';
 import 'compat_meta.dart';
+
 
 class CompatiblePluginLoader extends PluginLoader {
 
@@ -217,12 +223,13 @@ class CompatiblePluginLoader extends PluginLoader {
   @override
   void registerBase64Coder() {
     /// Base64 coding
-    Base64.coder = _Base64Coder();
+    Base64.coder = PatchBase64Coder();
   }
 }
 
+
 /// Base-64
-class _Base64Coder extends Base64Coder {
+class PatchBase64Coder extends Base64Coder {
 
   @override
   Uint8List? decode(String string) {
@@ -250,6 +257,7 @@ You must load all plugins before your business run:
 import 'package:dimsdk/plugins.dart';
 
 import 'compat_loader.dart';
+
 
 void main() {
 
