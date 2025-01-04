@@ -5,6 +5,9 @@ library dimsdk;
 
 export 'src/dkd/proc.dart';          // CPU interfaces
 // export 'src/dkd/cmd_fact.dart';   // -> 'plugins.dart'
+// export 'src/dkd/instant.dart';    // -> 'msg.dart'
+// export 'src/dkd/secure.dart';     // -> 'msg.dart'
+// export 'src/dkd/reliable.dart';   // -> 'msg.dart'
 
 export 'src/core/delegate.dart';
 export 'src/core/barrack.dart';      // require 'mkm/*'

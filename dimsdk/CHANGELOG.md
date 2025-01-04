@@ -1,3 +1,7 @@
+## 1.2.2
+
+- Message delegates.
+
 ## 1.2.1
 
 - CMD: Command, Method, Declaration.

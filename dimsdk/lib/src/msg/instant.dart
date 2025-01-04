@@ -32,6 +32,9 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import '../dkd/instant.dart';
+
+
 class InstantMessagePacker {
   InstantMessagePacker(InstantMessageDelegate messenger)
       : _transceiver = WeakReference(messenger);
@@ -161,4 +164,5 @@ class InstantMessagePacker {
     // OK, pack message
     return SecureMessage.parse(info);
   }
+
 }

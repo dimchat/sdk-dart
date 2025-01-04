@@ -33,6 +33,9 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 import 'core/packer.dart';
+import 'dkd/instant.dart';
+import 'dkd/reliable.dart';
+import 'dkd/secure.dart';
 import 'mkm/user.dart';
 import 'msg/instant.dart';
 import 'msg/reliable.dart';

@@ -4,8 +4,9 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/sdk-dart/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Dart%203-brightgreen.svg)](https://github.com/dimchat/sdk-dart/wiki)
 [![Issues](https://img.shields.io/github/issues/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/issues)
-[![Version](https://img.shields.io/github/tag/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/tags)
 [![Repo Size](https://img.shields.io/github/repo-size/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/archive/refs/heads/main.zip)
+[![Tags](https://img.shields.io/github/tag/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/tags)
+[![Version](https://img.shields.io/pub/v/dimsdk)](https://pub.dev/packages/dimsdk)
 
 [![Watchers](https://img.shields.io/github/watchers/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/watchers)
 [![Forks](https://img.shields.io/github/forks/dimchat/sdk-dart)](https://github.com/dimchat/sdk-dart/forks)
@@ -14,11 +15,13 @@
 
 ## Dependencies
 
+* Latest Versions
+
 | Name | Version | Description |
 |------|---------|-------------|
-| [Ming Ke Ming (名可名)](https://pub.dev/packages/mkm) | ![Version](https://img.shields.io/github/tag/dimchat/mkm-dart) | Decentralized User Identity Authentication |
-| [Dao Ke Dao (道可道)](https://pub.dev/packages/dkd) | ![Version](https://img.shields.io/github/tag/dimchat/dkd-dart) | Universal Message Module |
-| [DIMP (去中心化通讯协议)](https://pub.dev/packages/dimp) | ![Version](https://img.shields.io/github/tag/dimchat/core-dart) | Decentralized Instant Messaging Protocol |
+| [Ming Ke Ming (名可名)](https://github.com/dimchat/mkm-dart) | [![Version](https://img.shields.io/pub/v/mkm)](https://pub.dev/packages/mkm) | Decentralized User Identity Authentication |
+| [Dao Ke Dao (道可道)](https://github.com/dimchat/dkd-dart) | [![Version](https://img.shields.io/pub/v/dkd)](https://pub.dev/packages/dkd) | Universal Message Module |
+| [DIMP (去中心化通讯协议)](https://github.com/dimchat/core-dart) | [![Version](https://img.shields.io/pub/v/dimp)](https://pub.dev/packages/dimp) | Decentralized Instant Messaging Protocol |
 
 ## Extensions
 
@@ -122,9 +125,19 @@ class CustomizedContentProcessor extends BaseContentProcessor implements Customi
 ```dart
 import 'package:dimsdk/plugins.dart';
 
+
 /// Extensions Loader
 /// ~~~~~~~~~~~~~~~~~
 class CommonLoader extends ExtensionLoader {
+
+  // protected
+  void registerCustomizedFactories() {
+    
+    // Application Customized
+    Content.setFactory(ContentType.APPLICATION, ContentParser((dict) => AppCustomizedContent(dict)));
+    Content.setFactory(ContentType.CUSTOMIZED, ContentParser((dict) => AppCustomizedContent(dict)));
+    
+  }
 
   @override
   void registerContentFactories() {
@@ -133,12 +146,13 @@ class CommonLoader extends ExtensionLoader {
     registerCustomizedFactories();
   }
 
-  void registerCustomizedFactories() {
-    
-    // Application Customized
-    Content.setFactory(ContentType.APPLICATION, ContentParser((dict) => AppCustomizedContent(dict)));
-    Content.setFactory(ContentType.CUSTOMIZED, ContentParser((dict) => AppCustomizedContent(dict)));
-    
+  @override
+  void registerCommandFactories() {
+    super.registerCommandFactories();
+
+    // Handshake
+    Command.setFactory(HandshakeCommand.HANDSHAKE, CommandParser((dict) => BaseHandshakeCommand(dict)));
+
   }
 
 }

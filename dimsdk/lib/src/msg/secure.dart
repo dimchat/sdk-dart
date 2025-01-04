@@ -32,6 +32,9 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import '../dkd/secure.dart';
+
+
 class SecureMessagePacker {
   SecureMessagePacker(SecureMessageDelegate messenger)
       : _transceiver = WeakReference(messenger);

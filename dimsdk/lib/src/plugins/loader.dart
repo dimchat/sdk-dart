@@ -196,7 +196,7 @@ class ExtensionLoader {
 
   }
 
-  ///  Register core command factories
+  ///  Core command factories
   // protected
   void registerCommandFactories() {
 
