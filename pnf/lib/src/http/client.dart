@@ -41,41 +41,63 @@ class HTTPClient {
       ' DIMCoreKit/1.0 (Terminal, like WeChat)'
       ' DIM-by-GSP/1.0.1';
 
-  Future<String?> upload(Uri url, String key, String filename, Uint8List fileData,
-      {ProgressCallback? onSendProgress, ProgressCallback? onReceiveProgress}) async {
-    Response<String> response;
+  //
+  //  Upload
+  //
+
+  Future<Response<T>?> upload<T>(Uri url, {
+    FormData? data,
+    Options? options,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
     try {
-      response = await Dio().postUri<String>(url,
-        data: _HTTPHelper.buildFormData(key, filename, fileData),
+      return await Dio().postUri<T>(url,
+        data: data,
+        options: options,
         onSendProgress: onSendProgress,
         onReceiveProgress: onReceiveProgress,
-        options: _HTTPHelper.uploadOptions(userAgent),
       ).onError((error, stackTrace) {
-        print('[DIO] failed to upload ($key, $filename, ${fileData.length} bytes)'
+        print('[DIO] failed to upload ${data?.files.length} file(s), ${data?.length} bytes'
             ' => "$url" error: $error, $stackTrace');
         throw Exception(error);
       });
     } catch (e, st) {
-      print('[HTTP] failed to upload ($key, $filename, ${fileData.length} bytes)'
+      print('[HTTP] failed to upload ${data?.files.length} file(s), ${data?.length} bytes'
           ' => "$url" error: $e, $st');
       return null;
     }
-    int? statusCode = response.statusCode;
-    if (statusCode != 200) {
-      assert(false, 'failed to upload $url, status: $statusCode - ${response.statusMessage}');
-      return null;
-    }
-    String? data = response.data;
-    assert(data is String, 'response text error: $response');
-    return data;
   }
 
-  Future<Uint8List?> download(Uri url, {ProgressCallback? onReceiveProgress}) async {
-    Response<Uint8List> response;
+  FormData buildFormData(String key, MultipartFile file) => FormData.fromMap({
+    key: file,
+  });
+
+  MultipartFile buildMultipartFile(String filename, Uint8List data) => MultipartFile.fromBytes(
+    data,
+    filename: filename,
+    // contentType: MediaType.parse('application/octet-stream'),
+  );
+
+  Options uploadOptions(ResponseType responseType) => Options(
+    responseType: responseType,
+    headers: {
+      'User-Agent': userAgent,
+    },
+  );
+
+  //
+  //  Download
+  //
+
+  Future<Response<D>?> download<D>(Uri url, {
+    Options? options,
+    ProgressCallback? onReceiveProgress,
+  }) async {
     try {
-      response = await Dio().getUri<Uint8List>(url,
+      return await Dio().getUri<D>(url,
+        options: options,
         onReceiveProgress: onReceiveProgress,
-        options: _HTTPHelper.downloadOptions(userAgent),
       ).onError((error, stackTrace) {
         print('[DIO] failed to download "$url" error: $error, $stackTrace');
         throw Exception(error);
@@ -84,47 +106,16 @@ class HTTPClient {
       print('[HTTP] failed to download "$url" error: $e, $st');
       return null;
     }
-    int? statusCode = response.statusCode;
-    if (statusCode != 200) {
-      assert(false, 'failed to download $url, status: $statusCode - ${response.statusMessage}');
-      return null;
-    }
-    int? contentLength = _HTTPHelper.getContentLength(response);
-    Uint8List? data = response.data;
-    if (data == null) {
-      assert(contentLength == 0, 'content length error: $contentLength');
-    } else if (contentLength != null && contentLength != data.length) {
-      assert(false, 'content length not match: $contentLength, ${data.length}');
-    }
-    return data;
   }
 
-}
-
-class _HTTPHelper {
-
-  static FormData buildFormData(String key, String filename, Uint8List data) => FormData.fromMap({
-    key: MultipartFile.fromBytes(data,
-      filename: filename,
-      // contentType: MediaType.parse('application/octet-stream'),
-    ),
-  });
-
-  static Options uploadOptions(String userAgent) => Options(
-    responseType: ResponseType.plain,
+  Options downloadOptions(ResponseType responseType) => Options(
+    responseType: responseType,
     headers: {
       'User-Agent': userAgent,
     },
   );
 
-  static Options downloadOptions(String userAgent) => Options(
-    responseType: ResponseType.bytes,
-    headers: {
-      'User-Agent': userAgent,
-    },
-  );
-
-  static int? getContentLength(Response response) {
+  int? getContentLength(Response response) {
     String? value = response.headers.value(Headers.contentLengthHeader);
     return Converter.getInt(value, null);
   }
