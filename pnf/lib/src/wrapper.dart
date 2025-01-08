@@ -126,7 +126,8 @@ abstract class PortableNetworkWrapper {
       return name;
     } else {
       // this file must be not encrypted
-      assert(pnf.password == null, 'PNF error: $pnf');
+      var pwd = pnf.password;
+      assert(pwd == null || pwd.algorithm == 'PLAIN', 'PNF error: $pnf');
     }
     Uri? url = pnf.url;
     if (url != null) {
