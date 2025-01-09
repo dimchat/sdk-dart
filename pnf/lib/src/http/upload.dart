@@ -2,12 +2,12 @@
  *
  *  HyperText Transfer Protocol
  *
- *                               Written in 2024 by Moky <albert.moky@gmail.com>
+ *                               Written in 2025 by Moky <albert.moky@gmail.com>
  *
  * =============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2024 Albert Moky
+ * Copyright (c) 2025 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,6 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:typed_data';
-
 import 'package:dio/dio.dart';
 import 'package:object_key/object_key.dart';
 import 'package:startrek/skywalker.dart';
@@ -38,27 +36,27 @@ import 'client.dart';
 import 'tasks.dart';
 
 
-/// HTTP Downloader
-abstract interface class Downloader {
+/// HTTP Uploader
+abstract interface class Uploader {
 
-  /// Add download task
-  Future<bool> addTask(DownloadTask task);
+  /// Add upload task
+  Future<bool> addTask(UploadTask task);
 
-  /// Start the downloader in background thread
+  /// Start the uploader in background thread
   void start();
 
 }
 
 
-class FileDownloader extends Runner implements Downloader {
-  FileDownloader(this.client) : super(Runner.INTERVAL_SLOW * 4);
+class FileUploader extends Runner implements Uploader {
+  FileUploader(this.client) : super(Runner.INTERVAL_SLOW * 4);
 
   final HTTPClient client;
 
-  final List<DownloadTask> _tasks = WeakList();
+  final List<UploadTask> _tasks = WeakList();
 
   @override
-  Future<bool> addTask(DownloadTask task) async {
+  Future<bool> addTask(UploadTask task) async {
     var ok = await task.prepare();
     if (ok) {
       _tasks.add(task);
@@ -66,27 +64,26 @@ class FileDownloader extends Runner implements Downloader {
     return ok;
   }
   // private
-  DownloadTask? getTask() {
+  UploadTask? getTask() {
     if (_tasks.isNotEmpty) {
       return _tasks.removeAt(0);
     }
     return null;
   }
   // private
-  Future<int> removeTasks(DownloadInfo params, Uint8List downData) async {
+  Future<int> removeTasks(UploadInfo params, String? response) async {
     int success = 0;
-    List<DownloadTask> all = _tasks.toList();
-    DownloadInfo? that;
-    for (DownloadTask item in all) {
+    List<UploadTask> all = _tasks.toList();
+    UploadInfo? that;
+    for (UploadTask item in all) {
       if (item.params != params) {
         continue;
       }
       try {
-        // try to process the task with same download params (URL)
+        // try to process the task with same upload params (URL & form data)
         if (await item.prepare()) {
           that = item.params;
         } else {
-          // cached file found?
           that = null;
         }
         // check params
@@ -94,13 +91,13 @@ class FileDownloader extends Runner implements Downloader {
           _tasks.remove(item);
         } else if (that == params) {
           assert(false, 'should not happen: $params');
-          await item.process(downData);
+          await item.process(response);
           _tasks.remove(item);
         } else {
           assert(false, 'should not happen: $params, $that');
         }
       } catch (e, st) {
-        print('[HTTP] failed to handle: ${downData.length} bytes, $params, error: $e, $st');
+        print('[HTTP] failed to handle: ${response?.length} bytes, $params, error: $e, $st');
       }
     }
     return success;
@@ -116,7 +113,7 @@ class FileDownloader extends Runner implements Downloader {
     //
     //  0. get next task
     //
-    DownloadTask? next = getTask();
+    UploadTask? next = getTask();
     if (next == null) {
       // nothing to do now, return false to have a rest.
       return false;
@@ -124,13 +121,13 @@ class FileDownloader extends Runner implements Downloader {
     //
     //  1. prepare the task
     //
-    DownloadInfo? params;
+    UploadInfo? params;
     try {
       if (await next.prepare()) {
         params = next.params;
       }
       if (params == null) {
-        // this task doesn't need to download
+        // this task doesn't need to upload
         // return true for next task immediately
         return true;
       }
@@ -141,49 +138,49 @@ class FileDownloader extends Runner implements Downloader {
     //
     //  2. do the job
     //
-    Uint8List? data;
+    String? text;
     try {
-      data = await download(params.url,
-        onReceiveProgress: (count, total) => next.progress(count, total),
+      text = await upload(params.url, params.data,
+        onSendProgress: (count, total) => next.progress(count, total),
       );
     } catch (e, st) {
-      print('[HTTP] failed to download: $params, error: $e, $st');
+      print('[HTTP] failed to upload: $params, error: $e, $st');
     }
     //
     //  3. callback with downloaded data
     //
     try {
-      await next.process(data);
+      await next.process(text);
     } catch (e, st) {
-      print('[HTTP] failed to process: ${data?.length} bytes, $params, error: $e, $st');
+      print('[HTTP] failed to process: ${text?.length} bytes, $params, error: $e, $st');
     }
-    if (data != null && data.isNotEmpty) {
+    if (text != null && text.isNotEmpty) {
       // check other task with same URL
-      await removeTasks(params, data);
+      await removeTasks(params, text);
     }
     return true;
   }
 
-  /// Download file data from URL
-  Future<Uint8List?> download(Uri url, {ProgressCallback? onReceiveProgress}) async {
-    var options = client.downloadOptions(ResponseType.bytes);
-    Response<Uint8List>? response = await client.download(url,
+  /// Upload file data onto URL
+  Future<String?> upload(Uri url, FormData data, {
+    ProgressCallback? onSendProgress,
+    // ProgressCallback? onReceiveProgress,
+  }) async {
+    var options = client.uploadOptions(ResponseType.plain);
+    Response<String>? response = await client.upload(url,
+      data: data,
       options: options,
-      onReceiveProgress: onReceiveProgress,
+      onSendProgress: onSendProgress,
+      // onReceiveProgress: onReceiveProgress,
     );
     int? statusCode = response?.statusCode;
     if (response == null || statusCode != 200) {
-      assert(false, 'failed to download $url, status: $statusCode - ${response?.statusMessage}');
+      assert(false, 'failed to upload $url, status: $statusCode - ${response?.statusMessage}');
       return null;
     }
-    int? contentLength = client.getContentLength(response);
-    Uint8List? data = response.data;
-    if (data == null) {
-      assert(contentLength == 0, 'content length error: $contentLength');
-    } else if (contentLength != null && contentLength != data.length) {
-      assert(false, 'content length not match: $contentLength, ${data.length}');
-    }
-    return data;
+    String? text = response.data;
+    assert(text is String, 'response text error: $response');
+    return text;
   }
 
 }

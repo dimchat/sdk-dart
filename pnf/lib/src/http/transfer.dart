@@ -28,25 +28,32 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:typed_data';
-
-import 'package:dio/dio.dart';
-
 import 'client.dart';
 import 'download.dart';
+import 'tasks.dart';
+import 'upload.dart';
 
 
 class FileTransfer {
   FileTransfer(this.client) {
     downloader = createDownloader();
+    uploader = createUploader();
   }
 
   final HTTPClient client;
   late final Downloader downloader;
+  late final Uploader uploader;
 
   // override for customized downloader
   Downloader createDownloader() {
-    var http = _HTTPDownloader(client);
+    var http = FileDownloader(client);
+    http.start();
+    return http;
+  }
+
+  // override for customized uploader
+  Uploader createUploader() {
+    var http = FileUploader(client);
     http.start();
     return http;
   }
@@ -61,61 +68,8 @@ class FileTransfer {
   Future<bool> addDownloadTask(DownloadTask task) async =>
       downloader.addTask(task);
 
-  /// Upload a file to URL
-  ///
-  /// @return response text
-  Future<String?> uploadFile(Uri url, String key, String filename, Uint8List fileData, {
-    ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
-  }) async {
-    var file = client.buildMultipartFile(filename, fileData);
-    var data = client.buildFormData(key, file);
-    var options = client.uploadOptions(ResponseType.plain);
-    Response<String>? response = await client.upload(url,
-      data: data,
-      options: options,
-      onSendProgress: onSendProgress,
-      onReceiveProgress: onReceiveProgress,
-    );
-    int? statusCode = response?.statusCode;
-    if (response == null || statusCode != 200) {
-      assert(false, 'failed to upload $url, status: $statusCode - ${response?.statusMessage}');
-      return null;
-    }
-    String? text = response.data;
-    assert(text is String, 'response text error: $response');
-    return text;
-  }
-
-}
-
-class _HTTPDownloader extends FileDownloader {
-  _HTTPDownloader(this.client);
-
-  final HTTPClient client;
-
-  @override
-  Future<Uint8List?> download(Uri url, {
-    ProgressCallback? onReceiveProgress
-  }) async {
-    var options = client.downloadOptions(ResponseType.bytes);
-    Response<Uint8List>? response = await client.download(url,
-      options: options,
-      onReceiveProgress: onReceiveProgress,
-    );
-    int? statusCode = response?.statusCode;
-    if (response == null || statusCode != 200) {
-      assert(false, 'failed to download $url, status: $statusCode - ${response?.statusMessage}');
-      return null;
-    }
-    int? contentLength = client.getContentLength(response);
-    Uint8List? data = response.data;
-    if (data == null) {
-      assert(contentLength == 0, 'content length error: $contentLength');
-    } else if (contentLength != null && contentLength != data.length) {
-      assert(false, 'content length not match: $contentLength, ${data.length}');
-    }
-    return data;
-  }
+  /// Append upload task with URL & form data
+  Future<bool> addUploadTask(UploadTask task) async =>
+      uploader.addTask(task);
 
 }
