@@ -44,6 +44,15 @@ class Enigma {
 
   final Map<String, Uint8List> _dictionary = {};
 
+  @override
+  String toString() {
+    Type clazz = runtimeType;
+    String keys = _dictionary.keys.toString();
+    return '<$clazz>\r\n'
+        '    keys: $keys\r\n'
+        '</$clazz>';
+  }
+
   /// Take all items
   Map<String, Uint8List> get all => _dictionary;
 
@@ -121,37 +130,32 @@ class Enigma {
   Pair<String, Uint8List>? fetch(String api) {
     // get enigma from URL
     List<String>? keys;
-    String? enigma = _EnigmaHelper.from(api);
+    String enigma = _EnigmaHelper.getEnigma(api);
     // search secret with enigma
-    if (enigma == null || enigma.isEmpty || enigma == '{ENIGMA}') {
-      // enigma not specified, choose any one
-    } else {
+    if (enigma.isNotEmpty) {
       keys = [enigma];
+    } else {
+      // enigma not specified, choose any one
     }
     return lookup(keys);
   }
 
   /// Build upload URL
-  String build(String api, ID sender,
-      {Uint8List? data, Uint8List? secret, String? enigma}) {
+  String build(String api, ID sender, {
+    required Uint8List data, required Uint8List secret, required String enigma
+  }) {
+    assert(data.isNotEmpty && secret.isNotEmpty && enigma.isNotEmpty, 'enigma'
+        ' params error: ${data.length}, ${secret.length}, $enigma');
     // build URL string with sender
     String urlString = api;
     urlString = Template.replace(urlString, 'ID', sender.address.toString());
-    if (data == null || secret == null || enigma == null) {
-      assert(data == null && secret == null && enigma == null, 'enigma'
-          ' params error: ${data?.length}, ${secret?.length}, $enigma');
-      return urlString;
-    } else {
-      assert(data.isNotEmpty && secret.isNotEmpty && enigma.isNotEmpty, 'enigma'
-          ' params error: ${data.length}, ${secret.length}, $enigma');
-    }
     // hash: md5(data + secret + salt)
     Uint8List salt = _EnigmaHelper.random(16);
     Uint8List temp = _EnigmaHelper.concat(data, secret, salt);
     Uint8List hash = MD5.digest(temp);
     urlString = Template.replace(urlString, 'MD5', Hex.encode(hash));
     urlString = Template.replace(urlString, 'SALT', Hex.encode(salt));
-    return _EnigmaHelper.replace(urlString, enigma);
+    return _EnigmaHelper.replaceEnigma(urlString, enigma);
   }
 
 }
@@ -210,17 +214,26 @@ abstract class _EnigmaHelper {
   }
 
   //
-  //  URL: "https://tfs.dim.chat/{ID}/upload?md5={MD5}&salt={SALT}&enigma=123456"
+  //  URL: "https://tfs.dim.chat/{ID}/upload?md5={MD5}&salt={SALT}&enigma={ENIGMA}"
   //
 
   /// Get enigma key from URL
-  static String? from(String url) =>
-      Template.getParams(url)['enigma'];
+  static String getEnigma(String url) {
+    String? enigma = Template.getQueryParam(url, 'enigma');
+    if (enigma == null || enigma == '{ENIGMA}') {
+      return '';
+    }
+    return enigma;
+  }
 
   /// Set enigma key into URL
   /// replace the tag 'enigma' with new key
-  static String replace(String url, String enigma) =>
-      Template.replace(url, 'ENIGMA', enigma);
+  static String replaceEnigma(String url, String enigma) {
+    if (url.contains('{ENIGMA}')) {
+      return Template.replace(url, 'ENIGMA', enigma);
+    }
+    return Template.replaceQueryParam(url, 'enigma', enigma);
+  }
 
   //
   //  Bytes

@@ -73,31 +73,21 @@ class FileUploader extends Runner implements Uploader {
   // private
   Future<int> removeTasks(UploadInfo params, String? response) async {
     int success = 0;
-    List<UploadTask> all = _tasks.toList();
-    UploadInfo? that;
-    for (UploadTask item in all) {
+    List<UploadTask> array = _tasks.toList();
+    for (UploadTask item in array) {
+      // 1. check params
       if (item.params != params) {
         continue;
       }
       try {
-        // try to process the task with same upload params (URL & form data)
+        // 2. process the task with same params (upload URL & form data)
         if (await item.prepare()) {
-          that = item.params;
-        } else {
-          that = null;
-        }
-        // check params
-        if (that == null) {
-          _tasks.remove(item);
-        } else if (that == params) {
-          assert(false, 'should not happen: $params');
           await item.process(response);
-          _tasks.remove(item);
-        } else {
-          assert(false, 'should not happen: $params, $that');
         }
+        // 3. remove this task from waiting queue
+        _tasks.remove(item);
       } catch (e, st) {
-        print('[HTTP] failed to handle: ${response?.length} bytes, $params, error: $e, $st');
+        print('[HTTP] failed to handle response: ${response?.length} bytes, $params, error: $e, $st');
       }
     }
     return success;
@@ -179,7 +169,9 @@ class FileUploader extends Runner implements Uploader {
       return null;
     }
     String? text = response.data;
-    assert(text is String, 'response text error: $response');
+    if (text == null || text.isEmpty) {
+      assert(false, 'response text error: $response');
+    }
     return text;
   }
 

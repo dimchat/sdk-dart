@@ -1,3 +1,7 @@
+## 1.1.0
+
+- UploadTask.
+
 ## 1.0.1
 
 - ProgressCallback.

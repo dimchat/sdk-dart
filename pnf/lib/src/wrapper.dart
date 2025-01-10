@@ -30,19 +30,46 @@
  */
 import 'dart:typed_data';
 
+import 'package:mkm/crypto.dart';
 import 'package:mkm/format.dart';
+import 'package:mkm/mkm.dart';
+
+import 'crypto/enigma.dart';
+import 'dos/paths.dart';
+import 'http/client.dart';
 
 import 'cache.dart';
+import 'external.dart';
 import 'helper.dart';
 
 
+abstract class NotificationNames {
+
+  static const String kPortableNetworkStatusChanged   = 'PNF_OnStatusChanged';
+
+  static const String kPortableNetworkSendProgress    = 'PNF_OnSendProgress';
+  static const String kPortableNetworkReceiveProgress = 'PNF_OnReceiveProgress';
+
+  static const String kPortableNetworkReceived        = 'PNF_OnReceived';
+  static const String kPortableNetworkDecrypted       = 'PNF_OnDecrypted';
+
+  static const String kPortableNetworkSuccess         = 'PNF_OnSuccess';
+
+  static const String kPortableNetworkError           = 'PNF_OnError';
+
+}
+
 enum PortableNetworkStatus {
-  init,
-  waiting,
-  downloading,
-  decrypting,
-  success,
-  error,
+  //                Upload | Download
+  //              ---------|---------
+  init,         //    0    |    0
+  encrypting,   //    1    |
+  waiting,      //    2    |    1
+  uploading,    //    3    |
+  downloading,  //         |    2
+  decrypting,   //         |    3
+  success,      //    4    |    4
+  error,        //    -    |    -
 }
 
 
@@ -78,6 +105,33 @@ abstract class PortableNetworkWrapper {
     }
   }
 
+  /// "{caches}/files/{AA}/{BB}/{filename}"
+  Future<String?> get cacheFilePath async {
+    String? name = pnf.filename;
+    if (name == null) {
+      assert(false, 'PNF error: $pnf');
+      return null;
+    }
+    assert(URLHelper.isFilenameEncoded(name), 'filename error: $name, $pnf');
+    return await fileCache.getCacheFilePath(name);
+  }
+
+  // protected
+  Future<Uint8List?> get fileData async {
+    Uint8List? data = pnf.data;
+    if (data == null || data.isEmpty) {
+      // get from local storage
+      String? cachePath = await cacheFilePath;
+      if (cachePath != null && await Paths.exists(cachePath)) {
+        data = await ExternalStorage.loadBinary(cachePath);
+      }
+    }
+    return data;
+  }
+
+  /// local file cache
+  FileCache get fileCache;
+
   ///  Post a notification with extra info
   ///
   /// @param name   - notification name
@@ -85,22 +139,26 @@ abstract class PortableNetworkWrapper {
   /// @param info   - extra info
   Future<void> postNotification(String name, [Map? info]);
 
-  /// local file cache
-  FileCache get fileCache;
+}
 
-  /// "{caches}/files/{AA}/{BB}/{filename}"
-  Future<String?> get cacheFilePath async {
-    String? name = cacheFilename;
-    if (name == null || name.isEmpty) {
+
+mixin DownloadMixin on PortableNetworkWrapper {
+
+  // protected
+  String? get encryptedFilename {
+    String? name = pnf.filename;
+    // get name from URL
+    Uri? url = pnf.url;
+    if (url == null) {
       assert(false, 'PNF error: $pnf');
       return null;
     }
-    return await fileCache.getCacheFilePath(name);
+    return URLHelper.filenameFromURL(url, name);
   }
 
   /// "{tmp}/upload/{filename}"
   Future<String?> get uploadFilePath async {
-    String? name = temporaryFilename;
+    String? name = encryptedFilename;
     if (name == null || name.isEmpty) {
       assert(false, 'PNF error: $pnf');
       return null;
@@ -110,7 +168,7 @@ abstract class PortableNetworkWrapper {
 
   /// "{tmp}/download/{filename}"
   Future<String?> get downloadFilePath async {
-    String? name = temporaryFilename;
+    String? name = encryptedFilename;
     if (name == null || name.isEmpty) {
       assert(false, 'PNF error: $pnf');
       return null;
@@ -118,50 +176,99 @@ abstract class PortableNetworkWrapper {
     return await fileCache.getDownloadFilePath(name);
   }
 
-  /// original filename
-  String? get cacheFilename {
-    String? name = pnf.filename;
-    // get name from PNF
-    if (name != null && URLHelper.isFilenameEncoded(name)) {
-      return name;
-    } else {
-      // this file must be not encrypted
-      var pwd = pnf.password;
-      assert(pwd == null || pwd.algorithm == 'PLAIN', 'PNF error: $pnf');
-    }
-    Uri? url = pnf.url;
-    if (url != null) {
-      return URLHelper.filenameFromURL(url, name);
-    }
-    assert(name != null && name.isNotEmpty, 'PNF error: $pnf');
-    return name;
-  }
-
-  /// encrypted filename
-  String? get temporaryFilename {
-    String? name = pnf.filename;
-    // get name from URL
-    Uri? url = pnf.url;
-    if (url != null) {
-      return URLHelper.filenameFromURL(url, name);
-    }
-    assert(name != null && name.isNotEmpty, 'PNF error: $pnf');
-    return name;
-  }
-
 }
 
 
-abstract class NotificationNames {
+mixin UploadMixin on PortableNetworkWrapper {
 
-  static const String kPortableNetworkStatusChanged = 'PNF_OnStatusChanged';
+  // protected
+  Enigma get enigma;
 
-  static const String kPortableNetworkReceiveProgress = 'PNF_OnReceiveProgress';
+  // protected
+  String? get encryptedFilename {
+    Map? extra = pnf['enigma'];
+    return extra?['filename'];
+  }
 
-  static const String kPortableNetworkReceived = 'PNF_OnReceived';
-  static const String kPortableNetworkDecrypted = 'PNF_OnDecrypted';
-  static const String kPortableNetworkSuccess = 'PNF_OnSuccess';
+  /// "{tmp}/upload/{filename}"
+  Future<String?> get uploadFilePath async {
+    String? name = encryptedFilename;
+    if (name == null || name.isEmpty) {
+      // assert(false, 'PNF error: $pnf');
+      return null;
+    }
+    return await fileCache.getUploadFilePath(name);
+  }
 
-  static const String kPortableNetworkError = 'PNF_OnError';
+  /// "{tmp}/upload/{filename}"
+  Future<String> buildUploadFilePath(String filename) async =>
+      await fileCache.getUploadFilePath(filename);
+
+  String buildFilename(Uint8List data, String name) =>
+      URLHelper.filenameFromData(data, name);
+
+  /// API -> URL
+  Uri? buildUploadURL(Uint8List data) {
+    //
+    //  0. check cached value
+    //
+    Map? extra = pnf['enigma'];
+    if (extra == null) {
+      return null;
+    }
+    String? url = extra['URL'];
+    if (url != null) {
+      return HTTPClient.parseURL(url);
+    }
+    //
+    //  1. get extra info for enigma
+    //
+    String? api = extra['API'];
+    ID? sender = ID.parse(extra['sender']);
+    if (api == null || sender == null) {
+      assert(false, 'upload info error: $pnf');
+      return null;
+    } else if (api.isEmpty || data.isEmpty) {
+      assert(false, 'upload info error: $pnf');
+      return null;
+    }
+    //
+    //  2. fet secret key
+    //
+    var pair = enigma.fetch(api);
+    String? prefix = pair?.first;
+    Uint8List? secret = pair?.second;
+    if (prefix == null || secret == null) {
+      assert(false, 'failed to fetch enigma: $api, $enigma');
+      return null;
+    } else if (prefix.isEmpty || secret.isEmpty) {
+      assert(false, 'enigma error: $api, $enigma');
+      return null;
+    }
+    //
+    //  3. build upload URL
+    //
+    url = enigma.build(api,
+      sender, data: data, secret: secret, enigma: prefix,
+    );
+    Uri? remote = HTTPClient.parseURL(url);
+    if (remote != null) {
+      extra['URL'] = url;
+    }
+    return remote;
+  }
+
+  // protected
+  SymmetricKey get password {
+    dynamic pwd = pnf.password;
+    if (pwd is SymmetricKey) {
+      // reuse old key
+      return pwd;
+    }
+    // generate new key
+    pwd = SymmetricKey.generate(SymmetricKey.AES);
+    pnf.password = pwd;
+    return pwd;
+  }
 
 }

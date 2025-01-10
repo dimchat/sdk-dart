@@ -49,14 +49,14 @@ class HTTPClient {
     FormData? data,
     Options? options,
     ProgressCallback? onSendProgress,
-    ProgressCallback? onReceiveProgress,
+    // ProgressCallback? onReceiveProgress,
   }) async {
     try {
       return await Dio().postUri<T>(url,
         data: data,
         options: options,
         onSendProgress: onSendProgress,
-        onReceiveProgress: onReceiveProgress,
+        // onReceiveProgress: onReceiveProgress,
       ).onError((error, stackTrace) {
         print('[DIO] failed to upload ${data?.files.length} file(s), ${data?.length} bytes'
             ' => "$url" error: $error, $stackTrace');
@@ -68,16 +68,6 @@ class HTTPClient {
       return null;
     }
   }
-
-  FormData buildFormData(String key, MultipartFile file) => FormData.fromMap({
-    key: file,
-  });
-
-  MultipartFile buildMultipartFile(String filename, Uint8List data) => MultipartFile.fromBytes(
-    data,
-    filename: filename,
-    // contentType: MediaType.parse('application/octet-stream'),
-  );
 
   Options uploadOptions(ResponseType responseType) => Options(
     responseType: responseType,
@@ -115,7 +105,33 @@ class HTTPClient {
     },
   );
 
-  int? getContentLength(Response response) {
+  //
+  //  Utils
+  //
+
+  static Uri? parseURL(String? url, [int start = 0, int? end]) {
+    if (url == null) {
+      return null;
+    }
+    try {
+      return Uri.parse(url, start, end);
+    } catch (e, st) {
+      print('[HTTP] url error: $url, $e, $st');
+      return null;
+    }
+  }
+
+  static FormData buildFormData(String key, MultipartFile file) => FormData.fromMap({
+    key: file,
+  });
+
+  static MultipartFile buildMultipartFile(String filename, Uint8List data) => MultipartFile.fromBytes(
+    data,
+    filename: filename,
+    // contentType: MediaType.parse('application/octet-stream'),
+  );
+
+  static int? getContentLength(Response response) {
     String? value = response.headers.value(Headers.contentLengthHeader);
     return Converter.getInt(value, null);
   }

@@ -75,32 +75,21 @@ class FileDownloader extends Runner implements Downloader {
   // private
   Future<int> removeTasks(DownloadInfo params, Uint8List downData) async {
     int success = 0;
-    List<DownloadTask> all = _tasks.toList();
-    DownloadInfo? that;
-    for (DownloadTask item in all) {
+    List<DownloadTask> array = _tasks.toList();
+    for (DownloadTask item in array) {
+      // 1. check params
       if (item.params != params) {
         continue;
       }
       try {
-        // try to process the task with same download params (URL)
+        // 2. process the task with same params (download URL)
         if (await item.prepare()) {
-          that = item.params;
-        } else {
-          // cached file found?
-          that = null;
-        }
-        // check params
-        if (that == null) {
-          _tasks.remove(item);
-        } else if (that == params) {
-          assert(false, 'should not happen: $params');
           await item.process(downData);
-          _tasks.remove(item);
-        } else {
-          assert(false, 'should not happen: $params, $that');
         }
+        // 3. remove this task from waiting queue
+        _tasks.remove(item);
       } catch (e, st) {
-        print('[HTTP] failed to handle: ${downData.length} bytes, $params, error: $e, $st');
+        print('[HTTP] failed to handle data: ${downData.length} bytes, $params, error: $e, $st');
       }
     }
     return success;
@@ -165,7 +154,9 @@ class FileDownloader extends Runner implements Downloader {
   }
 
   /// Download file data from URL
-  Future<Uint8List?> download(Uri url, {ProgressCallback? onReceiveProgress}) async {
+  Future<Uint8List?> download(Uri url, {
+    ProgressCallback? onReceiveProgress,
+  }) async {
     var options = client.downloadOptions(ResponseType.bytes);
     Response<Uint8List>? response = await client.download(url,
       options: options,
@@ -176,7 +167,7 @@ class FileDownloader extends Runner implements Downloader {
       assert(false, 'failed to download $url, status: $statusCode - ${response?.statusMessage}');
       return null;
     }
-    int? contentLength = client.getContentLength(response);
+    int? contentLength = HTTPClient.getContentLength(response);
     Uint8List? data = response.data;
     if (data == null) {
       assert(contentLength == 0, 'content length error: $contentLength');

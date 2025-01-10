@@ -39,12 +39,13 @@ import 'external.dart';
 import 'wrapper.dart';
 
 
-abstract class PortableNetworkLoader extends PortableNetworkWrapper implements DownloadTask {
+abstract class PortableNetworkLoader extends PortableNetworkWrapper
+    with DownloadMixin implements DownloadTask {
+
   PortableNetworkLoader(super.pnf);
 
-  /// file content received
-  Uint8List? _bytes;
-  Uint8List? get content => _bytes;
+  /// file content received (and decrypted)
+  Uint8List? _plaintext;  // original file content
 
   /// count of bytes received
   int _count = 0;
@@ -60,7 +61,7 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper implements D
   DownloadInfo? get params {
     var info = _info;
     if (info == null) {
-      Uri? url = pnf.url;
+      var url = pnf.url;
       if (url != null) {
         info = DownloadInfo(url);
         _info = info;
@@ -76,21 +77,22 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper implements D
     DecryptKey? password = pnf.password;
     if (password == null) {
       // password not found, means the data is not encrypted
-      _bytes = data;
+      _plaintext = data;
     } else {
       await setStatus(PortableNetworkStatus.decrypting);
       // try to decrypt with password
       Uint8List? plaintext = password.decrypt(data, pnf);
       if (plaintext == null || plaintext.isEmpty) {
         await postNotification(NotificationNames.kPortableNetworkError, {
-          'URL': params?.url,
+          'PNF': pnf,
+          'URL': pnf.url,
           'error': 'Failed to decrypt data',
         });
         await setStatus(PortableNetworkStatus.error);
         return null;
       }
       data = plaintext;
-      _bytes = plaintext;
+      _plaintext = plaintext;
     }
     //
     //  2. save original file content
@@ -103,13 +105,15 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper implements D
     }
     if (status == PortableNetworkStatus.decrypting) {
       await postNotification(NotificationNames.kPortableNetworkDecrypted, {
-        'URL': params?.url,
+        'PNF': pnf,
+        'URL': pnf.url,
         'data': data,
         'path': cachePath,
       });
     }
     await postNotification(NotificationNames.kPortableNetworkSuccess, {
-      'URL': params?.url,
+      'PNF': pnf,
+      'URL': pnf.url,
       'data': data,
     });
     await setStatus(PortableNetworkStatus.success);
@@ -117,7 +121,7 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper implements D
   }
 
   //
-  //  DownloadTask
+  //  Download Task
   //
 
   @override
@@ -127,28 +131,20 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper implements D
     //
     //  0. check file content
     //
-    Uint8List? data = _bytes;
+    Uint8List? data = _plaintext;
+    if (data == null) {
+      data = await fileData;
+      _plaintext = data;
+    }
     if (data != null && data.isNotEmpty) {
       // data already loaded
       await postNotification(NotificationNames.kPortableNetworkSuccess, {
-        'URL': params?.url,
+        'PNF': pnf,
+        'URL': pnf.url,
         'data': data,
       });
       await setStatus(PortableNetworkStatus.success);
       return false;
-    } else {
-      data = pnf.data;
-      if (data != null && data.isNotEmpty) {
-        assert(pnf.url == null, 'PNF error: $pnf');
-        // assert(status == PortableNetworkStatus.init, 'PNF status: $_status');
-        _bytes = data;
-        await postNotification(NotificationNames.kPortableNetworkSuccess, {
-          // 'URL': pnf.url,
-          'data': data,
-        });
-        await setStatus(PortableNetworkStatus.success);
-        return false;
-      }
     }
     //
     //  1. check cached file
@@ -158,20 +154,6 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper implements D
       await setStatus(PortableNetworkStatus.error);
       assert(false, 'failed to get cache file path');
       return false;
-    }
-    // try to load cached file
-    if (await Paths.exists(cachePath)) {
-      data = await ExternalStorage.loadBinary(cachePath);
-      if (data != null && data.isNotEmpty) {
-        // data loaded from cached file
-        _bytes = data;
-        await postNotification(NotificationNames.kPortableNetworkSuccess, {
-          'URL': params?.url,
-          'data': data,
-        });
-        await setStatus(PortableNetworkStatus.success);
-        return false;
-      }
     }
     //
     //  2. check temporary file
@@ -204,7 +186,7 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper implements D
     //
     //  3. get remote URL
     //
-    Uri? url = params?.url;
+    Uri? url = pnf.url;
     if (url == null) {
       await setStatus(PortableNetworkStatus.error);
       assert(false, 'URL not found: $pnf');
@@ -220,7 +202,8 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper implements D
     _count = count;
     _total = total;
     await postNotification(NotificationNames.kPortableNetworkReceiveProgress, {
-      'URL': params?.url,
+      'PNF': pnf,
+      'URL': pnf.url,
       'count': count,
       'total': total,
     });
@@ -234,7 +217,8 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper implements D
     //
     if (data == null || data.isEmpty) {
       await postNotification(NotificationNames.kPortableNetworkError, {
-        'URL': params?.url,
+        'PNF': pnf,
+        'URL': pnf.url,
         'error': 'Failed to download file',
       });
       await setStatus(PortableNetworkStatus.error);
@@ -256,7 +240,8 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper implements D
       return;
     }
     await postNotification(NotificationNames.kPortableNetworkReceived, {
-      'URL': params?.url,
+      'PNF': pnf,
+      'URL': pnf.url,
       'data': data,
       'path': tmpPath,
     });

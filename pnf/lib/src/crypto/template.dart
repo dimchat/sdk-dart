@@ -62,7 +62,24 @@ abstract class Template {
     return text;
   }
 
-  static Map<String, String> getParams(String url) {
+  static String? getQueryParam(String url, String key) {
+    // cut head & tail
+    String text = getQueryString(url);
+    // split query pairs
+    List<String> pairs = text.split('&');
+    int pos;
+    for (String item in pairs) {
+      pos = item.indexOf('=');
+      // check key
+      if (pos > 0 && item.substring(0, pos) == key) {
+        // key matched, decode value
+        return Uri.decodeComponent(item.substring(pos + 1));
+      }
+    }
+    return null;
+  }
+
+  static Map<String, String> getQueryParams(String url) {
     Map<String, String> params = {};
     // cut head & tail
     String text = getQueryString(url);
@@ -75,10 +92,52 @@ abstract class Template {
       if (pos > 0) {
         key = item.substring(0, pos);
         value = item.substring(pos + 1);
-        params[key] = value;
+        params[key] = Uri.decodeComponent(value);
       }
     }
     return params;
+  }
+
+  static String replaceQueryParam(String url, String key, String value) {
+    // seeking '?key='
+    int pos = url.indexOf('?$key=');
+    if (pos < 0) {
+      // seeking '&key='
+      pos = url.indexOf('&$key=');
+    }
+    if (pos > 0) {
+      // param found, update its value
+      return _updateValue(url, pos + 2 + key.length, value);
+    }
+    // param not exists,
+    // append a new one to the tail
+    String param = url.contains('?') ? '&$key=$value' : '?$key=$value';
+    pos = url.indexOf('#');
+    if (pos < 0) {
+      return '$url$param';
+    }
+    String prefix = url.substring(0, pos);
+    String suffix = url.substring(pos);
+    return '$prefix$param$suffix';
+  }
+  static String _updateValue(String url, int start, String value) {
+    String prefix, suffix;
+    int end;
+    if (start < url.length) {
+      prefix = url.substring(0, start);
+      end = url.indexOf('&', start);
+      if (end < 0) {
+        end = url.indexOf('#');
+      }
+    } else {
+      prefix = url;
+      end = -1;
+    }
+    if (end < 0) {
+      return '$prefix$value';
+    }
+    suffix = url.substring(end);
+    return '$prefix$value$suffix';
   }
 
 }
