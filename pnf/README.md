@@ -19,11 +19,13 @@
 * FileCache
 * PortableNetworkWrapper
 * PortableNetworkLoader
+* PortableNetworkUpper
 
 ## HTTP
 
 * HTTPClient
 * FileDownloader
+* FileUploader
 * FileTransfer
 
 ## Crypto

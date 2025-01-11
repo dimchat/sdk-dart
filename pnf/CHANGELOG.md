@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Handle upload/download tasks.
+
 ## 1.1.0
 
 - UploadTask.

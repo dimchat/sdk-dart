@@ -141,6 +141,8 @@ class Enigma {
   }
 
   /// Build upload URL
+  /// ~~~~~~~~~~~~~~~~
+  /// hash algorithm: md5(md5(data) + secret + salt)
   String build(String api, ID sender, {
     required Uint8List data, required Uint8List secret, required String enigma
   }) {
@@ -149,9 +151,9 @@ class Enigma {
     // build URL string with sender
     String urlString = api;
     urlString = Template.replace(urlString, 'ID', sender.address.toString());
-    // hash: md5(data + secret + salt)
+    // hash: md5(md5(data) + secret + salt)
     Uint8List salt = _EnigmaHelper.random(16);
-    Uint8List temp = _EnigmaHelper.concat(data, secret, salt);
+    Uint8List temp = _EnigmaHelper.concat(MD5.digest(data), secret, salt);
     Uint8List hash = MD5.digest(temp);
     urlString = Template.replace(urlString, 'MD5', Hex.encode(hash));
     urlString = Template.replace(urlString, 'SALT', Hex.encode(salt));

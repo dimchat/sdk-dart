@@ -46,6 +46,7 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper
 
   /// file content received (and decrypted)
   Uint8List? _plaintext;  // original file content
+  Uint8List? get plaintext => _plaintext;
 
   /// count of bytes received
   int _count = 0;
@@ -58,7 +59,7 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper
   DownloadInfo? _info;
 
   @override
-  DownloadInfo? get params {
+  DownloadInfo? get downloadParams {
     var info = _info;
     if (info == null) {
       var url = pnf.url;
@@ -103,6 +104,9 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper
       await setStatus(PortableNetworkStatus.error);
       return null;
     }
+    //
+    //  3. report success
+    //
     if (status == PortableNetworkStatus.decrypting) {
       await postNotification(NotificationNames.kPortableNetworkDecrypted, {
         'PNF': pnf,
@@ -111,10 +115,11 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper
         'path': cachePath,
       });
     }
-    await postNotification(NotificationNames.kPortableNetworkSuccess, {
+    await postNotification(NotificationNames.kPortableNetworkDownloadSuccess, {
       'PNF': pnf,
       'URL': pnf.url,
       'data': data,
+      'path': cachePath,
     });
     await setStatus(PortableNetworkStatus.success);
     return data;
@@ -125,7 +130,7 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper
   //
 
   @override
-  Future<bool> prepare() async {
+  Future<bool> prepareDownload() async {
     // await setStatus(PortableNetworkStatus.init);
 
     //
@@ -138,7 +143,7 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper
     }
     if (data != null && data.isNotEmpty) {
       // data already loaded
-      await postNotification(NotificationNames.kPortableNetworkSuccess, {
+      await postNotification(NotificationNames.kPortableNetworkDownloadSuccess, {
         'PNF': pnf,
         'URL': pnf.url,
         'data': data,
@@ -198,7 +203,7 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper
   }
 
   @override
-  Future<void> progress(int count, int total) async {
+  Future<void> downloadProgress(int count, int total) async {
     _count = count;
     _total = total;
     await postNotification(NotificationNames.kPortableNetworkReceiveProgress, {
@@ -211,7 +216,7 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper
   }
 
   @override
-  Future<void> process(Uint8List? data) async {
+  Future<void> processResponse(Uint8List? data) async {
     //
     //  0. check data
     //

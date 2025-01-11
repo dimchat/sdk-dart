@@ -50,10 +50,13 @@ abstract class NotificationNames {
   static const String kPortableNetworkSendProgress    = 'PNF_OnSendProgress';
   static const String kPortableNetworkReceiveProgress = 'PNF_OnReceiveProgress';
 
+  static const String kPortableNetworkEncrypted       = 'PNF_OnEncrypted';
+
   static const String kPortableNetworkReceived        = 'PNF_OnReceived';
   static const String kPortableNetworkDecrypted       = 'PNF_OnDecrypted';
 
-  static const String kPortableNetworkSuccess         = 'PNF_OnSuccess';
+  static const String kPortableNetworkUploadSuccess   = 'PNF_OnUploadSuccess';
+  static const String kPortableNetworkDownloadSuccess = 'PNF_OnDownloadSuccess';
 
   static const String kPortableNetworkError           = 'PNF_OnError';
 
@@ -98,6 +101,7 @@ abstract class PortableNetworkWrapper {
     _status = current;
     if (previous != current) {
       await postNotification(NotificationNames.kPortableNetworkStatusChanged, {
+        'PNF': pnf,
         'URL': pnf.url,
         'previous': previous,
         'current': current,
@@ -107,7 +111,7 @@ abstract class PortableNetworkWrapper {
 
   /// "{caches}/files/{AA}/{BB}/{filename}"
   Future<String?> get cacheFilePath async {
-    String? name = pnf.filename;
+    String? name = filename;
     if (name == null) {
       assert(false, 'PNF error: $pnf');
       return null;
@@ -115,6 +119,8 @@ abstract class PortableNetworkWrapper {
     assert(URLHelper.isFilenameEncoded(name), 'filename error: $name, $pnf');
     return await fileCache.getCacheFilePath(name);
   }
+
+  String? get filename;
 
   // protected
   Future<Uint8List?> get fileData async {
@@ -143,6 +149,16 @@ abstract class PortableNetworkWrapper {
 
 
 mixin DownloadMixin on PortableNetworkWrapper {
+
+  @override
+  String? get filename {
+    Uri? url = pnf.url;
+    String? name = pnf.filename;
+    if (name != null || url == null) {
+      return name;
+    }
+    return URLHelper.filenameFromURL(url, null);
+  }
 
   // protected
   String? get encryptedFilename {
@@ -183,6 +199,9 @@ mixin UploadMixin on PortableNetworkWrapper {
 
   // protected
   Enigma get enigma;
+
+  @override
+  String? get filename => pnf.filename;
 
   // protected
   String? get encryptedFilename {

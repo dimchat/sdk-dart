@@ -71,13 +71,15 @@ abstract class PortableNetworkUpper extends PortableNetworkWrapper
   int get count => _count;
 
   /// total bytes uploading
-  int get total => _ciphertext?.length ?? 0;
+  int _total = 0;
+  int get total => _total;
+  // int get total => _ciphertext?.length ?? 0;
 
   Uri? _uploadAPI;
   UploadInfo? _info;
 
   @override
-  UploadInfo? get params {
+  UploadInfo? get uploadParams {
     var info = _info;
     if (info == null) {
       var form = formData;
@@ -117,7 +119,7 @@ abstract class PortableNetworkUpper extends PortableNetworkWrapper
   }
 
   // protected
-  Future<Uint8List?> get content async {
+  Future<Uint8List?> get plaintext async {
     Uint8List? data = _plaintext;
     if (data == null) {
       data = await fileData;
@@ -144,7 +146,7 @@ abstract class PortableNetworkUpper extends PortableNetworkWrapper
   //
 
   @override
-  Future<bool> prepare() async {
+  Future<bool> prepareUpload() async {
     // await setStatus(PortableNetworkStatus.init);
 
     //
@@ -163,7 +165,7 @@ abstract class PortableNetworkUpper extends PortableNetworkWrapper
       }
       assert(data == null, 'file content error: $pnf');
       // assert(pnf.password != null, 'should not happen');
-      await postNotification(NotificationNames.kPortableNetworkSuccess, {
+      await postNotification(NotificationNames.kPortableNetworkUploadSuccess, {
         'PNF': pnf,
         'URL': downloadURL,
         'data': data,
@@ -196,15 +198,14 @@ abstract class PortableNetworkUpper extends PortableNetworkWrapper
     //  2. encrypt file content
     //
     filename = pnf.filename;
-    Uint8List? plaintext = await content;
-    if (filename == null || filename.isEmpty ||
-        plaintext == null || plaintext.isEmpty) {
+    data = await plaintext;
+    if (filename == null || filename.isEmpty || data == null || data.isEmpty) {
       await setStatus(PortableNetworkStatus.error);
       assert(false, 'failed to get file: $filename');
       return false;
     }
     await setStatus(PortableNetworkStatus.encrypting);
-    Uint8List ciphertext = password.encrypt(plaintext, pnf.toMap());
+    Uint8List ciphertext = password.encrypt(data, pnf.toMap());
     //
     //  3. save encrypted data
     //
@@ -215,21 +216,26 @@ abstract class PortableNetworkUpper extends PortableNetworkWrapper
       assert(false, 'failed to cache upload file: $cnt/${ciphertext.length}, $path');
       await setStatus(PortableNetworkStatus.error);
       return false;
-    } else {
-      _ciphertext = ciphertext;
-      extra['filename'] = filename;
-      // OK, waiting to upload
-      await setStatus(PortableNetworkStatus.waiting);
-      return true;
     }
+    // encrypted data cached, waiting to upload
+    _ciphertext = ciphertext;
+    extra['filename'] = filename;
+    await postNotification(NotificationNames.kPortableNetworkEncrypted, {
+      'PNF': pnf,
+      'path': path,
+      'data': ciphertext,
+    });
+    await setStatus(PortableNetworkStatus.waiting);
+    return true;
   }
 
   @override
-  Future<void> progress(int count, int total) async {
+  Future<void> uploadProgress(int count, int total) async {
     _count = count;
-    assert(this.total == total, 'upload length error: $count/$total, ${this.total}');
+    _total = total;
+    // assert(this.total == total, 'upload length error: $count/$total, ${this.total}');
     await postNotification(NotificationNames.kPortableNetworkSendProgress, {
-      'pnf': pnf,
+      'PNF': pnf,
       'count': count,
       'total': total,
     });
@@ -237,7 +243,7 @@ abstract class PortableNetworkUpper extends PortableNetworkWrapper
   }
 
   @override
-  Future<void> process(String? response) async {
+  Future<void> processResponse(String? response) async {
     //
     //  0. check response
     //
@@ -287,7 +293,7 @@ abstract class PortableNetworkUpper extends PortableNetworkWrapper
     if (extra != null) {
       pnf.remove('enigma');
     }
-    await postNotification(NotificationNames.kPortableNetworkSuccess, {
+    await postNotification(NotificationNames.kPortableNetworkUploadSuccess, {
       'PNF': pnf,
       'URL': downloadURL,
       'data': data,

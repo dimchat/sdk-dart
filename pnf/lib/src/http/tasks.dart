@@ -66,18 +66,18 @@ class DownloadInfo {
 abstract interface class DownloadTask {
 
   /// Remote URL
-  DownloadInfo? get params;
+  DownloadInfo? get downloadParams;
 
   /// Prepare the task
   ///
   /// @return false when cached file found
-  Future<bool> prepare();
+  Future<bool> prepareDownload();
 
   /// Callback when downloading
-  Future<void> progress(int count, int total);
+  Future<void> downloadProgress(int count, int total);
 
   /// Callback when download completed or failed
-  Future<void> process(Uint8List? data);
+  Future<void> processResponse(Uint8List? data);
 
 }
 
@@ -197,16 +197,16 @@ abstract interface class _FormUtils {
 abstract interface class UploadTask {
 
   /// Remote URL & form data
-  UploadInfo? get params;
+  UploadInfo? get uploadParams;
 
   /// Prepare the task
   ///
   /// @return false when same task done
-  Future<bool> prepare();
+  Future<bool> prepareUpload();
 
   /// Callback when uploading
-  Future<void> progress(int count, int total);
+  Future<void> uploadProgress(int count, int total);
 
   /// Callback when upload completed or failed
-  Future<void> process(String? response);
+  Future<void> processResponse(String? response);
 }
