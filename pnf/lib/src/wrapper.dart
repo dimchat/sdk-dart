@@ -122,18 +122,7 @@ abstract class PortableNetworkWrapper {
 
   String? get filename;
 
-  // protected
-  Future<Uint8List?> get fileData async {
-    Uint8List? data = pnf.data;
-    if (data == null || data.isEmpty) {
-      // get from local storage
-      String? cachePath = await cacheFilePath;
-      if (cachePath != null && await Paths.exists(cachePath)) {
-        data = await ExternalStorage.loadBinary(cachePath);
-      }
-    }
-    return data;
-  }
+  Future<Uint8List?> get fileData;
 
   /// local file cache
   FileCache get fileCache;
@@ -158,6 +147,19 @@ mixin DownloadMixin on PortableNetworkWrapper {
       return name;
     }
     return URLHelper.filenameFromURL(url, null);
+  }
+
+  @override
+  Future<Uint8List?> get fileData async {
+    Uint8List? data = pnf.data;
+    if (data == null || data.isEmpty) {
+      // get from local storage
+      String? path = await cacheFilePath;
+      if (path != null && await Paths.exists(path)) {
+        data = await ExternalStorage.loadBinary(path);
+      }
+    }
+    return data;
   }
 
   // protected
@@ -202,6 +204,30 @@ mixin UploadMixin on PortableNetworkWrapper {
 
   @override
   String? get filename => pnf.filename;
+
+  @override
+  Future<Uint8List?> get fileData async {
+    String? path = await cacheFilePath;
+    Uint8List? data = pnf.data;
+    if (data == null || data.isEmpty) {
+      // get from local storage
+      if (path != null && await Paths.exists(path)) {
+        data = await ExternalStorage.loadBinary(path);
+      }
+    } else if (path == null) {
+      assert(false, 'failed to get file path: $pnf');
+    } else {
+      // save to local storage
+      int cnt = await ExternalStorage.saveBinary(data, path);
+      if (cnt == data.length) {
+        // data saved, remove from message content
+        pnf.data = null;
+      } else {
+        assert(false, 'failed to save data: $path');
+      }
+    }
+    return data;
+  }
 
   // protected
   String? get encryptedFilename {
