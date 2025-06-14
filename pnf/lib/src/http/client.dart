@@ -36,6 +36,9 @@ import 'package:mkm/type.dart';
 
 /// Simple HTTP Client for upload/download files
 class HTTPClient {
+  HTTPClient(this.baseOptions);
+
+  final BaseOptions? baseOptions;
 
   String userAgent = 'DIMP/1.0 (Linux; U; Android 4.1; zh-CN)'
       ' DIMCoreKit/1.0 (Terminal, like WeChat)'
@@ -52,7 +55,7 @@ class HTTPClient {
     // ProgressCallback? onReceiveProgress,
   }) async {
     try {
-      return await Dio().postUri<T>(url,
+      return await Dio(baseOptions).postUri<T>(url,
         data: data,
         options: options,
         onSendProgress: onSendProgress,
@@ -85,7 +88,7 @@ class HTTPClient {
     ProgressCallback? onReceiveProgress,
   }) async {
     try {
-      return await Dio().getUri<D>(url,
+      return await Dio(baseOptions).getUri<D>(url,
         options: options,
         onReceiveProgress: onReceiveProgress,
       ).onError((error, stackTrace) {

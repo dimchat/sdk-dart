@@ -1,3 +1,7 @@
+## 1.2.0
+
+- DownloadQueue
+
 ## 1.1.1
 
 - Handle upload/download tasks.

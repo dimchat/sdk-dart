@@ -62,8 +62,20 @@ class DownloadInfo {
 
 }
 
+class DownloadPriority {
+  // ignore_for_file: constant_identifier_names
+
+  static const int URGENT = -1;
+  static const int NORMAL =  0;
+  static const int SLOWER =  1;
+
+}
+
 /// HTTP Task
 abstract interface class DownloadTask {
+
+  /// Smaller is faster
+  int get priority;
 
   /// Remote URL
   DownloadInfo? get downloadParams;

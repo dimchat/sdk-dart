@@ -31,10 +31,10 @@
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:object_key/object_key.dart';
 import 'package:startrek/skywalker.dart';
 
 import 'client.dart';
+import 'queue.dart';
 import 'tasks.dart';
 
 
@@ -50,74 +50,58 @@ abstract interface class Downloader {
 }
 
 
-class FileDownloader extends Runner implements Downloader {
-  FileDownloader(this.client) : super(Runner.INTERVAL_SLOW * 4);
+class FileDownloader implements Downloader {
+  FileDownloader(this.client);
 
   final HTTPClient client;
 
-  final List<DownloadTask> _tasks = WeakList();
+  final DownloadQueue queue = DownloadQueue();
+  final List<Spider> spiders = [];
 
   @override
   Future<bool> addTask(DownloadTask task) async {
     var waiting = await task.prepareDownload();
     if (waiting) {
-      _tasks.add(task);
+      queue.addTask(task);
     }
     return waiting;
   }
-  // private
-  DownloadTask? getTask() {
-    if (_tasks.isNotEmpty) {
-      return _tasks.removeAt(0);
-    }
-    return null;
+
+  /// get next task
+  DownloadTask? getTask(int maxPriority) => queue.nextTask(maxPriority);
+
+  /// finish same tasks
+  Future<int> removeTasks(DownloadInfo params, Uint8List? downData) async =>
+      await queue.removeTasks(params, downData);
+
+  void setup() {
+    spiders.add(Spider(priority: DownloadPriority.URGENT, downloader: this));
+    spiders.add(Spider(priority: DownloadPriority.NORMAL, downloader: this));
+    spiders.add(Spider(priority: DownloadPriority.SLOWER, downloader: this));
   }
-  // private
-  Future<int> removeTasks(DownloadInfo params, Uint8List? downData) async {
-    int success = 0;
-    List<DownloadTask> array = _tasks.toList();
-    for (DownloadTask item in array) {
-      // 1. check params
-      if (item.downloadParams != params) {
-        continue;
-      }
-      try {
-        // 2. process the task with same params (download URL)
-        if (await item.prepareDownload()) {
-          await item.processResponse(downData);
-        }
-        success += 1;
-      } catch (e, st) {
-        print('[HTTP] failed to handle data: ${downData?.length} bytes, $params, error: $e, $st');
-      }
-      // 3. remove this task from waiting queue
-      _tasks.remove(item);
+
+  void run() {
+    for (var worker in spiders) {
+      /*await */worker.run();
     }
-    return success;
   }
+
+  // void finish() {
+  //   for (var worker in spiders) {
+  //     /*await */worker.finish();
+  //   }
+  // }
+  //
+  // void stop() {
+  //   for (var worker in spiders) {
+  //     /*await */worker.stop();
+  //   }
+  // }
 
   @override
   void start() {
-    /*await */run();
-  }
-
-  @override
-  Future<bool> process() async {
-    // get next task
-    DownloadTask? next = getTask();
-    if (next == null) {
-      // nothing to do now, return false to have a rest.
-      return false;
-    }
-    // try to process next task
-    try {
-      await handleDownloadTask(next);
-    } catch (e, st) {
-      print('[HTTP] failed to process upload task: $e, $next, $st');
-      return false;
-    }
-    // OK, return true to next loop immediately
-    return true;
+    setup();
+    run();
   }
 
   /// Download synchronously
@@ -166,6 +150,44 @@ class FileDownloader extends Runner implements Downloader {
       assert(false, 'content length not match: $contentLength, ${data.length}');
     }
     return data;
+  }
+
+}
+
+
+class Spider extends Runner {
+  Spider({
+    required this.priority,
+    required FileDownloader downloader
+  }) : super(Runner.INTERVAL_SLOW * 4) {
+    downloaderRef = WeakReference(downloader);
+  }
+
+  final int priority;
+  late final WeakReference<FileDownloader> downloaderRef;
+
+  FileDownloader? get downloader => downloaderRef.target;
+
+  @override
+  bool get isRunning => super.isRunning && downloader != null;
+
+  @override
+  Future<bool> process() async {
+    // get next task
+    DownloadTask? next = downloader?.getTask(priority);
+    if (next == null) {
+      // nothing to do now, return false to have a rest.
+      return false;
+    }
+    // try to process next task
+    try {
+      await downloader?.handleDownloadTask(next);
+    } catch (e, st) {
+      print('[HTTP] failed to process upload task: $e, $next, $st');
+      return false;
+    }
+    // OK, return true to next loop immediately
+    return true;
   }
 
 }

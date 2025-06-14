@@ -59,6 +59,9 @@ abstract class PortableNetworkLoader extends PortableNetworkWrapper
   DownloadInfo? _info;
 
   @override
+  int get priority => DownloadPriority.NORMAL;
+
+  @override
   DownloadInfo? get downloadParams {
     var info = _info;
     if (info == null) {
