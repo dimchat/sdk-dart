@@ -65,9 +65,9 @@ class DownloadInfo {
 class DownloadPriority {
   // ignore_for_file: constant_identifier_names
 
-  static const int URGENT = -1;
+  static const int URGENT = -7;
   static const int NORMAL =  0;
-  static const int SLOWER =  1;
+  static const int SLOWER =  7;
 
 }
 

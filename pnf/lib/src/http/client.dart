@@ -36,9 +36,11 @@ import 'package:mkm/type.dart';
 
 /// Simple HTTP Client for upload/download files
 class HTTPClient {
-  HTTPClient(this.baseOptions);
+  HTTPClient([this.baseOptions]);
 
   final BaseOptions? baseOptions;
+
+  DownloadChecker checker = DownloadChecker(timeout: Duration(minutes: 15));
 
   String userAgent = 'DIMP/1.0 (Linux; U; Android 4.1; zh-CN)'
       ' DIMCoreKit/1.0 (Terminal, like WeChat)'
@@ -87,7 +89,18 @@ class HTTPClient {
     Options? options,
     ProgressCallback? onReceiveProgress,
   }) async {
+    //
+    //  0. check failure timeout
+    //
+    DateTime? expired = checker.checkFailure(url, options);
+    if (expired != null) {
+      print('[HTTP] cannot download: $url ($options) now, please try again after $expired');
+      return null;
+    }
     try {
+      //
+      //  1. try to download
+      //
       return await Dio(baseOptions).getUri<D>(url,
         options: options,
         onReceiveProgress: onReceiveProgress,
@@ -97,6 +110,10 @@ class HTTPClient {
       });
     } catch (e, st) {
       print('[HTTP] failed to download "$url" error: $e, $st');
+      //
+      //  2. mark failure time
+      //
+      checker.setFailure(url, options);
       return null;
     }
   }
@@ -137,6 +154,35 @@ class HTTPClient {
   static int? getContentLength(Response response) {
     String? value = response.headers.value(Headers.contentLengthHeader);
     return Converter.getInt(value, null);
+  }
+
+}
+
+
+class DownloadChecker {
+  DownloadChecker({required this.timeout});
+
+  final Duration timeout;
+
+  final Map<String, DateTime> failedTimes = {};
+
+  void setFailure(Uri url, Options? options) {
+    DateTime expired = DateTime.now().add(timeout);
+    failedTimes[url.toString()] = expired;
+  }
+
+  DateTime? checkFailure(Uri url, Options? options) {
+    DateTime? expired = failedTimes[url.toString()];
+    if (expired == null) {
+      // first try
+      return null;
+    } else if (DateTime.now().isAfter(expired)) {
+      // previous trying is failed,
+      // but the record is expired.
+      return null;
+    }
+    // previous failure is not expired yet
+    return expired;
   }
 
 }

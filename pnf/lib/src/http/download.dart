@@ -139,7 +139,8 @@ class FileDownloader implements Downloader {
     );
     int? statusCode = response?.statusCode;
     if (response == null || statusCode != 200) {
-      assert(false, 'failed to download $url, status: $statusCode - ${response?.statusMessage}');
+      // assert(false, 'failed to download $url, status: $statusCode - ${response?.statusMessage}');
+      print('[HTTP] failed to download $url, status: $statusCode - ${response?.statusMessage}');
       return null;
     }
     int? contentLength = HTTPClient.getContentLength(response);
@@ -183,7 +184,7 @@ class Spider extends Runner {
     try {
       await downloader?.handleDownloadTask(next);
     } catch (e, st) {
-      print('[HTTP] failed to process upload task: $e, $next, $st');
+      print('[HTTP] failed to process download task: $e, $next, $st');
       return false;
     }
     // OK, return true to next loop immediately

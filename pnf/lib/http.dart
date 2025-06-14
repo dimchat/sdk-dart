@@ -1,5 +1,7 @@
 library pnf;
 
+export 'package:dio/dio.dart' show BaseOptions;
+
 export 'src/http/client.dart';
 export 'src/http/queue.dart';
 export 'src/http/tasks.dart';
