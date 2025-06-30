@@ -39,7 +39,7 @@ class MessageGeneralFactory implements GeneralMessageHelper,
                                        ContentHelper, EnvelopeHelper,
                                        InstantMessageHelper, SecureMessageHelper, ReliableMessageHelper {
 
-  final Map<int, ContentFactory> _contentFactories = {};
+  final Map<String, ContentFactory> _contentFactories = {};
 
   EnvelopeFactory?        _envelopeFactory;
   InstantMessageFactory?  _instantMessageFactory;
@@ -47,8 +47,8 @@ class MessageGeneralFactory implements GeneralMessageHelper,
   ReliableMessageFactory? _reliableMessageFactory;
 
   @override
-  int? getContentType(Map content, int? defaultValue) {
-    return Converter.getInt(content['type'], defaultValue);
+  String? getContentType(Map content, String? defaultValue) {
+    return Converter.getString(content['type'], defaultValue);
   }
 
   //
@@ -56,12 +56,15 @@ class MessageGeneralFactory implements GeneralMessageHelper,
   //
 
   @override
-  void setContentFactory(int msgType, ContentFactory factory) {
+  void setContentFactory(String msgType, ContentFactory factory) {
     _contentFactories[msgType] = factory;
   }
 
   @override
-  ContentFactory? getContentFactory(int msgType) {
+  ContentFactory? getContentFactory(String msgType) {
+    if (msgType.isEmpty) {
+      return null;
+    }
     return _contentFactories[msgType];
   }
 
@@ -78,11 +81,11 @@ class MessageGeneralFactory implements GeneralMessageHelper,
       return null;
     }
     // get factory by content type
-    int type = getContentType(info, 0)!;
-    // assert(type > 0, 'content error: $content');
+    String type = getContentType(info, null) ?? '';
+    assert(type.isNotEmpty, 'content error: $content');
     ContentFactory? factory = getContentFactory(type);
     if (factory == null) {
-      factory = getContentFactory(0);  // unknown
+      factory = getContentFactory('*');  // unknown
       assert(factory != null, 'default content factory not found');
     }
     return factory?.parseContent(info);
@@ -165,7 +168,7 @@ class MessageGeneralFactory implements GeneralMessageHelper,
   }
 
   @override
-  int generateSerialNumber(int? msgType, DateTime? now) {
+  int generateSerialNumber(String? msgType, DateTime? now) {
     InstantMessageFactory? factory = getInstantMessageFactory();
     assert(factory != null, 'instant message factory not ready');
     return factory!.generateSerialNumber(msgType, now);

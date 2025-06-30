@@ -38,6 +38,8 @@ import '../dkd/secure.dart';
 import '../mkm/entity.dart';
 import '../mkm/user.dart';
 
+import 'compressor.dart';
+
 
 ///  Message Transceiver
 ///  ~~~~~~~~~~~~~~~~~~~
@@ -46,7 +48,10 @@ import '../mkm/user.dart';
 abstract class Transceiver implements InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate {
 
   // protected
-  EntityDelegate? get entityDelegate;  // barrack
+  EntityDelegate get facebook;
+
+  // protected
+  Compressor get compressor;
 
   //-------- InstantMessageDelegate
 
@@ -54,7 +59,7 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
   Future<Uint8List> serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) async {
     // NOTICE: check attachment for File/Image/Audio/Video message content
     //         before serialize content, this job should be do in subclass
-    return UTF8.encode(JSON.encode(content.toMap()));
+    return compressor.compressContent(content.toMap(), password.toMap());
   }
 
   @override
@@ -81,17 +86,15 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
       // broadcast message has no key
       return null;
     }
-    return UTF8.encode(JSON.encode(password.toMap()));
+    return compressor.compressSymmetricKey(password.toMap());
   }
 
   @override
   Future<Uint8List?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg) async {
     assert(!BaseMessage.isBroadcast(iMsg), 'broadcast message has no key: $iMsg');
-    EntityDelegate? barrack = entityDelegate;
-    assert(barrack != null, "entity delegate not set yet");
-    // TODO: make sure the receiver's public key exists
     assert(receiver.isUser, 'receiver error: $receiver');
-    User? contact = await barrack?.getUser(receiver);
+    // TODO: make sure the receiver's public key exists
+    User? contact = await facebook.getUser(receiver);
     if (contact == null) {
       assert(false, 'failed to encrypt message key for contact: $receiver');
       return null;
@@ -121,10 +124,8 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
     // NOTICE: the receiver must be a member ID
     //         if it's a group message
     assert(!BaseMessage.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
-    EntityDelegate? barrack = entityDelegate;
-    assert(barrack != null, "entity delegate not set yet");
     assert(receiver.isUser, 'receiver error: $receiver');
-    User? user = await barrack?.getUser(receiver);
+    User? user = await facebook.getUser(receiver);
     if (user == null) {
       assert(false, 'failed to decrypt key: ${sMsg.sender} => $receiver, ${sMsg.group}');
       return null;
@@ -141,19 +142,8 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
           '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
       return null;
     }
-    String? json = UTF8.decode(key);
-    if (json == null) {
-      assert(false, 'message key data error: $key');
-      return null;
-    }
-    Object? dict = JSON.decode(json);
-    // TODO: translate short keys
-    //       'A' -> 'algorithm'
-    //       'D' -> 'data'
-    //       'V' -> 'iv'
-    //       'M' -> 'mode'
-    //       'P' -> 'padding'
-    return SymmetricKey.parse(dict);
+    Object? info = compressor.extractSymmetricKey(key);
+    return SymmetricKey.parse(info);
   }
 
   // @override
@@ -182,27 +172,16 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
   @override
   Future<Content?> deserializeContent(Uint8List data, SymmetricKey password, SecureMessage sMsg) async {
     // assert(sMsg.data.isNotEmpty, "message data empty");
-    String? json = UTF8.decode(data);
-    if (json == null) {
-      assert(false, 'content data error: $data');
-      return null;
-    }
-    Object? dict = JSON.decode(json);
-    // TODO: translate short keys
-    //       'T' -> 'type'
-    //       'N' -> 'sn'
-    //       'W' -> 'time'
-    //       'G' -> 'group'
-    return Content.parse(dict);
+    Object? info = compressor.extractContent(data, password.toMap());
+    return Content.parse(info);
+    // NOTICE: check attachment for File/Image/Audio/Video message content
+    //         after deserialize content, this job should be do in subclass
   }
 
   @override
   Future<Uint8List> signData(Uint8List data, SecureMessage sMsg) async {
-    EntityDelegate? barrack = entityDelegate;
-    assert(barrack != null, 'entity delegate not set yet');
-    ID sender = sMsg.sender;
-    User? user = await barrack?.getUser(sender);
-    assert(user != null, 'failed to sign message data for user: $sender');
+    User? user = await facebook.getUser(sMsg.sender);
+    assert(user != null, 'failed to sign message data for user: ${sMsg.sender}');
     return await user!.sign(data);
   }
 
@@ -220,12 +199,9 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
 
   @override
   Future<bool> verifyDataSignature(Uint8List data, Uint8List signature, ReliableMessage rMsg) async {
-    EntityDelegate? barrack = entityDelegate;
-    assert(barrack != null, 'entity delegate not set yet');
-    ID sender = rMsg.sender;
-    User? contact = await barrack?.getUser(sender);
+    User? contact = await facebook.getUser(rMsg.sender);
     if (contact == null) {
-      assert(false, 'failed to verify message signature for contact: $sender');
+      assert(false, 'failed to verify message signature for contact: ${rMsg.sender}');
       return false;
     }
     return await contact.verify(data, signature);

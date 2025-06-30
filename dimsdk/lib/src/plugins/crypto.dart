@@ -52,6 +52,9 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
 
   @override
   SymmetricKeyFactory? getSymmetricKeyFactory(String algorithm) {
+    if (algorithm.isEmpty) {
+      return null;
+    }
     return _symmetricKeyFactories[algorithm];
   }
 
@@ -74,8 +77,8 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
       assert(false, 'symmetric key error: $key');
       return null;
     }
-    String algorithm = getKeyAlgorithm(info, '*')!;
-    assert(algorithm != '*', 'symmetric key error: $key');
+    String algorithm = getKeyAlgorithm(info, null) ?? '';
+    assert(algorithm.isNotEmpty, 'symmetric key error: $key');
     SymmetricKeyFactory? factory = getSymmetricKeyFactory(algorithm);
     if (factory == null) {
       factory = getSymmetricKeyFactory('*');  // unknown
@@ -95,6 +98,9 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
 
   @override
   PrivateKeyFactory? getPrivateKeyFactory(String algorithm) {
+    if (algorithm.isEmpty) {
+      return null;
+    }
     return _privateKeyFactories[algorithm];
   }
 
@@ -117,8 +123,8 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
       assert(false, 'private key error: $key');
       return null;
     }
-    String algorithm = getKeyAlgorithm(info, '*')!;
-    assert(algorithm != '*', 'private key error: $key');
+    String algorithm = getKeyAlgorithm(info, null) ?? '';
+    assert(algorithm.isNotEmpty, 'private key error: $key');
     PrivateKeyFactory? factory = getPrivateKeyFactory(algorithm);
     if (factory == null) {
       factory = getPrivateKeyFactory('*');  // unknown
@@ -138,6 +144,9 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
 
   @override
   PublicKeyFactory? getPublicKeyFactory(String algorithm) {
+    if (algorithm.isEmpty) {
+      return null;
+    }
     return _publicKeyFactories[algorithm];
   }
 
@@ -153,8 +162,8 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
       assert(false, 'public key error: $key');
       return null;
     }
-    String algorithm = getKeyAlgorithm(info, '*')!;
-    assert(algorithm != '*', 'public key error: $key');
+    String algorithm = getKeyAlgorithm(info, null) ?? '';
+    assert(algorithm.isNotEmpty, 'public key error: $key');
     PublicKeyFactory? factory = getPublicKeyFactory(algorithm);
     if (factory == null) {
       factory = getPublicKeyFactory('*');  // unknown

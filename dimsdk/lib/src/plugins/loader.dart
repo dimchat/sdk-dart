@@ -151,49 +151,71 @@ class ExtensionLoader {
   void registerContentFactories() {
 
     // Text
-    Content.setFactory(ContentType.TEXT, ContentParser((dict) => BaseTextContent(dict)));
+    setContentFactory(ContentType.TEXT, 'text', creator: (dict) => BaseTextContent(dict));
 
     // File
-    Content.setFactory(ContentType.FILE, ContentParser((dict) => BaseFileContent(dict)));
+    setContentFactory(ContentType.FILE, 'file', creator: (dict) => BaseFileContent(dict));
     // Image
-    Content.setFactory(ContentType.IMAGE, ContentParser((dict) => ImageFileContent(dict)));
+    setContentFactory(ContentType.IMAGE, 'image', creator: (dict) => ImageFileContent(dict));
     // Audio
-    Content.setFactory(ContentType.AUDIO, ContentParser((dict) => AudioFileContent(dict)));
+    setContentFactory(ContentType.AUDIO, 'audio', creator: (dict) => AudioFileContent(dict));
     // Video
-    Content.setFactory(ContentType.VIDEO, ContentParser((dict) => VideoFileContent(dict)));
+    setContentFactory(ContentType.VIDEO, 'video', creator: (dict) => VideoFileContent(dict));
 
     // Web Page
-    Content.setFactory(ContentType.PAGE, ContentParser((dict) => WebPageContent(dict)));
+    setContentFactory(ContentType.PAGE, 'page', creator: (dict) => WebPageContent(dict));
 
     // Name Card
-    Content.setFactory(ContentType.NAME_CARD, ContentParser((dict) => NameCardContent(dict)));
+    setContentFactory(ContentType.NAME_CARD, 'card', creator: (dict) => NameCardContent(dict));
 
     // Quote
-    Content.setFactory(ContentType.QUOTE, ContentParser((dict) => BaseQuoteContent(dict)));
+    setContentFactory(ContentType.QUOTE, 'quote', creator: (dict) => BaseQuoteContent(dict));
 
     // Money
-    Content.setFactory(ContentType.MONEY, ContentParser((dict) => BaseMoneyContent(dict)));
-    Content.setFactory(ContentType.TRANSFER, ContentParser((dict) => TransferMoneyContent(dict)));
+    setContentFactory(ContentType.MONEY, 'money', creator: (dict) => BaseMoneyContent(dict));
+    setContentFactory(ContentType.TRANSFER, 'transfer', creator: (dict) => TransferMoneyContent(dict));
     // ...
 
     // Command
-    Content.setFactory(ContentType.COMMAND, GeneralCommandFactory());
+    setContentFactory(ContentType.COMMAND, 'command', factory: GeneralCommandFactory());
 
     // History Command
-    Content.setFactory(ContentType.HISTORY, HistoryCommandFactory());
+    setContentFactory(ContentType.HISTORY, 'history', factory: HistoryCommandFactory());
 
     // Content Array
-    Content.setFactory(ContentType.ARRAY, ContentParser((dict) => ListContent(dict)));
+    setContentFactory(ContentType.ARRAY, 'array', creator: (dict) => ListContent(dict));
 
     // Combine and Forward
-    Content.setFactory(ContentType.COMBINE_FORWARD, ContentParser((dict) => CombineForwardContent(dict)));
+    setContentFactory(ContentType.COMBINE_FORWARD, 'combine', creator: (dict) => CombineForwardContent(dict));
 
     // Top-Secret
-    Content.setFactory(ContentType.FORWARD, ContentParser((dict) => SecretContent(dict)));
+    setContentFactory(ContentType.FORWARD, 'forward', creator: (dict) => SecretContent(dict));
 
     // unknown content type
-    Content.setFactory(ContentType.ANY, ContentParser((dict) => BaseContent(dict)));
+    setContentFactory(ContentType.ANY, '*', creator: (dict) => BaseContent(dict));
 
+  }
+
+  // protected
+  void setContentFactory(String msgType, String alias, {ContentFactory? factory, ContentCreator? creator}) {
+    if (factory != null) {
+      Content.setFactory(msgType, factory);
+      Content.setFactory(alias, factory);
+    }
+    if (creator != null) {
+      Content.setFactory(msgType, ContentParser(creator));
+      Content.setFactory(alias, ContentParser(creator));
+    }
+  }
+
+  // protected
+  void setCommandFactory(String cmd, {CommandFactory? factory, CommandCreator? creator}) {
+    if (factory != null) {
+      Command.setFactory(cmd, factory);
+    }
+    if (creator != null) {
+      Command.setFactory(cmd, CommandParser(creator));
+    }
   }
 
   ///  Core command factories
@@ -201,35 +223,35 @@ class ExtensionLoader {
   void registerCommandFactories() {
 
     // Meta Command
-    Command.setFactory(Command.META, CommandParser((dict) => BaseMetaCommand(dict)));
+    setCommandFactory(Command.META, creator: (dict) => BaseMetaCommand(dict));
 
     // Document Command
-    Command.setFactory(Command.DOCUMENT, CommandParser((dict) => BaseDocumentCommand(dict)));
+    setCommandFactory(Command.DOCUMENTS, creator: (dict) => BaseDocumentCommand(dict));
 
     // Receipt Command
-    Command.setFactory(Command.RECEIPT, CommandParser((dict) => BaseReceiptCommand(dict)));
+    setCommandFactory(Command.RECEIPT, creator: (dict) => BaseReceiptCommand(dict));
 
     // Group Commands
-    Command.setFactory('group', GroupCommandFactory());
-    Command.setFactory(GroupCommand.INVITE, CommandParser((dict) => InviteGroupCommand(dict)));
+    setCommandFactory('group', factory: GroupCommandFactory());
+    setCommandFactory(GroupCommand.INVITE, creator: (dict) => InviteGroupCommand(dict));
     /// 'expel' is deprecated (use 'reset' instead)
-    Command.setFactory(GroupCommand.EXPEL,  CommandParser((dict) => ExpelGroupCommand(dict)));
-    Command.setFactory(GroupCommand.JOIN,   CommandParser((dict) => JoinGroupCommand(dict)));
-    Command.setFactory(GroupCommand.QUIT,   CommandParser((dict) => QuitGroupCommand(dict)));
-    Command.setFactory(GroupCommand.QUERY,  CommandParser((dict) => QueryGroupCommand(dict)));
-    Command.setFactory(GroupCommand.RESET,  CommandParser((dict) => ResetGroupCommand(dict)));
+    setCommandFactory(GroupCommand.EXPEL,  creator: (dict) => ExpelGroupCommand(dict));
+    setCommandFactory(GroupCommand.JOIN,   creator: (dict) => JoinGroupCommand(dict));
+    setCommandFactory(GroupCommand.QUIT,   creator: (dict) => QuitGroupCommand(dict));
+    setCommandFactory(GroupCommand.QUERY,  creator: (dict) => QueryGroupCommand(dict));
+    setCommandFactory(GroupCommand.RESET,  creator: (dict) => ResetGroupCommand(dict));
     // Group Admin Commands
-    Command.setFactory(GroupCommand.HIRE,   CommandParser((dict) => HireGroupCommand(dict)));
-    Command.setFactory(GroupCommand.FIRE,   CommandParser((dict) => FireGroupCommand(dict)));
-    Command.setFactory(GroupCommand.RESIGN, CommandParser((dict) => ResignGroupCommand(dict)));
+    setCommandFactory(GroupCommand.HIRE,   creator: (dict) => HireGroupCommand(dict));
+    setCommandFactory(GroupCommand.FIRE,   creator: (dict) => FireGroupCommand(dict));
+    setCommandFactory(GroupCommand.RESIGN, creator: (dict) => ResignGroupCommand(dict));
 
   }
 
 }
 
 
-typedef ContentCreator = Content? Function(Map dict);
-typedef CommandCreator = Command? Function(Map dict);
+typedef ContentCreator = Content? Function(Map<String, dynamic> dict);
+typedef CommandCreator = Command? Function(Map<String, dynamic> dict);
 
 class ContentParser implements ContentFactory {
   ContentParser(this._builder);
@@ -237,6 +259,10 @@ class ContentParser implements ContentFactory {
 
   @override
   Content? parseContent(Map content) {
+    if (content is Map<String, dynamic>) {} else {
+      assert(false, 'content error: $content');
+      return null;
+    }
     return _builder(content);
   }
 
@@ -248,6 +274,10 @@ class CommandParser implements CommandFactory {
 
   @override
   Command? parseCommand(Map content) {
+    if (content is Map<String, dynamic>) {} else {
+      assert(false, 'command error: $content');
+      return null;
+    }
     return _builder(content);
   }
 

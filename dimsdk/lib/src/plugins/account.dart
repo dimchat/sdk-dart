@@ -50,7 +50,24 @@ class AccountGeneralFactory implements GeneralAccountHelper,
 
   @override
   String? getDocumentType(Map doc, String? defaultValue) {
-    return Converter.getString(doc['type'], defaultValue);
+    var docType = doc['type'];
+    if (docType != null) {
+      return Converter.getString(docType, defaultValue);
+    } else if (defaultValue != null) {
+      return defaultValue;
+    }
+    // get type for did
+    var did = ID.parse(doc['did']);
+    if (did == null) {
+      assert(false, 'document error: $doc');
+      return null;
+    } else if (did.isUser) {
+      return DocumentType.VISA;
+    } else if (did.isGroup) {
+      return DocumentType.BULLETIN;
+    } else {
+      return DocumentType.PROFILE;
+    }
   }
 
   ///
@@ -74,11 +91,14 @@ class AccountGeneralFactory implements GeneralAccountHelper,
     } else if (address is Address) {
       return address;
     }
-    String? str = Wrapper.getString(address);
-    assert(str != null, 'address error: $address');
+    var str = Wrapper.getString(address);
+    if (str == null) {
+      assert(false, 'address error: $address');
+      return null;
+    }
     AddressFactory? factory = getAddressFactory();
     assert(factory != null, 'address factory not ready');
-    return factory?.parseAddress(str!);
+    return factory?.parseAddress(str);
   }
 
   @override
@@ -110,10 +130,13 @@ class AccountGeneralFactory implements GeneralAccountHelper,
       return identifier;
     }
     String? str = Wrapper.getString(identifier);
-    assert(str != null, 'ID error: $identifier');
+    if (str == null) {
+      assert(false, 'ID error: $identifier');
+      return null;
+    }
     IDFactory? factory = getIdentifierFactory();
     assert(factory != null, 'ID factory not ready');
-    return factory?.parseIdentifier(str!);
+    return factory?.parseIdentifier(str);
   }
 
   @override
@@ -130,29 +153,6 @@ class AccountGeneralFactory implements GeneralAccountHelper,
     return factory!.generateIdentifier(meta, network, terminal: terminal);
   }
 
-  @override
-  List<ID> convertIdentifiers(Iterable members) {
-    List<ID> array = [];
-    ID? id;
-    for (var item in members) {
-      id = parseIdentifier(item);
-      if (id == null) {
-        continue;
-      }
-      array.add(id);
-    }
-    return array;
-  }
-
-  @override
-  List<String> revertIdentifiers(Iterable<ID> members) {
-    List<String> array = [];
-    for (var item in members) {
-      array.add(item.toString());
-    }
-    return array;
-  }
-
   ///
   ///   Meta
   ///
@@ -164,6 +164,9 @@ class AccountGeneralFactory implements GeneralAccountHelper,
 
   @override
   MetaFactory? getMetaFactory(String type) {
+    if (type.isEmpty) {
+      return null;
+    }
     return _metaFactories[type];
   }
 
@@ -193,7 +196,8 @@ class AccountGeneralFactory implements GeneralAccountHelper,
       assert(false, 'meta error: $meta');
       return null;
     }
-    String type = getMetaType(info, '*')!;
+    String type = getMetaType(info, null) ?? '';
+    assert(type.isNotEmpty, 'meta error: $meta');
     MetaFactory? factory = getMetaFactory(type);
     if (factory == null) {
       factory = getMetaFactory('*');  // unknown
@@ -213,6 +217,9 @@ class AccountGeneralFactory implements GeneralAccountHelper,
 
   @override
   DocumentFactory? getDocumentFactory(String docType) {
+    if (docType.isEmpty) {
+      return null;
+    }
     return _docsFactories[docType];
   }
 
@@ -235,13 +242,14 @@ class AccountGeneralFactory implements GeneralAccountHelper,
       assert(false, 'document error: $doc');
       return null;
     }
-    String docType = getDocumentType(info, '*')!;
+    String docType = getDocumentType(info, null) ?? '';
+    assert(docType.isNotEmpty, 'document error: $doc');
     DocumentFactory? factory = getDocumentFactory(docType);
     if (factory == null) {
-      assert(docType != '*', 'document factory not ready: $doc');
       factory = getDocumentFactory('*');  // unknown
       assert(factory != null, 'default document factory not found');
     }
     return factory?.parseDocument(info);
   }
+
 }

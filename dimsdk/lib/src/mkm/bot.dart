@@ -47,7 +47,7 @@ class Bot extends BaseUser {
   /// @return ICP ID, bot group
   Future<ID?> get provider async {
     Document? doc = await profile;
-    return ID.parse(doc?.getProperty('ICP'));
+    return ID.parse(doc?.getProperty('provider'));
   }
 
 }

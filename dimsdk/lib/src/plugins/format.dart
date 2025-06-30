@@ -30,7 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/crypto.dart';
+import 'package:dimp/dimp.dart';
 import 'package:dimp/plugins.dart';
 
 /// Format GeneralFactory
@@ -127,11 +127,15 @@ class FormatGeneralFactory implements GeneralFormatHelper,
 
   @override
   TransportableDataFactory? getTransportableDataFactory(String algorithm) {
+    if (algorithm.isEmpty) {
+      return null;
+    }
     return _tedFactories[algorithm];
   }
 
   @override
-  TransportableData createTransportableData(String algorithm, Uint8List data) {
+  TransportableData createTransportableData(Uint8List data, String? algorithm) {
+    algorithm ??= EncodeAlgorithms.DEFAULT;
     TransportableDataFactory? factory = getTransportableDataFactory(algorithm);
     assert(factory != null, 'TED algorithm not support: $algorithm');
     return factory!.createTransportableData(data);
@@ -150,10 +154,10 @@ class FormatGeneralFactory implements GeneralFormatHelper,
       // assert(false, 'TED error: $ted');
       return null;
     }
-    String algorithm = getFormatAlgorithm(info, '*')!;
+    String algorithm = getFormatAlgorithm(info, null) ?? '';
+    assert(algorithm.isNotEmpty, 'TED error: $ted');
     TransportableDataFactory? factory = getTransportableDataFactory(algorithm);
     if (factory == null) {
-      assert(algorithm != '*', 'TED factory not ready: $ted');
       factory = getTransportableDataFactory('*');  // unknown
       assert(factory != null, 'default TED factory not found');
     }

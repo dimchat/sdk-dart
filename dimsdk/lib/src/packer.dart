@@ -32,6 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import 'core/compressor.dart';
 import 'core/packer.dart';
 import 'dkd/instant.dart';
 import 'dkd/reliable.dart';
@@ -47,7 +48,7 @@ import 'messenger.dart';
 import 'twins.dart';
 
 
-class MessagePacker extends TwinsHelper implements Packer {
+abstract class MessagePacker extends TwinsHelper implements Packer {
   MessagePacker(Facebook facebook, Messenger messenger)
       : super(facebook, messenger) {
     instantPacker  = createInstantMessagePacker(messenger);
@@ -67,6 +68,8 @@ class MessagePacker extends TwinsHelper implements Packer {
       SecureMessagePacker(delegate);
   ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate delegate) =>
       ReliableMessagePacker(delegate);
+
+  Compressor? get compressor;
 
   //
   //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
@@ -137,7 +140,7 @@ class MessagePacker extends TwinsHelper implements Packer {
 
   @override
   Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async =>
-      UTF8.encode(JSON.encode(rMsg.toMap()));
+      compressor?.compressReliableMessage(rMsg.toMap());
 
   //
   //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
@@ -145,26 +148,8 @@ class MessagePacker extends TwinsHelper implements Packer {
 
   @override
   Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
-    String? json = UTF8.decode(data);
-    if (json == null) {
-      assert(false, 'message data error: ${data.length}');
-      return null;
-    }
-    Object? dict = JSON.decode(json);
-    // TODO: translate short keys
-    //       'S' -> 'sender'
-    //       'R' -> 'receiver'
-    //       'W' -> 'time'
-    //       'T' -> 'type'
-    //       'G' -> 'group'
-    //       ------------------
-    //       'D' -> 'data'
-    //       'V' -> 'signature'
-    //       'K' -> 'key', 'keys'
-    //       ------------------
-    //       'M' -> 'meta'
-    //       'P' -> 'visa'
-    return ReliableMessage.parse(dict);
+    Object? info = compressor?.extractReliableMessage(data);
+    return ReliableMessage.parse(info);
   }
 
   ///  Check meta & visa

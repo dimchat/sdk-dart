@@ -10,4 +10,3 @@ export 'src/mkm/group.dart';     // require 'entity.dart', 'utils.dart'
 export 'src/mkm/provider.dart';  // require 'group.dart'
 export 'src/mkm/station.dart';   // require 'user.dart'
 export 'src/mkm/bot.dart';       // require 'user.dart'
-export 'src/mkm/members.dart';

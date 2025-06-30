@@ -55,6 +55,9 @@ class CommandGeneralFactory implements GeneralCommandHelper, CommandHelper {
 
   @override
   CommandFactory? getCommandFactory(String cmd) {
+    if (cmd.isEmpty) {
+      return null;
+    }
     return _commandFactories[cmd];
   }
 
@@ -71,8 +74,8 @@ class CommandGeneralFactory implements GeneralCommandHelper, CommandHelper {
       return null;
     }
     // get factory by command name
-    String cmd = getCmd(info, '')!;
-    assert(cmd.isNotEmpty, 'command name not found: $content');
+    String cmd = getCmd(info, null) ?? '';
+    assert(cmd.isNotEmpty, 'command error: $content');
     CommandFactory? factory = getCommandFactory(cmd);
     if (factory == null) {
       // unknown command name, get base command factory
@@ -84,7 +87,8 @@ class CommandGeneralFactory implements GeneralCommandHelper, CommandHelper {
 
   static CommandFactory? _defaultFactory(Map info) {
     var ext = SharedMessageExtensions();
-    int type = ext.helper!.getContentType(info, 0)!;
+    String type = ext.helper!.getContentType(info, null) ?? '';
+    assert(type.isNotEmpty, 'command error: $info');
     ContentFactory? factory = ext.contentHelper!.getContentFactory(type);
     if (factory is CommandFactory) {
       return factory as CommandFactory;

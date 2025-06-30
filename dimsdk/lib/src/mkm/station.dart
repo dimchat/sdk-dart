@@ -102,7 +102,7 @@ class Station implements User {
       if (port > 0) {
         _port = port;
       }
-      ID? sp = ID.parse(doc.getProperty('ISP'));
+      ID? sp = ID.parse(doc.getProperty('provider'));
       if (sp != null) {
         _isp = sp;
       }

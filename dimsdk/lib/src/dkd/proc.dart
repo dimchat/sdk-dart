@@ -53,14 +53,14 @@ abstract interface class ContentProcessorCreator {
   ///
   /// @param msgType - content type
   /// @return ContentProcessor
-  ContentProcessor? createContentProcessor(int msgType);
+  ContentProcessor? createContentProcessor(String msgType);
 
   ///  Create command processor with name
   ///
   /// @param msgType - content type
   /// @param cmdName - command name
   /// @return CommandProcessor
-  ContentProcessor? createCommandProcessor(int msgType, String cmdName);
+  ContentProcessor? createCommandProcessor(String msgType, String cmdName);
 
 }
 
@@ -75,7 +75,7 @@ abstract interface class ContentProcessorFactory {
   /// @return ContentProcessor
   ContentProcessor? getContentProcessor(Content content);
 
-  ContentProcessor? getContentProcessorForType(int msgType);
+  ContentProcessor? getContentProcessorForType(String msgType);
 
 }
 
@@ -88,13 +88,13 @@ class GeneralContentProcessorFactory implements ContentProcessorFactory {
   // private
   final ContentProcessorCreator creator;
 
-  final Map<int,    ContentProcessor> _contentProcessors = {};
+  final Map<String, ContentProcessor> _contentProcessors = {};
   final Map<String, ContentProcessor> _commandProcessors = {};
 
   @override
   ContentProcessor? getContentProcessor(Content content) {
     ContentProcessor? cpu;
-    int msgType = content.type;
+    String msgType = content.type;
     if (content is Command) {
       String cmd = content.cmd;
       // assert(name.isNotEmpty, 'command name error: $name');
@@ -114,7 +114,7 @@ class GeneralContentProcessorFactory implements ContentProcessorFactory {
   }
 
   @override
-  ContentProcessor? getContentProcessorForType(int msgType) {
+  ContentProcessor? getContentProcessorForType(String msgType) {
     ContentProcessor? cpu = _contentProcessors[msgType];
     if (cpu == null) {
       cpu = creator.createContentProcessor(msgType);
@@ -126,7 +126,7 @@ class GeneralContentProcessorFactory implements ContentProcessorFactory {
   }
 
   // private
-  ContentProcessor? getCommandProcessor(int msgType, String cmd) {
+  ContentProcessor? getCommandProcessor(String msgType, String cmd) {
     ContentProcessor? cpu = _commandProcessors[cmd];
     if (cpu == null) {
       cpu = creator.createCommandProcessor(msgType, cmd);

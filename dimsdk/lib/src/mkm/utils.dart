@@ -32,6 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
+import 'package:dimp/plugins.dart';
 
 
 abstract interface class MetaUtils {
@@ -91,6 +92,11 @@ abstract interface class MetaUtils {
 
 abstract interface class DocumentUtils {
 
+  static String? getDocumentType(Document document) {
+    var ext = SharedAccountExtensions();
+    return ext.helper!.getDocumentType(document, null);
+  }
+
   /// Check whether this time is before old time
   static bool isBefore(DateTime? oldTime, DateTime? thisTime) {
     if (oldTime == null || thisTime == null) {
@@ -117,7 +123,7 @@ abstract interface class DocumentUtils {
     for (Document doc in documents) {
       // 1. check type
       if (checkType) {
-        docType = doc.type;
+        docType = getDocumentType(doc);
         matched = docType == null || docType.isEmpty || docType == type;
         if (!matched) {
           // type not matched, skip it

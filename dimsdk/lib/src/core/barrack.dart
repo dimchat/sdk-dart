@@ -30,59 +30,56 @@
  */
 import 'package:dimp/mkm.dart';
 
-import '../mkm/entity.dart';
+import '../mkm/bot.dart';
 import '../mkm/group.dart';
+import '../mkm/provider.dart';
+import '../mkm/station.dart';
 import '../mkm/user.dart';
 
 
 ///  Entity Factory
 ///  ~~~~~~~~~~~~~~
 ///  Entity pool to manage User/Group instances
-class Barrack implements EntityDelegate {
+abstract class Barrack {
 
-  // memory caches
-  final Map<ID, User>   _userMap = {};
-  final Map<ID, Group> _groupMap = {};
+  void cacheUser(User user);
 
-  // protected
-  void cacheUser(User user) => _userMap[user.identifier] = user;
+  void cacheGroup(Group group);
 
-  // protected
-  void cacheGroup(Group group) => _groupMap[group.identifier] = group;
+  User? getUser(ID identifier);
 
-  //
-  //  Entity Delegate
-  //
+  Group? getGroup(ID identifier);
 
-  @override
-  Future<User?> getUser(ID identifier) async => _userMap[identifier];
-
-  @override
-  Future<Group?> getGroup(ID identifier) async => _groupMap[identifier];
-
-  //
-  //  Garbage Collection
-  //
-
-  /// Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
-  /// this will remove 50% of cached objects
+  ///  Create user when visa.key exists
   ///
-  /// @return number of survivors
-  int reduceMemory() {
-    int finger = 0;
-    finger = thanos(_userMap, finger);
-    finger = thanos(_groupMap, finger);
-    return finger >> 1;
+  /// @param identifier - user ID
+  /// @return user, null on not ready
+  User? createUser(ID identifier) {
+    assert(identifier.isUser, 'user ID error: $identifier');
+    int network = identifier.type;
+    // check user type
+    if (network == EntityType.STATION) {
+      return Station.fromID(identifier);
+    } else if (network == EntityType.BOT) {
+      return Bot(identifier);
+    }
+    // general user, or 'anyone@anywhere'
+    return BaseUser(identifier);
   }
 
-  /// Thanos
-  /// ~~~~~~
-  /// Thanos can kill half lives of a world with a snap of the finger
-  static int thanos(Map planet, int finger) {
-    // if ++finger is odd, remove it,
-    // else, let it go
-    planet.removeWhere((key, value) => (++finger & 1) == 1);
-    return finger;
+  ///  Create group when members exist
+  ///
+  /// @param identifier - group ID
+  /// @return group, null on not ready
+  Group? createGroup(ID identifier) {
+    assert(identifier.isGroup, 'group ID error: $identifier');
+    int network = identifier.type;
+    // check group type
+    if (network == EntityType.ISP) {
+      return ServiceProvider(identifier);
+    }
+    // general group, or 'everyone@everywhere'
+    return BaseGroup(identifier);
   }
 
 }

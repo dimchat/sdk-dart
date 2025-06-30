@@ -64,6 +64,10 @@ class MessageFactory implements EnvelopeFactory, InstantMessageFactory, SecureMe
 
   @override
   Envelope? parseEnvelope(Map env) {
+    if (env is Map<String, dynamic>) {} else {
+      assert(false, 'message envelope error: $env');
+      return null;
+    }
     // check 'sender'
     if (env['sender'] == null) {
       // env.sender should not empty
@@ -77,7 +81,7 @@ class MessageFactory implements EnvelopeFactory, InstantMessageFactory, SecureMe
   ///
 
   @override
-  int generateSerialNumber(int? msgType, DateTime? now) {
+  int generateSerialNumber(String? msgType, DateTime? now) {
     // because we must make sure all messages in a same chat box won't have
     // same serial numbers, so we can't use time-related numbers, therefore
     // the best choice is a totally random number, maybe.
@@ -91,6 +95,10 @@ class MessageFactory implements EnvelopeFactory, InstantMessageFactory, SecureMe
 
   @override
   InstantMessage? parseInstantMessage(Map msg) {
+    if (msg is Map<String, dynamic>) {} else {
+      assert(false, 'instant message error: $msg');
+      return null;
+    }
     // check 'sender', 'content'
     if (msg['sender'] == null || msg['content'] == null) {
       // msg.sender should not be empty
@@ -106,6 +114,10 @@ class MessageFactory implements EnvelopeFactory, InstantMessageFactory, SecureMe
 
   @override
   SecureMessage? parseSecureMessage(Map msg) {
+    if (msg is Map<String, dynamic>) {} else {
+      assert(false, 'secure message error: $msg');
+      return null;
+    }
     // check 'sender', 'data'
     if (msg['sender'] == null || msg['data'] == null) {
       // msg.sender should not be empty
@@ -125,6 +137,10 @@ class MessageFactory implements EnvelopeFactory, InstantMessageFactory, SecureMe
 
   @override
   ReliableMessage? parseReliableMessage(Map msg) {
+    if (msg is Map<String, dynamic>) {} else {
+      assert(false, 'reliable message error: $msg');
+      return null;
+    }
     // check 'sender', 'data', 'signature',
     if (msg['sender'] == null || msg['data'] == null || msg['signature'] == null) {
       // msg.sender should not be empty

@@ -31,75 +31,65 @@
 import 'package:dimp/dimp.dart';
 
 import 'core/barrack.dart';
+import 'mkm/entity.dart';
 import 'mkm/group.dart';
 import 'mkm/user.dart';
 
-import 'archivist.dart';
 
+abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSource {
 
-abstract class Facebook extends Barrack implements UserDataSource, GroupDataSource {
+  Barrack get barrack;
 
-  Archivist get archivist;
+  ///  Save meta for entity ID (must verify first)
+  ///
+  /// @param meta - entity meta
+  /// @param identifier - entity ID
+  /// @return true on success
+  Future<bool> saveMeta(Meta meta, ID identifier);
 
-  @override
-  void cacheUser(User user) {
-    user.dataSource ??= this;
-    super.cacheUser(user);
-  }
-
-  @override
-  void cacheGroup(Group group) {
-    group.dataSource ??= this;
-    super.cacheGroup(group);
-  }
+  ///  Save entity document with ID (must verify first)
+  ///
+  /// @param doc - entity document
+  /// @return true on success
+  Future<bool> saveDocument(Document doc);
 
   //
-  //  Entity Delegate
+  //  Public Keys
   //
 
-  @override
-  Future<User?> getUser(ID identifier) async {
-    assert(identifier.isUser, 'user ID error: $identifier');
-    // 1. get from user cache
-    User? user = await super.getUser(identifier);
-    if (user == null) {
-      // 2. create user and cache it
-      user = await archivist.createUser(identifier);
-      if (user != null) {
-        cacheUser(user);
-      }
-    }
-    return user;
-  }
+  ///  Get meta.key
+  ///
+  /// @param user - user ID
+  /// @return null on not found
+  Future<VerifyKey?> getMetaKey(ID user);
 
-  @override
-  Future<Group?> getGroup(ID identifier) async {
-    assert(identifier.isGroup, 'group ID error: $identifier');
-    // 1. get from group cache
-    Group? group = await super.getGroup(identifier);
-    if (group == null) {
-      // 2. create group and cache it
-      group = await archivist.createGroup(identifier);
-      if (group != null) {
-        cacheGroup(group);
-      }
-    }
-    return group;
-  }
+  ///  Get visa.key
+  ///
+  /// @param user - user ID
+  /// @return null on not found
+  Future<EncryptKey?> getVisaKey(ID user);
+
+  //
+  //  Local Users
+  //
+
+  ///  Get all local users (for decrypting received message)
+  ///
+  /// @return users with private key
+  Future<List<User>> getLocalUsers();
 
   ///  Select local user for receiver
   ///
   /// @param receiver - user/group ID
   /// @return local user
   Future<User?> selectLocalUser(ID receiver) async {
-    if (receiver.isGroup) {
+    if (receiver.isUser) {} else {
+      assert(receiver.isGroup, 'receiver error: $receiver');
       // group message (recipient not designated)
       // TODO: check members of group
       return null;
-    } else {
-      assert(receiver.isUser, 'receiver error: $receiver');
     }
-    List<User> users = await archivist.localUsers;
+    List<User> users = await getLocalUsers();
     if (users.isEmpty) {
       assert(false, 'local users should not be empty');
       return null;
@@ -119,18 +109,72 @@ abstract class Facebook extends Barrack implements UserDataSource, GroupDataSour
     return null;
   }
 
-  ///  Save meta for entity ID (must verify first)
-  ///
-  /// @param meta - entity meta
-  /// @param identifier - entity ID
-  /// @return true on success
-  Future<bool> saveMeta(Meta meta, ID identifier);
+  //
+  //  Entity Delegate
+  //
 
-  ///  Save entity document with ID (must verify first)
-  ///
-  /// @param doc - entity document
-  /// @return true on success
-  Future<bool> saveDocument(Document doc);
+  @override
+  Future<User?> getUser(ID identifier) async {
+    assert(identifier.isUser, 'user ID error: $identifier');
+    //
+    //  1. get from user cache
+    //
+    User? user = barrack.getUser(identifier);
+    if (user != null) {
+      return user;
+    }
+    //
+    //  2. check visa key
+    //
+    if (identifier.isBroadcast) {} else {
+      EncryptKey? visaKey = await getPublicKeyForEncryption(identifier);
+      if (visaKey == null) {
+        assert(false, 'visa.key not found: $identifier');
+        return null;
+      }
+      // NOTICE: if visa.key exists, then visa & meta must exist too.
+    }
+    //
+    //  3. create user and cache it
+    //
+    user = barrack.createUser(identifier);
+    if (user != null) {
+      barrack.cacheUser(user);
+    }
+    return user;
+  }
+
+  @override
+  Future<Group?> getGroup(ID identifier) async {
+    assert(identifier.isGroup, 'group ID error: $identifier');
+    //
+    //  1. get from group cache
+    //
+    Group? group = barrack.getGroup(identifier);
+    if (group != null) {
+      return group;
+    }
+    //
+    //  2. check members
+    //
+    if (identifier.isBroadcast) {} else {
+      List<ID> members = await getMembers(identifier);
+      if (members.isEmpty) {
+        assert(false, 'group members not found: $identifier');
+        return null;
+      }
+      // NOTICE: if members exist, then owner (founder) must exist,
+      //         and bulletin & meta must exist too.
+    }
+    //
+    //  3. create group and cache it
+    //
+    group = barrack.createGroup(identifier);
+    if (group != null) {
+      barrack.cacheGroup(group);
+    }
+    return group;
+  }
 
   //
   //  User DataSource
@@ -139,15 +183,18 @@ abstract class Facebook extends Barrack implements UserDataSource, GroupDataSour
   @override
   Future<EncryptKey?> getPublicKeyForEncryption(ID user) async {
     assert(user.isUser, 'user ID error: $user');
-    Archivist db = archivist;
-    // 1. get pubic key from visa
-    EncryptKey? visaKey = await db.getVisaKey(user);
+    //
+    //  1. get pubic key from visa
+    //
+    EncryptKey? visaKey = await getVisaKey(user);
     if (visaKey != null) {
       // if visa.key exists, use it for encryption
       return visaKey;
     }
-    // 2. get pubic key from meta
-    VerifyKey? metaKey = await db.getMetaKey(user);
+    //
+    //  2. get key from meta
+    //
+    VerifyKey? metaKey = await getMetaKey(user);
     if (metaKey is EncryptKey) {
       // if visa.key not exists and meta.key is encrypt key,
       // use it for encryption
@@ -161,16 +208,19 @@ abstract class Facebook extends Barrack implements UserDataSource, GroupDataSour
   Future<List<VerifyKey>> getPublicKeysForVerification(ID user) async {
     // assert(user.isUser, 'user ID error: $user');
     List<VerifyKey> keys = [];
-    Archivist db = archivist;
-    // 1. get pubic key from visa
-    EncryptKey? visaKey = await db.getVisaKey(user);
+    //
+    //  1. get pubic key from visa
+    //
+    EncryptKey? visaKey = await getVisaKey(user);
     if (visaKey is VerifyKey) {
       // the sender may use communication key to sign message.data,
       // so try to verify it with visa.key first
       keys.add(visaKey as VerifyKey);
     }
-    // 2. get pubic key from meta
-    VerifyKey? metaKey = await db.getMetaKey(user);
+    //
+    //  2. get key from meta
+    //
+    VerifyKey? metaKey = await getMetaKey(user);
     if (metaKey != null) {
       // the sender may use identity key to sign message.data,
       // try to verify it with meta.key too

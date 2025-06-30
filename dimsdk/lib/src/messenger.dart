@@ -49,6 +49,23 @@ abstract class Messenger extends Transceiver implements Packer, Processor {
   // protected
   Processor? get processor;
 
+  //-------- SecureMessageDelegate
+
+  @override
+  Future<SymmetricKey?> deserializeKey(Uint8List? key, SecureMessage sMsg) async {
+    if (key == null) {
+      // get key from cache with direction: sender -> receiver(group)
+      return await getDecryptKey(sMsg);
+    }
+    SymmetricKey? password = await super.deserializeKey(key, sMsg);
+    // cache decrypt key when success
+    if (password != null) {
+      // cache the key with direction: sender -> receiver(group)
+      await cacheDecryptKey(password, sMsg);
+    }
+    return password;
+  }
+
   //
   //  Interfaces for Cipher Key
   //
@@ -78,102 +95,51 @@ abstract class Messenger extends Transceiver implements Packer, Processor {
   //
 
   @override
-  Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async {
-    var delegate = packer;
-    return await delegate?.encryptMessage(iMsg);
-  }
+  Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async =>
+      packer?.encryptMessage(iMsg);
 
   @override
-  Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
-    var delegate = packer;
-    return await delegate?.signMessage(sMsg);
-  }
+  Future<ReliableMessage?> signMessage(SecureMessage sMsg) async =>
+      await packer?.signMessage(sMsg);
 
   @override
-  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
-    var delegate = packer;
-    return await delegate?.serializeMessage(rMsg);
-  }
+  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async =>
+      await packer?.serializeMessage(rMsg);
 
   @override
-  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
-    var delegate = packer;
-    return await delegate?.deserializeMessage(data);
-  }
+  Future<ReliableMessage?> deserializeMessage(Uint8List data) async =>
+      await packer?.deserializeMessage(data);
 
   @override
-  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
-    var delegate = packer;
-    return await delegate?.verifyMessage(rMsg);
-  }
+  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async =>
+      await packer?.verifyMessage(rMsg);
 
   @override
-  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async {
-    var delegate = packer;
-    return await delegate?.decryptMessage(sMsg);
-  }
+  Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async =>
+      await packer?.decryptMessage(sMsg);
 
   //
   //  Interfaces for Processing Message
   //
 
   @override
-  Future<List<Uint8List>> processPackage(Uint8List data) async {
-    var delegate = processor;
-    return await delegate!.processPackage(data);
-  }
+  Future<List<Uint8List>> processPackage(Uint8List data) async =>
+      await processor!.processPackage(data);
 
   @override
-  Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg) async {
-    var delegate = processor;
-    return await delegate!.processReliableMessage(rMsg);
-  }
+  Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg) async =>
+      await processor!.processReliableMessage(rMsg);
 
   @override
-  Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) async {
-    var delegate = processor;
-    return await delegate!.processSecureMessage(sMsg, rMsg);
-  }
+  Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) async =>
+      await processor!.processSecureMessage(sMsg, rMsg);
 
   @override
-  Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) async {
-    var delegate = processor;
-    return await delegate!.processInstantMessage(iMsg, rMsg);
-  }
+  Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) async =>
+      await processor!.processInstantMessage(iMsg, rMsg);
 
   @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
-    var delegate = processor;
-    return await delegate!.processContent(content, rMsg);
-  }
-
-  //-------- SecureMessageDelegate
-
-  @override
-  Future<SymmetricKey?> deserializeKey(Uint8List? key, SecureMessage sMsg) async {
-    if (key == null) {
-      // get key from cache with direction: sender -> receiver(group)
-      return await getDecryptKey(sMsg);
-    } else {
-      return await super.deserializeKey(key, sMsg);
-    }
-  }
-
-  @override
-  Future<Content?> deserializeContent(Uint8List data, SymmetricKey password, SecureMessage sMsg) async {
-    Content? content = await super.deserializeContent(data, password, sMsg);
-
-    // cache decrypt key when success
-    if (content == null) {
-      assert(false, 'content error: ${data.length}');
-    } else {
-      // cache the key with direction: sender -> receiver(group)
-      await cacheDecryptKey(password, sMsg);
-    }
-
-    // NOTICE: check attachment for File/Image/Audio/Video message content
-    //         after deserialize content, this job should be do in subclass
-    return content;
-  }
+  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async =>
+      await processor!.processContent(content, rMsg);
 
 }

@@ -40,7 +40,7 @@ class GeneralCommandFactory implements ContentFactory, CommandFactory {
   Content? parseContent(Map content) {
     var ext = SharedCommandExtensions();
     // get factory by command name
-    String cmd = ext.helper!.getCmd(content, '*')!;
+    String cmd = ext.helper!.getCmd(content, null) ?? '';
     CommandFactory? factory = ext.cmdHelper!.getCommandFactory(cmd);
     if (factory == null) {
       // check for group command
@@ -54,7 +54,11 @@ class GeneralCommandFactory implements ContentFactory, CommandFactory {
 
   @override
   Command? parseCommand(Map content) {
-    return BaseCommand(content);
+    if (content is Map<String, dynamic>) {
+      return BaseCommand(content);
+    }
+    assert(false, 'command error: $content');
+    return null;
   }
 
 }
@@ -64,7 +68,11 @@ class HistoryCommandFactory extends GeneralCommandFactory {
 
   @override
   Command? parseCommand(Map content) {
-    return BaseHistoryCommand(content);
+    if (content is Map<String, dynamic>) {
+      return BaseHistoryCommand(content);
+    }
+    assert(false, 'history command error: $content');
+    return null;
   }
 
 }
@@ -76,7 +84,7 @@ class GroupCommandFactory extends HistoryCommandFactory {
   Content? parseContent(Map content) {
     var ext = SharedCommandExtensions();
     // get factory by command name
-    String cmd = ext.helper!.getCmd(content, '*')!;
+    String cmd = ext.helper!.getCmd(content, null) ?? '*';
     CommandFactory? factory = ext.cmdHelper!.getCommandFactory(cmd);
     factory ??= this;
     return factory.parseCommand(content);
@@ -84,7 +92,11 @@ class GroupCommandFactory extends HistoryCommandFactory {
 
   @override
   Command? parseCommand(Map content) {
-    return BaseGroupCommand(content);
+    if (content is Map<String, dynamic>) {
+      return BaseGroupCommand(content);
+    }
+    assert(false, 'group command error: $content');
+    return null;
   }
 
 }
