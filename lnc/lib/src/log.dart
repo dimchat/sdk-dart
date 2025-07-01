@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  LNC : Log & Notification Center
+ *  LNC : Log, Notification & Cache
  *
  *                               Written in 2023 by Moky <albert.moky@gmail.com>
  *
@@ -32,17 +32,21 @@
 
 /// Simple Log
 class Log {
+  // ignore_for_file: constant_identifier_names
 
-  static const int kDebugFlag   = 1 << 0;
-  static const int kInfoFlag    = 1 << 1;
-  static const int kWarningFlag = 1 << 2;
-  static const int kErrorFlag   = 1 << 3;
+  static const int DEBUG_FLAG   = 1 << 0;
+  static const int INFO_FLAG    = 1 << 1;
+  static const int WARNING_FLAG = 1 << 2;
+  static const int ERROR_FLAG   = 1 << 3;
 
-  static const int kDebug   = kDebugFlag|kInfoFlag|kWarningFlag|kErrorFlag;
-  static const int kDevelop =            kInfoFlag|kWarningFlag|kErrorFlag;
-  static const int kRelease =                      kWarningFlag|kErrorFlag;
+  static const int DEBUG   = DEBUG_FLAG|INFO_FLAG|WARNING_FLAG|ERROR_FLAG;
+  static const int DEVELOP =            INFO_FLAG|WARNING_FLAG|ERROR_FLAG;
+  static const int RELEASE =                      WARNING_FLAG|ERROR_FLAG;
 
-  static int level = kRelease;
+  // ignore_for_file: non_constant_identifier_names
+  static int MAX_LEN = 1024;
+
+  static int level = RELEASE;
 
   static bool colorful = false;  // colored printer
   static bool showTime = true;
@@ -118,7 +122,24 @@ mixin LogMixin implements Logger {
   LogCaller? get caller =>
       Log.showCaller ? LogCaller.parse(StackTrace.current) : null;
 
+  static String shorten(String text, int maxLen) {
+    assert(maxLen > 128, 'too short: $maxLen');
+    int size = text.length;
+    if (size <= maxLen) {
+      return text;
+    }
+    String desc = 'total $size chars';
+    int pos = (maxLen - desc.length - 10) >> 1;
+    String prefix = text.substring(0, pos);
+    String suffix = text.substring(size - pos);
+    return '$prefix ... $desc ... $suffix';
+  }
+
   int output(String msg, {LogCaller? caller, String? tag, String color = ''}) {
+    int maxLen = Log.MAX_LEN;
+    if (maxLen > 0) {
+      msg = shorten(msg, maxLen);
+    }
     String body;
     // insert caller
     if (caller == null) {
@@ -145,19 +166,19 @@ mixin LogMixin implements Logger {
   }
 
   @override
-  void debug(String msg) => (Log.level & Log.kDebugFlag) > 0 &&
+  void debug(String msg) => (Log.level & Log.DEBUG_FLAG) > 0 &&
       output(msg, caller: caller, tag: ' DEBUG ', color: colorGreen) > 0;
 
   @override
-  void info(String msg) => (Log.level & Log.kInfoFlag) > 0 &&
+  void info(String msg) => (Log.level & Log.INFO_FLAG) > 0 &&
       output(msg, caller: caller, tag: '       ', color: '') > 0;
 
   @override
-  void warning(String msg) => (Log.level & Log.kWarningFlag) > 0 &&
+  void warning(String msg) => (Log.level & Log.WARNING_FLAG) > 0 &&
       output(msg, caller: caller, tag: 'WARNING', color: colorYellow) > 0;
 
   @override
-  void error(String msg) => (Log.level & Log.kErrorFlag) > 0 &&
+  void error(String msg) => (Log.level & Log.ERROR_FLAG) > 0 &&
       output(msg, caller: caller, tag: ' ERROR ', color: colorRed) > 0;
 
 }
