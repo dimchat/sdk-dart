@@ -82,7 +82,7 @@ class ECCPrivateKey extends BasePrivateKey {
       var publicKey = ECCKeyUtils.publicKeyFromPrivateKey(privateKey);
       String pem = ECCKeyUtils.encodeKey(publicKey: publicKey);
       Map info = {
-        'algorithm': AsymmetricKey.ECC,
+        'algorithm': AsymmetricAlgorithms.ECC,
         'data': pem,
         'curve': 'SECP256k1',
         'digest': 'SHA256'
@@ -131,7 +131,13 @@ class ECCPrivateKey extends BasePrivateKey {
 class ECCPublicKeyFactory implements PublicKeyFactory {
 
   @override
-  PublicKey parsePublicKey(Map key) {
+  PublicKey? parsePublicKey(Map key) {
+    // check 'data'
+    if (key['data'] == null) {
+      // key.data should not be empty
+      assert(false, 'ECC key error: $key');
+      return null;
+    }
     return ECCPublicKey(key);
   }
 }
@@ -140,12 +146,18 @@ class ECCPrivateKeyFactory implements PrivateKeyFactory {
 
   @override
   PrivateKey generatePrivateKey() {
-    Map key = {'algorithm': AsymmetricKey.ECC};
+    Map key = {'algorithm': AsymmetricAlgorithms.ECC};
     return ECCPrivateKey(key);
   }
 
   @override
   PrivateKey? parsePrivateKey(Map key) {
+    // check 'data'
+    if (key['data'] == null) {
+      // key.data should not be empty
+      assert(false, 'ECC key error: $key');
+      return null;
+    }
     return ECCPrivateKey(key);
   }
 }

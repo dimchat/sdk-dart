@@ -85,7 +85,7 @@ class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
       var publicKey = RSAKeyUtils.publicKeyFromPrivateKey(privateKey);
       String pem = RSAKeyUtils.encodeKey(publicKey: publicKey);
       Map info = {
-        'algorithm': AsymmetricKey.RSA,
+        'algorithm': AsymmetricAlgorithms.RSA,
         'data': pem,
         'mode': 'ECB',
         'padding': 'PKCS1',
@@ -151,7 +151,13 @@ class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
 class RSAPublicKeyFactory implements PublicKeyFactory {
 
   @override
-  PublicKey parsePublicKey(Map key) {
+  PublicKey? parsePublicKey(Map key) {
+    // check 'data'
+    if (key['data'] == null) {
+      // key.data should not be empty
+      assert(false, 'RSA key error: $key');
+      return null;
+    }
     return RSAPublicKey(key);
   }
 }
@@ -160,12 +166,18 @@ class RSAPrivateKeyFactory implements PrivateKeyFactory {
 
   @override
   PrivateKey generatePrivateKey() {
-    Map key = {'algorithm': AsymmetricKey.RSA};
+    Map key = {'algorithm': AsymmetricAlgorithms.RSA};
     return RSAPrivateKey(key);
   }
 
   @override
   PrivateKey? parsePrivateKey(Map key) {
+    // check 'data'
+    if (key['data'] == null) {
+      // key.data should not be empty
+      assert(false, 'RSA key error: $key');
+      return null;
+    }
     return RSAPrivateKey(key);
   }
 }

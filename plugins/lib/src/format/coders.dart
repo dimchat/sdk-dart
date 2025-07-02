@@ -34,7 +34,8 @@ class UTF8Coder implements StringCoder {
 
   @override
   Uint8List encode(String string) {
-    return Uint8List.fromList(utf8.encode(string));
+    var array = utf8.encode(string);
+    return Uint8List.fromList(array);
   }
 
   @override

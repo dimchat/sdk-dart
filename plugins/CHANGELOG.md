@@ -1,3 +1,7 @@
+## 2.0.0
+
+- Algorithms.
+
 ## 1.2.2
 
 - Meta types.

@@ -46,11 +46,11 @@ class GeneralDocumentFactory implements DocumentFactory {
     if (docType != '*') {
       return docType;
     } else if (identifier.isGroup) {
-      return Document.BULLETIN;
+      return DocumentType.BULLETIN;
     } else if (identifier.isUser) {
-      return Document.VISA;
+      return DocumentType.VISA;
     } else {
-      return Document.PROFILE;
+      return DocumentType.PROFILE;
     }
   }
 
@@ -59,18 +59,18 @@ class GeneralDocumentFactory implements DocumentFactory {
     String docType = getType(type, identifier);
     if (data == null || signature == null/* || data.isEmpty || signature.isEmpty*/) {
       // create empty document
-      if (docType == Document.VISA) {
+      if (docType == DocumentType.VISA) {
         return BaseVisa.from(identifier);
-      } else if (docType == Document.BULLETIN) {
+      } else if (docType == DocumentType.BULLETIN) {
         return BaseBulletin.from(identifier);
       } else {
         return BaseDocument.from(identifier, docType);
       }
     } else {
       // create document with data & signature from local storage
-      if (docType == Document.VISA) {
+      if (docType == DocumentType.VISA) {
         return BaseVisa.from(identifier, data: data, signature: signature);
-      } else if (docType == Document.BULLETIN) {
+      } else if (docType == DocumentType.BULLETIN) {
         return BaseBulletin.from(identifier, data: data, signature: signature);
       } else {
         return BaseDocument.from(identifier, docType, data: data, signature: signature);
@@ -80,20 +80,27 @@ class GeneralDocumentFactory implements DocumentFactory {
 
   @override
   Document? parseDocument(Map doc) {
-    ID? identifier = ID.parse(doc['ID']);
+    // check 'did', 'data', 'signature'
+    ID? identifier = ID.parse(doc['did']);
     if (identifier == null) {
-      // assert(false, 'document ID not found: $doc');
+      assert(false, 'document ID not found: $doc');
+      return null;
+    } else if (doc['data'] == null || doc['signature'] == null) {
+      // doc.data should not be empty
+      // doc.signature should not be empty
+      assert(false, 'document error: $doc');
       return null;
     }
     var ext = SharedAccountExtensions();
     String? docType = ext.helper!.getDocumentType(doc, null);
     docType ??= getType('*', identifier);
-    if (docType == Document.VISA) {
+    if (docType == DocumentType.VISA) {
       return BaseVisa(doc);
-    } else if (docType == Document.BULLETIN) {
+    } else if (docType == DocumentType.BULLETIN) {
       return BaseBulletin(doc);
     } else {
       return BaseDocument(doc);
     }
   }
+
 }

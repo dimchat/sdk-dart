@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:dimp/dimp.dart';
 import 'package:test/test.dart';
 
 // import 'package:dimsdk/plugins.dart';
-import 'package:dimp/crypto.dart';
 
 import 'loader.dart';
 
@@ -125,7 +125,7 @@ void testAES() {
   String? res;
 
   // random key
-  key = SymmetricKey.generate(SymmetricKey.AES)!;
+  key = SymmetricKey.generate(SymmetricAlgorithms.AES)!;
   ciphertext = key.encrypt(data, extra);
   plaintext = key.decrypt(ciphertext, extra)!;
   res = UTF8.decode(plaintext);
@@ -144,7 +144,7 @@ void testRSA() {
   PrivateKey sKey;
   PublicKey pKey;
 
-  sKey = PrivateKey.generate(AsymmetricKey.RSA)!;
+  sKey = PrivateKey.generate(AsymmetricAlgorithms.RSA)!;
   debugLog('RSA private key: $sKey');
 
   pKey = sKey.publicKey;

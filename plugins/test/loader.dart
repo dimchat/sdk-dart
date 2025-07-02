@@ -6,7 +6,6 @@ import 'package:dim_plugins/format.dart';
 import 'package:dim_plugins/plugins.dart';
 
 import 'address.dart';
-import 'meta.dart';
 
 
 class ClientPluginLoader extends PluginLoader {
@@ -14,25 +13,6 @@ class ClientPluginLoader extends PluginLoader {
   @override
   void registerAddressFactory() {
     Address.setFactory(CompatibleAddressFactory());
-  }
-
-  @override
-  void registerMetaFactories() {
-    var mkm = CompatibleMetaFactory(Meta.MKM);
-    var btc = CompatibleMetaFactory(Meta.BTC);
-    var eth = CompatibleMetaFactory(Meta.ETH);
-
-    Meta.setFactory('1', mkm);
-    Meta.setFactory('2', btc);
-    Meta.setFactory('4', eth);
-
-    Meta.setFactory('mkm', mkm);
-    Meta.setFactory('btc', btc);
-    Meta.setFactory('eth', eth);
-
-    Meta.setFactory('MKM', mkm);
-    Meta.setFactory('BTC', btc);
-    Meta.setFactory('ETH', eth);
   }
 
   @override

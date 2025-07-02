@@ -142,7 +142,7 @@ class ETHMeta extends BaseMeta {
 
   @override
   Address generateAddress(int? network) {
-    assert(type == Meta.ETH || type == '4', 'meta type error: $type');
+    assert(type == MetaType.ETH || type == '4', 'meta type error: $type');
     assert(network == null || network == EntityType.USER, 'address type error: $network');
     // check cache
     Address? cached = _cachedAddress;
@@ -186,15 +186,18 @@ class BaseMetaFactory implements MetaFactory {
     Meta out;
     switch (type) {
 
-      case Meta.MKM:
+      case MetaType.MKM:
+      case 'mkm':
         out = DefaultMeta.from(type, pKey, seed!, fingerprint!);
         break;
 
-      case Meta.BTC:
+      case MetaType.BTC:
+      case 'btc':
         out = BTCMeta.from(type, pKey);
         break;
 
-      case Meta.ETH:
+      case MetaType.ETH:
+      case 'eth':
         out = ETHMeta.from(type, pKey);
         break;
 
@@ -207,26 +210,49 @@ class BaseMetaFactory implements MetaFactory {
 
   @override
   Meta? parseMeta(Map meta) {
+    // // check 'type', 'key', 'seed', 'fingerprint'
+    // if (meta['type'] == null || meta['key'] == null) {
+    //   // meta.type should not be empty
+    //   // meta.key should not be empty
+    //   assert(false, 'meta error: $meta');
+    //   return null;
+    // } else if (meta['seed'] == null) {
+    //   if (meta['fingerprint'] != null) {
+    //     assert(false, 'meta error: $meta');
+    //     return null;
+    //   }
+    // } else if (meta['fingerprint'] == null) {
+    //   assert(false, 'meta error: $meta');
+    //   return null;
+    // }
     Meta out;
     var ext = SharedAccountExtensions();
     String? version = ext.helper!.getMetaType(meta, '');
     switch (version) {
 
-      case Meta.MKM:
+      case MetaType.MKM:
+      case 'mkm':
         out = DefaultMeta(meta);
         break;
 
-      case Meta.BTC:
+      case MetaType.BTC:
+      case 'btc':
         out = BTCMeta(meta);
         break;
 
-      case Meta.ETH:
+      case MetaType.ETH:
+      case 'eth':
         out = ETHMeta(meta);
         break;
 
       default:
         throw Exception('unknown meta type: $type');
     }
-    return out.isValid ? out : null;
+    if (out.isValid) {
+      return out;
+    }
+    assert(false, 'meta error: $meta');
+    return null;
   }
+
 }

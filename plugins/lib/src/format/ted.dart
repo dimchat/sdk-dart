@@ -34,7 +34,7 @@ class Base64Data extends Dictionary implements TransportableData {
 
   Base64Data.fromData(Uint8List binary) : super(null) {
     // encode algorithm
-    _wrapper.algorithm = TransportableData.BASE_64;
+    _wrapper.algorithm = EncodeAlgorithms.BASE_64;
     // binary data
     if (binary.isNotEmpty) {
       _wrapper.data = binary;
@@ -81,6 +81,12 @@ class Base64DataFactory implements TransportableDataFactory {
 
   @override
   TransportableData? parseTransportableData(Map ted) {
+    // check 'data'
+    if (ted['data'] == null) {
+      // ted.data should not be empty
+      assert(false, 'TED error: $ted');
+      return null;
+    }
     // TODO: 1. check algorithm
     //       2. check data format
     return Base64Data(ted);

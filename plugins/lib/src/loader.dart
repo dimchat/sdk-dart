@@ -23,8 +23,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dimp/crypto.dart';
-import 'package:dimp/mkm.dart';
+import 'package:dimp/dimp.dart';
 
 import 'crypto/aes.dart';
 import 'crypto/digest.dart';
@@ -116,8 +115,8 @@ class PluginLoader {
   void registerTEDFactory() {
     /// TED
     var tedFactory = Base64DataFactory();
-    TransportableData.setFactory(TransportableData.BASE_64, tedFactory);
-    // TransportableData.setFactory(TransportableData.DEFAULT, tedFactory);
+    TransportableData.setFactory(EncodeAlgorithms.BASE_64, tedFactory);
+    // TransportableData.setFactory(EncodeAlgorithms.DEFAULT, tedFactory);
     TransportableData.setFactory('*', tedFactory);
   }
 
@@ -169,7 +168,7 @@ class PluginLoader {
   void registerAESKeyFactory() {
     /// AES
     var aes = AESKeyFactory();
-    SymmetricKey.setFactory(SymmetricKey.AES, aes);
+    SymmetricKey.setFactory(SymmetricAlgorithms.AES, aes);
     SymmetricKey.setFactory('AES/CBC/PKCS7Padding', aes);
   }
   void registerPlainKeyFactory() {
@@ -189,23 +188,23 @@ class PluginLoader {
   void registerRSAKeyFactories() {
     /// RSA
     var rsaPub = RSAPublicKeyFactory();
-    PublicKey.setFactory(AsymmetricKey.RSA, rsaPub);
+    PublicKey.setFactory(AsymmetricAlgorithms.RSA, rsaPub);
     PublicKey.setFactory('SHA256withRSA', rsaPub);
     PublicKey.setFactory('RSA/ECB/PKCS1Padding', rsaPub);
 
     var rsaPri = RSAPrivateKeyFactory();
-    PrivateKey.setFactory(AsymmetricKey.RSA, rsaPri);
+    PrivateKey.setFactory(AsymmetricAlgorithms.RSA, rsaPri);
     PrivateKey.setFactory('SHA256withRSA', rsaPri);
     PrivateKey.setFactory('RSA/ECB/PKCS1Padding', rsaPri);
   }
   void registerECCKeyFactories() {
     /// ECC
     var eccPub = ECCPublicKeyFactory();
-    PublicKey.setFactory(AsymmetricKey.ECC, eccPub);
+    PublicKey.setFactory(AsymmetricAlgorithms.ECC, eccPub);
     PublicKey.setFactory('SHA256withECDSA', eccPub);
 
     var eccPri = ECCPrivateKeyFactory();
-    PrivateKey.setFactory(AsymmetricKey.ECC, eccPri);
+    PrivateKey.setFactory(AsymmetricAlgorithms.ECC, eccPri);
     PrivateKey.setFactory('SHA256withECDSA', eccPri);
   }
 
@@ -224,18 +223,30 @@ class PluginLoader {
   // protected
   ///  Meta factories
   void registerMetaFactories() {
-    Meta.setFactory(Meta.MKM, BaseMetaFactory(Meta.MKM));
-    Meta.setFactory(Meta.BTC, BaseMetaFactory(Meta.BTC));
-    Meta.setFactory(Meta.ETH, BaseMetaFactory(Meta.ETH));
+    setMetaFactory(MetaType.MKM, 'mkm');
+    setMetaFactory(MetaType.BTC, 'btc');
+    setMetaFactory(MetaType.ETH, 'eth');
+  }
+
+  // protected
+  void setMetaFactory(String type, String alias, {MetaFactory? factory}) {
+    factory ??= BaseMetaFactory(type);
+    Meta.setFactory(type, factory);
+    Meta.setFactory(alias, factory);
   }
 
   // protected
   ///  Document factories
   void registerDocumentFactories() {
-    Document.setFactory('*', GeneralDocumentFactory('*'));
-    Document.setFactory(Document.VISA, GeneralDocumentFactory(Document.VISA));
-    Document.setFactory(Document.PROFILE, GeneralDocumentFactory(Document.PROFILE));
-    Document.setFactory(Document.BULLETIN, GeneralDocumentFactory(Document.BULLETIN));
+    setDocumentFactory('*');
+    setDocumentFactory(DocumentType.VISA);
+    setDocumentFactory(DocumentType.PROFILE);
+    setDocumentFactory(DocumentType.BULLETIN);
+  }
+
+  void setDocumentFactory(String type, {DocumentFactory? factory}) {
+    factory ??= GeneralDocumentFactory(type);
+    Document.setFactory(type, factory);
   }
 
 }
