@@ -1,3 +1,7 @@
+## 2.0.0
+
+- Barrack for caching User/Group.
+
 ## 1.2.2
 
 - Message delegates.

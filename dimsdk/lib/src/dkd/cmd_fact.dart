@@ -54,11 +54,14 @@ class GeneralCommandFactory implements ContentFactory, CommandFactory {
 
   @override
   Command? parseCommand(Map content) {
-    if (content is Map<String, dynamic>) {
-      return BaseCommand(content);
+    // check 'sn', 'command'
+    if (content['sn'] == null || content['command'] == null) {
+      // content.sn should not be empty
+      // content.command should not be empty
+      assert(false, 'command error: $content');
+      return null;
     }
-    assert(false, 'command error: $content');
-    return null;
+    return BaseCommand(content);
   }
 
 }
@@ -68,11 +71,14 @@ class HistoryCommandFactory extends GeneralCommandFactory {
 
   @override
   Command? parseCommand(Map content) {
-    if (content is Map<String, dynamic>) {
-      return BaseHistoryCommand(content);
+    // check 'sn', 'command'
+    if (content['sn'] == null || content['command'] == null) {
+      // content.sn should not be empty
+      // content.command should not be empty
+      assert(false, 'command error: $content');
+      return null;
     }
-    assert(false, 'history command error: $content');
-    return null;
+    return BaseHistoryCommand(content);
   }
 
 }
@@ -92,11 +98,15 @@ class GroupCommandFactory extends HistoryCommandFactory {
 
   @override
   Command? parseCommand(Map content) {
-    if (content is Map<String, dynamic>) {
-      return BaseGroupCommand(content);
+    // check 'sn', 'command', 'group'
+    if (content['sn'] == null || content['command'] == null || content['group'] == null) {
+      // content.sn should not be empty
+      // content.command should not be empty
+      // content.group should not be empty
+      assert(false, 'group command error: $content');
+      return null;
     }
-    assert(false, 'group command error: $content');
-    return null;
+    return BaseGroupCommand(content);
   }
 
 }

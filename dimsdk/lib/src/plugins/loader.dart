@@ -250,8 +250,8 @@ class ExtensionLoader {
 }
 
 
-typedef ContentCreator = Content? Function(Map<String, dynamic> dict);
-typedef CommandCreator = Command? Function(Map<String, dynamic> dict);
+typedef ContentCreator = Content? Function(Map dict);
+typedef CommandCreator = Command? Function(Map dict);
 
 class ContentParser implements ContentFactory {
   ContentParser(this._builder);
@@ -259,7 +259,9 @@ class ContentParser implements ContentFactory {
 
   @override
   Content? parseContent(Map content) {
-    if (content is Map<String, dynamic>) {} else {
+    // check 'sn'
+    if (content['sn'] == null) {
+      // content.sn should not be empty
       assert(false, 'content error: $content');
       return null;
     }
@@ -274,7 +276,10 @@ class CommandParser implements CommandFactory {
 
   @override
   Command? parseCommand(Map content) {
-    if (content is Map<String, dynamic>) {} else {
+    // check 'sn', 'command'
+    if (content['sn'] == null || content['command'] == null) {
+      // content.sn should not be empty
+      // content.command should not be empty
       assert(false, 'command error: $content');
       return null;
     }
