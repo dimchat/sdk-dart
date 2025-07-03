@@ -184,10 +184,13 @@ class BaseUser extends BaseEntity implements User {
 
   @override
   Future<bool> verify(Uint8List data, Uint8List signature) async {
-    UserDataSource? barrack = dataSource;
-    assert(barrack != null, 'user data source not set yet');
-    List<VerifyKey> keys = await barrack!.getPublicKeysForVerification(identifier);
-    assert(keys.isNotEmpty, 'failed to get verify keys: $identifier');
+    UserDataSource? facebook = dataSource;
+    assert(facebook != null, 'user data source not set yet');
+    List<VerifyKey>? keys = await facebook?.getPublicKeysForVerification(identifier);
+    if (keys == null || keys.isEmpty) {
+      assert(false, 'failed to get verify keys: $identifier');
+      return false;
+    }
     for (VerifyKey pKey in keys) {
       if (pKey.verify(data, signature)) {
         // matched!
@@ -205,7 +208,7 @@ class BaseUser extends BaseEntity implements User {
     assert(barrack != null, 'user data source not set yet');
     // NOTICE: meta.key will never changed, so use visa.key to encrypt message
     //         is a better way
-    EncryptKey? pKey = await barrack!.getPublicKeyForEncryption(identifier);
+    EncryptKey? pKey = await barrack?.getPublicKeyForEncryption(identifier);
     assert(pKey != null, 'failed to get encrypt key for user: $identifier');
     return pKey!.encrypt(plaintext, null);
   }
@@ -218,7 +221,7 @@ class BaseUser extends BaseEntity implements User {
   Future<Uint8List> sign(Uint8List data) async {
     UserDataSource? barrack = dataSource;
     assert(barrack != null, 'user data source not set yet');
-    SignKey? sKey = await barrack!.getPrivateKeyForSignature(identifier);
+    SignKey? sKey = await barrack?.getPrivateKeyForSignature(identifier);
     assert(sKey != null, 'failed to get sign key for user: $identifier');
     return sKey!.sign(data);
   }
@@ -229,8 +232,11 @@ class BaseUser extends BaseEntity implements User {
     assert(barrack != null, 'user data source not set yet');
     // NOTICE: if you provide a public key in visa for encryption,
     //         here you should return the private key paired with visa.key
-    List<DecryptKey> keys = await barrack!.getPrivateKeysForDecryption(identifier);
-    assert(keys.isNotEmpty, 'failed to get decrypt keys for user: $identifier');
+    List<DecryptKey>? keys = await barrack?.getPrivateKeysForDecryption(identifier);
+    if (keys == null || keys.isEmpty) {
+      assert(false, 'failed to get decrypt keys for user: $identifier');
+      return null;
+    }
     Uint8List? plaintext;
     for (DecryptKey key in keys) {
       // try decrypting it with each private key
@@ -251,9 +257,12 @@ class BaseUser extends BaseEntity implements User {
     UserDataSource? barrack = dataSource;
     assert(barrack != null, 'user data source not set yet');
     // NOTICE: only sign visa with the private key paired with your meta.key
-    SignKey? sKey = await barrack!.getPrivateKeyForVisaSignature(identifier);
-    assert(sKey != null, 'failed to get sign key for visa: $identifier');
-    if (doc.sign(sKey!) == null) {
+    SignKey? sKey = await barrack?.getPrivateKeyForVisaSignature(identifier);
+    if (sKey == null) {
+      assert(false, 'failed to get sign key for visa: $identifier');
+      return null;
+    }
+    if (doc.sign(sKey) == null) {
       assert(false, 'failed to sign visa: $identifier, $doc');
       return null;
     }

@@ -49,12 +49,12 @@ abstract interface class Compressor {
 
 class MessageCompressor implements Compressor {
   MessageCompressor() {
-    shortener = createMessageShortener();
+    shortener = createShortener();
   }
 
   late final MessageShortener shortener;
 
-  MessageShortener createMessageShortener() => MessageShortener();
+  MessageShortener createShortener() => MessageShortener();
 
   @override
   Uint8List compressContent(Map content, Map key) {

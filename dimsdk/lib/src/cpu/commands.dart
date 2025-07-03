@@ -30,12 +30,16 @@
  */
 import 'package:dimp/dimp.dart';
 
+import '../core/barrack.dart';
 import '../mkm/utils.dart';
 
 import 'base.dart';
 
 class MetaCommandProcessor extends BaseCommandProcessor {
   MetaCommandProcessor(super.facebook, super.messenger);
+
+  // protected
+  Archivist? get archivist => facebook?.archivist;
 
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
@@ -94,8 +98,10 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   Future<List<Content>?> saveMeta(Meta meta, {
     required ID identifier, required MetaCommand content, required Envelope envelope
   }) async {
+    bool? ok;
     // check meta
-    if (!await checkMeta(meta, identifier: identifier)) {
+    ok = await checkMeta(meta, identifier: identifier);
+    if (!ok) {
       String text = 'Meta not valid.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Meta not valid: \${did}.',
@@ -103,7 +109,9 @@ class MetaCommandProcessor extends BaseCommandProcessor {
           'did': identifier.toString(),
         },
       });
-    } else if (!await facebook!.saveMeta(meta, identifier)) {
+    }
+    ok = await archivist?.saveMeta(meta, identifier);
+    if (ok != true) {
       // DB error?
       String text = 'Meta not accepted.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
@@ -245,8 +253,10 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     required Meta meta, required ID identifier,
     required DocumentCommand content, required Envelope envelope
   }) async {
+    bool? ok;
     // check document
-    if (!await checkDocument(doc, meta: meta)) {
+    ok = await checkDocument(doc, meta: meta);
+    if (!ok) {
       // document error
       String text = 'Document not accepted.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
@@ -255,7 +265,9 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
           'did': identifier.toString(),
         },
       });
-    } else if (!await facebook!.saveDocument(doc)) {
+    }
+    ok = await archivist?.saveDocument(doc);
+    if (ok != true) {
       // document expired
       String text = 'Document not changed.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {

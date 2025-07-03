@@ -28,6 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
+import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
 
 import '../mkm/bot.dart';
@@ -81,5 +82,48 @@ abstract class Barrack {
     // general group, or 'everyone@everywhere'
     return BaseGroup(identifier);
   }
+
+}
+
+
+abstract interface class Archivist {
+
+  ///  Save meta for entity ID (must verify first)
+  ///
+  /// @param meta - entity meta
+  /// @param identifier - entity ID
+  /// @return true on success
+  Future<bool> saveMeta(Meta meta, ID identifier);
+
+  ///  Save entity document with ID (must verify first)
+  ///
+  /// @param doc - entity document
+  /// @return true on success
+  Future<bool> saveDocument(Document doc);
+
+  //
+  //  Public Keys
+  //
+
+  ///  Get meta.key
+  ///
+  /// @param user - user ID
+  /// @return null on not found
+  Future<VerifyKey?> getMetaKey(ID user);
+
+  ///  Get visa.key
+  ///
+  /// @param user - user ID
+  /// @return null on not found
+  Future<EncryptKey?> getVisaKey(ID user);
+
+  //
+  //  Local Users
+  //
+
+  ///  Get all local users (for decrypting received message)
+  ///
+  /// @return users with private key
+  Future<List<ID>> getLocalUsers();
 
 }

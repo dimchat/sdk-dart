@@ -32,12 +32,12 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import 'core/barrack.dart';
 import 'core/compressor.dart';
 import 'core/packer.dart';
 import 'dkd/instant.dart';
 import 'dkd/reliable.dart';
 import 'dkd/secure.dart';
-import 'mkm/user.dart';
 import 'msg/instant.dart';
 import 'msg/reliable.dart';
 import 'msg/secure.dart';
@@ -69,7 +69,11 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
   ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate delegate) =>
       ReliableMessagePacker(delegate);
 
+  // protected
   Compressor? get compressor;
+
+  // protected
+  Archivist? get archivist => facebook?.archivist;
 
   //
   //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
@@ -99,22 +103,28 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
     //  1. get message key with direction (sender -> receiver) or (sender -> group)
     //
     SymmetricKey? password = await messenger?.getEncryptKey(iMsg);
-    assert(password != null, 'failed to get msg key: ${iMsg.sender} => $receiver, ${iMsg['group']}');
+    if (password == null) {
+      assert(false, 'failed to get msg key: ${iMsg.sender} => $receiver, ${iMsg['group']}');
+      return null;
+    }
 
     //
     //  2. encrypt 'content' to 'data' for receiver/group members
     //
     if (receiver.isGroup) {
       // group message
-      List<ID> members = await facebook!.getMembers(receiver);
-      assert(members.isNotEmpty, 'group not ready: $receiver');
+      List<ID>? members = await facebook?.getMembers(receiver);
+      if (members == null || members.isEmpty) {
+        assert(false, 'group not ready: $receiver');
+        return null;
+      }
       // a station will never send group message, so here must be a client;
       // the client messenger should check the group's meta & members before encrypting,
       // so we can trust that the group members MUST exist here.
-      sMsg = await instantPacker.encryptMessage(iMsg, password!, members: members);
+      sMsg = await instantPacker.encryptMessage(iMsg, password, members: members);
     } else {
       // personal message (or split group message)
-      sMsg = await instantPacker.encryptMessage(iMsg, password!);
+      sMsg = await instantPacker.encryptMessage(iMsg, password);
     }
     if (sMsg == null) {
       // public key for encryption not found
@@ -162,12 +172,12 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
     // [Meta Protocol]
     Meta? meta = MessageUtils.getMeta(rMsg);
     if (meta != null) {
-      await facebook?.saveMeta(meta, sender);
+      await archivist?.saveMeta(meta, sender);
     }
     // [Visa Protocol]
     Visa? visa = MessageUtils.getVisa(rMsg);
     if (visa != null) {
-      await facebook?.saveDocument(visa);
+      await archivist?.saveDocument(visa);
     }
     //
     //  TODO: check [Visa Protocol] before calling this
@@ -195,15 +205,15 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
     //       or you are a member of the group when this is a group message,
     //       so that you will have a private key (decrypt key) to decrypt it.
     ID receiver = sMsg.receiver;
-    User? user = await facebook?.selectLocalUser(receiver);
-    if (user == null) {
+    ID? me = await facebook?.selectLocalUser(receiver);
+    if (me == null) {
       // not for you?
       throw Exception('receiver error: $receiver, from ${sMsg.sender}, ${sMsg.group}');
     }
     assert(sMsg.data.isNotEmpty, 'message data empty: '
         '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
     // decrypt 'data' to 'content'
-    return await securePacker.decryptMessage(sMsg, user.identifier);
+    return await securePacker.decryptMessage(sMsg, me);
 
     // TODO: check top-secret message
     //       (do it by application)

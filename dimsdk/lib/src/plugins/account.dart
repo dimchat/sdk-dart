@@ -164,9 +164,6 @@ class AccountGeneralFactory implements GeneralAccountHelper,
 
   @override
   MetaFactory? getMetaFactory(String type) {
-    if (type.isEmpty) {
-      return null;
-    }
     return _metaFactories[type];
   }
 
@@ -196,10 +193,11 @@ class AccountGeneralFactory implements GeneralAccountHelper,
       assert(false, 'meta error: $meta');
       return null;
     }
-    String type = getMetaType(info, null) ?? '';
-    assert(type.isNotEmpty, 'meta error: $meta');
-    MetaFactory? factory = getMetaFactory(type);
+    String? type = getMetaType(info, null);
+    assert(type != null, 'meta error: $meta');
+    MetaFactory? factory = type == null ? null : getMetaFactory(type);
     if (factory == null) {
+      // unknown meta type, get default meta factory
       factory = getMetaFactory('*');  // unknown
       assert(factory != null, 'default meta factory not found');
     }
@@ -217,9 +215,6 @@ class AccountGeneralFactory implements GeneralAccountHelper,
 
   @override
   DocumentFactory? getDocumentFactory(String docType) {
-    if (docType.isEmpty) {
-      return null;
-    }
     return _docsFactories[docType];
   }
 
@@ -242,10 +237,11 @@ class AccountGeneralFactory implements GeneralAccountHelper,
       assert(false, 'document error: $doc');
       return null;
     }
-    String docType = getDocumentType(info, null) ?? '';
-    assert(docType.isNotEmpty, 'document error: $doc');
-    DocumentFactory? factory = getDocumentFactory(docType);
+    String? type = getDocumentType(info, null);
+    assert(type != null, 'document error: $doc');
+    DocumentFactory? factory = type == null ? null : getDocumentFactory(type);
     if (factory == null) {
+      // unknown document type, get default document factory
       factory = getDocumentFactory('*');  // unknown
       assert(factory != null, 'default document factory not found');
     }

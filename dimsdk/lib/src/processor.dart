@@ -32,7 +32,6 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-import 'mkm/user.dart';
 import 'dkd/proc.dart';
 import 'core/processor.dart';
 
@@ -160,12 +159,11 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
     // 2. select a local user to build message
     ID sender = iMsg.sender;
     ID receiver = iMsg.receiver;
-    User? user = await facebook?.selectLocalUser(receiver);
-    if (user == null) {
+    ID? me = await facebook?.selectLocalUser(receiver);
+    if (me == null) {
       assert(false, 'receiver error: $receiver');
       return [];
     }
-    ID me = user.identifier;
     // 3. pack messages
     List<InstantMessage> messages = [];
     Envelope env;

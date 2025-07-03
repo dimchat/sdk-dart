@@ -52,9 +52,6 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
 
   @override
   SymmetricKeyFactory? getSymmetricKeyFactory(String algorithm) {
-    if (algorithm.isEmpty) {
-      return null;
-    }
     return _symmetricKeyFactories[algorithm];
   }
 
@@ -77,10 +74,11 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
       assert(false, 'symmetric key error: $key');
       return null;
     }
-    String algorithm = getKeyAlgorithm(info, null) ?? '';
-    assert(algorithm.isNotEmpty, 'symmetric key error: $key');
-    SymmetricKeyFactory? factory = getSymmetricKeyFactory(algorithm);
+    String? algo = getKeyAlgorithm(info, null);
+    assert(algo != null, 'symmetric key error: $key');
+    var factory = algo == null ? null : getSymmetricKeyFactory(algo);
     if (factory == null) {
+      // unknown algorithm, get default key factory
       factory = getSymmetricKeyFactory('*');  // unknown
       assert(factory != null, 'default symmetric key factory not found');
     }
@@ -98,9 +96,6 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
 
   @override
   PrivateKeyFactory? getPrivateKeyFactory(String algorithm) {
-    if (algorithm.isEmpty) {
-      return null;
-    }
     return _privateKeyFactories[algorithm];
   }
 
@@ -123,10 +118,11 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
       assert(false, 'private key error: $key');
       return null;
     }
-    String algorithm = getKeyAlgorithm(info, null) ?? '';
-    assert(algorithm.isNotEmpty, 'private key error: $key');
-    PrivateKeyFactory? factory = getPrivateKeyFactory(algorithm);
+    String? algo = getKeyAlgorithm(info, null);
+    assert(algo != null, 'private key error: $key');
+    var factory = algo == null ? null : getPrivateKeyFactory(algo);
     if (factory == null) {
+      // unknown algorithm, get default key factory
       factory = getPrivateKeyFactory('*');  // unknown
       assert(factory != null, 'default private key factory not found');
     }
@@ -144,9 +140,6 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
 
   @override
   PublicKeyFactory? getPublicKeyFactory(String algorithm) {
-    if (algorithm.isEmpty) {
-      return null;
-    }
     return _publicKeyFactories[algorithm];
   }
 
@@ -162,10 +155,11 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
       assert(false, 'public key error: $key');
       return null;
     }
-    String algorithm = getKeyAlgorithm(info, null) ?? '';
-    assert(algorithm.isNotEmpty, 'public key error: $key');
-    PublicKeyFactory? factory = getPublicKeyFactory(algorithm);
+    String? algo = getKeyAlgorithm(info, null);
+    assert(algo != null, 'public key error: $key');
+    var factory = algo == null ? null : getPublicKeyFactory(algo);
     if (factory == null) {
+      // unknown algorithm, get default key factory
       factory = getPublicKeyFactory('*');  // unknown
       assert(factory != null, 'default public key factory not found');
     }

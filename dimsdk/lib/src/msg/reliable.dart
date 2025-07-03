@@ -37,11 +37,11 @@ import '../dkd/reliable.dart';
 
 class ReliableMessagePacker {
   ReliableMessagePacker(ReliableMessageDelegate messenger)
-      : _transceiver = WeakReference(messenger);
+      : _messenger = WeakReference(messenger);
 
-  final WeakReference<ReliableMessageDelegate> _transceiver;
+  final WeakReference<ReliableMessageDelegate> _messenger;
 
-  ReliableMessageDelegate? get delegate => _transceiver.target;
+  ReliableMessageDelegate? get delegate => _messenger.target;
 
   /*
    *  Verify the Reliable Message to Secure Message
@@ -62,7 +62,11 @@ class ReliableMessagePacker {
   /// @param rMsg     - network message
   /// @return SecureMessage object if signature matched
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
-    ReliableMessageDelegate transceiver = delegate!;
+    ReliableMessageDelegate? transceiver = delegate;
+    if (transceiver == null) {
+      assert(false, 'messenger not ready');
+      return null;
+    }
 
     //
     //  0. Decode 'message.data' to encrypted content data

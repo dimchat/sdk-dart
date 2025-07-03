@@ -38,74 +38,58 @@ import 'mkm/user.dart';
 
 abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSource {
 
-  Barrack get barrack;
+  Barrack? get barrack;
 
-  ///  Save meta for entity ID (must verify first)
-  ///
-  /// @param meta - entity meta
-  /// @param identifier - entity ID
-  /// @return true on success
-  Future<bool> saveMeta(Meta meta, ID identifier);
-
-  ///  Save entity document with ID (must verify first)
-  ///
-  /// @param doc - entity document
-  /// @return true on success
-  Future<bool> saveDocument(Document doc);
-
-  //
-  //  Public Keys
-  //
-
-  ///  Get meta.key
-  ///
-  /// @param user - user ID
-  /// @return null on not found
-  Future<VerifyKey?> getMetaKey(ID user);
-
-  ///  Get visa.key
-  ///
-  /// @param user - user ID
-  /// @return null on not found
-  Future<EncryptKey?> getVisaKey(ID user);
-
-  //
-  //  Local Users
-  //
-
-  ///  Get all local users (for decrypting received message)
-  ///
-  /// @return users with private key
-  Future<List<User>> getLocalUsers();
+  Archivist? get archivist;
 
   ///  Select local user for receiver
   ///
   /// @param receiver - user/group ID
   /// @return local user
-  Future<User?> selectLocalUser(ID receiver) async {
-    if (receiver.isUser) {} else {
-      assert(receiver.isGroup, 'receiver error: $receiver');
-      // group message (recipient not designated)
-      // TODO: check members of group
-      return null;
-    }
-    List<User> users = await getLocalUsers();
-    if (users.isEmpty) {
+  Future<ID?> selectLocalUser(ID receiver) async {
+    List<ID>? users = await archivist?.getLocalUsers();
+    //
+    //  1.
+    //
+    if (users == null || users.isEmpty) {
       assert(false, 'local users should not be empty');
       return null;
     } else if (receiver.isBroadcast) {
-      // broadcast message can decrypt by anyone, so just return current user
+      // broadcast message can decrypt by anyone,
+      // so just return current user
       return users.first;
     }
-    // 1. personal message
-    // 2. split group message
-    for (User item in users) {
-      if (item.identifier == receiver) {
-        // DISCUSS: set this item to be current user?
-        return item;
+    //
+    //  2.
+    //
+    if (receiver.isUser) {
+      // personal message
+      for (ID item in users) {
+        if (receiver == item) {
+          // DISCUSS: set this item to be current user?
+          return item;
+        }
       }
+    } else if (receiver.isGroup) {
+      // group message (recipient not designated)
+      //
+      // the messenger will check group info before decrypting message,
+      // so we can trust that the group's meta & members MUST exist here.
+      List<ID> members = await getMembers(receiver);
+      if (members.isEmpty) {
+        assert(false, 'members not found: $receiver');
+        return null;
+      }
+      for (ID item in users) {
+        if (members.contains(item)) {
+          // DISCUSS: set this item to be current user?
+          return item;
+        }
+      }
+    } else {
+      assert(false, 'receiver error: $receiver');
     }
-    // not mine?
+    // not me?
     return null;
   }
 
@@ -119,7 +103,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     //
     //  1. get from user cache
     //
-    User? user = barrack.getUser(identifier);
+    User? user = barrack?.getUser(identifier);
     if (user != null) {
       return user;
     }
@@ -137,9 +121,9 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     //
     //  3. create user and cache it
     //
-    user = barrack.createUser(identifier);
+    user = barrack?.createUser(identifier);
     if (user != null) {
-      barrack.cacheUser(user);
+      barrack?.cacheUser(user);
     }
     return user;
   }
@@ -150,7 +134,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     //
     //  1. get from group cache
     //
-    Group? group = barrack.getGroup(identifier);
+    Group? group = barrack?.getGroup(identifier);
     if (group != null) {
       return group;
     }
@@ -169,9 +153,9 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     //
     //  3. create group and cache it
     //
-    group = barrack.createGroup(identifier);
+    group = barrack?.createGroup(identifier);
     if (group != null) {
-      barrack.cacheGroup(group);
+      barrack?.cacheGroup(group);
     }
     return group;
   }
@@ -186,7 +170,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     //
     //  1. get pubic key from visa
     //
-    EncryptKey? visaKey = await getVisaKey(user);
+    EncryptKey? visaKey = await archivist?.getVisaKey(user);
     if (visaKey != null) {
       // if visa.key exists, use it for encryption
       return visaKey;
@@ -194,7 +178,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     //
     //  2. get key from meta
     //
-    VerifyKey? metaKey = await getMetaKey(user);
+    VerifyKey? metaKey = await archivist?.getMetaKey(user);
     if (metaKey is EncryptKey) {
       // if visa.key not exists and meta.key is encrypt key,
       // use it for encryption
@@ -211,7 +195,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     //
     //  1. get pubic key from visa
     //
-    EncryptKey? visaKey = await getVisaKey(user);
+    EncryptKey? visaKey = await archivist?.getVisaKey(user);
     if (visaKey is VerifyKey) {
       // the sender may use communication key to sign message.data,
       // so try to verify it with visa.key first
@@ -220,7 +204,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     //
     //  2. get key from meta
     //
-    VerifyKey? metaKey = await getMetaKey(user);
+    VerifyKey? metaKey = await archivist?.getMetaKey(user);
     if (metaKey != null) {
       // the sender may use identity key to sign message.data,
       // try to verify it with meta.key too

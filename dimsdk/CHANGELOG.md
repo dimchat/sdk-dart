@@ -1,3 +1,7 @@
+## 2.0.1
+
+- Archivist.
+
 ## 2.0.0
 
 - Barrack for caching User/Group.

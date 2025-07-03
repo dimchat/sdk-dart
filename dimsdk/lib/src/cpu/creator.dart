@@ -68,7 +68,7 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
         return BaseContentProcessor(facebook!, messenger!);
 
     }
-    // unknown content
+    // assert(false, 'unsupported content: $msgType');
     return null;
   }
 
@@ -85,7 +85,7 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
         return DocumentCommandProcessor(facebook!, messenger!);
 
     }
-    // unknown command
+    // assert(false, 'unsupported command: $cmd');
     return null;
   }
 

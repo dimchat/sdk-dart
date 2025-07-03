@@ -37,11 +37,11 @@ import '../dkd/instant.dart';
 
 class InstantMessagePacker {
   InstantMessagePacker(InstantMessageDelegate messenger)
-      : _transceiver = WeakReference(messenger);
+      : _messenger = WeakReference(messenger);
 
-  final WeakReference<InstantMessageDelegate> _transceiver;
+  final WeakReference<InstantMessageDelegate> _messenger;
 
-  InstantMessageDelegate? get delegate => _transceiver.target;
+  InstantMessageDelegate? get delegate => _messenger.target;
 
   /*
    *  Encrypt the Instant Message to Secure Message
@@ -66,7 +66,11 @@ class InstantMessagePacker {
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg, SymmetricKey password, {List<ID>? members}) async {
     // TODO: check attachment for File/Image/Audio/Video message content
     //      (do it by application)
-    InstantMessageDelegate transceiver = delegate!;
+    InstantMessageDelegate? transceiver = delegate;
+    if (transceiver == null) {
+      assert(false, 'messenger not ready');
+      return null;
+    }
 
     //
     //  1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
@@ -134,7 +138,7 @@ class InstantMessagePacker {
     }
     else // group message
     {
-      Map keys = {};
+      Map<String, dynamic> keys = {};
       for (ID receiver in members) {
         //
         //  5. Encrypt key data to 'message.keys' with member's public key

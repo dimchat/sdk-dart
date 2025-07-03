@@ -37,11 +37,11 @@ import '../dkd/secure.dart';
 
 class SecureMessagePacker {
   SecureMessagePacker(SecureMessageDelegate messenger)
-      : _transceiver = WeakReference(messenger);
+      : _messenger = WeakReference(messenger);
 
-  final WeakReference<SecureMessageDelegate> _transceiver;
+  final WeakReference<SecureMessageDelegate> _messenger;
 
-  SecureMessageDelegate? get delegate => _transceiver.target;
+  SecureMessageDelegate? get delegate => _messenger.target;
 
   /*
    *  Decrypt the Secure Message to Instant Message
@@ -63,7 +63,11 @@ class SecureMessagePacker {
   /// @return InstantMessage object
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg, ID receiver) async {
     assert(receiver.isUser, 'receiver error: $receiver');
-    SecureMessageDelegate transceiver = delegate!;
+    SecureMessageDelegate? transceiver = delegate;
+    if (transceiver == null) {
+      assert(false, 'messenger not ready');
+      return null;
+    }
 
     //
     //  1. Decode 'message.key' to encrypted symmetric key data

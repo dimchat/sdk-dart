@@ -39,13 +39,15 @@ class GeneralCommandFactory implements ContentFactory, CommandFactory {
   @override
   Content? parseContent(Map content) {
     var ext = SharedCommandExtensions();
+    GeneralCommandHelper? helper = ext.helper;
+    CommandHelper? cmdHelper = ext.cmdHelper;
     // get factory by command name
-    String cmd = ext.helper!.getCmd(content, null) ?? '';
-    CommandFactory? factory = ext.cmdHelper!.getCommandFactory(cmd);
+    String? cmd = helper?.getCmd(content, null);
+    CommandFactory? factory = cmd == null ? null : cmdHelper?.getCommandFactory(cmd);
     if (factory == null) {
       // check for group command
       if (content.containsKey('group')/* && cmd != 'group'*/) {
-        factory = ext.cmdHelper!.getCommandFactory('group');
+        factory = cmdHelper?.getCommandFactory('group');
       }
       factory ??= this;
     }
@@ -89,9 +91,11 @@ class GroupCommandFactory extends HistoryCommandFactory {
   @override
   Content? parseContent(Map content) {
     var ext = SharedCommandExtensions();
+    GeneralCommandHelper? helper = ext.helper;
+    CommandHelper? cmdHelper = ext.cmdHelper;
     // get factory by command name
-    String cmd = ext.helper!.getCmd(content, null) ?? '*';
-    CommandFactory? factory = ext.cmdHelper!.getCommandFactory(cmd);
+    String? cmd = helper?.getCmd(content, null);
+    CommandFactory? factory = cmd == null ? null : cmdHelper?.getCommandFactory(cmd);
     factory ??= this;
     return factory.parseCommand(content);
   }
