@@ -33,9 +33,6 @@ import 'package:dimp/dimp.dart';
 class PlainKey extends BaseSymmetricKey {
   PlainKey(super.dict);
 
-  // ignore: constant_identifier_names
-  static const String PLAIN = 'PLAIN';
-
   @override
   Uint8List get data => Uint8List(0);
 
@@ -51,7 +48,7 @@ class PlainKey extends BaseSymmetricKey {
 
   //-------- Singleton --------
 
-  static final PlainKey _instance = PlainKey({'algorithm': PLAIN});
+  static final PlainKey _instance = PlainKey({'algorithm': SymmetricAlgorithms.PLAIN});
   factory PlainKey.getInstance() => _instance;
 }
 

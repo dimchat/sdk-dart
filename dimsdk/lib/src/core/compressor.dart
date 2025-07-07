@@ -32,6 +32,8 @@ import 'dart:typed_data';
 
 import 'package:dimp/crypto.dart';
 
+import 'compress_keys.dart';
+
 
 abstract interface class Compressor {
 
@@ -48,18 +50,20 @@ abstract interface class Compressor {
 
 
 class MessageCompressor implements Compressor {
-  MessageCompressor() {
-    shortener = createShortener();
-  }
+  MessageCompressor(this.shortener);
 
-  late final MessageShortener shortener;
+  // protected
+  final Shortener shortener;
 
-  MessageShortener createShortener() => MessageShortener();
+  ///
+  ///  Compress Content
+  ///
 
   @override
   Uint8List compressContent(Map content, Map key) {
     content = shortener.compressContent(content);
-    return UTF8.encode(JSONMap.encode(content));
+    String json = JSONMap.encode(content);
+    return UTF8.encode(json);
   }
 
   @override
@@ -76,10 +80,15 @@ class MessageCompressor implements Compressor {
     return info;
   }
 
+  ///
+  ///  Compress SymmetricKey
+  ///
+
   @override
   Uint8List compressSymmetricKey(Map key) {
     key = shortener.compressSymmetricKey(key);
-    return UTF8.encode(JSONMap.encode(key));
+    String json = JSONMap.encode(key);
+    return UTF8.encode(json);
   }
 
   @override
@@ -96,10 +105,15 @@ class MessageCompressor implements Compressor {
     return key;
   }
 
+  ///
+  ///  Compress ReliableMessage
+  ///
+
   @override
   Uint8List compressReliableMessage(Map msg) {
     msg = shortener.compressReliableMessage(msg);
-    return UTF8.encode(JSONMap.encode(msg));
+    String json = JSONMap.encode(msg);
+    return UTF8.encode(json);
   }
 
   @override
@@ -113,120 +127,6 @@ class MessageCompressor implements Compressor {
     if (msg != null) {
       msg = shortener.extractReliableMessage(msg);
     }
-    return msg;
-  }
-
-}
-
-
-class MessageShortener {
-
-  // protected
-  void moveKey(String from, String to, Map info) {
-    var value = info[from];
-    if (value != null) {
-      info.remove(from);
-      info[to] = value;
-    }
-  }
-
-  // protected
-  void shortenKeys(List<String> keys, Map info) {
-    int i = 1;
-    while (i < keys.length) {
-      moveKey(keys[i], keys[i - 1], info);
-      i += 2;
-    }
-  }
-
-  // protected
-  void restoreKeys(List<String> keys, Map info) {
-    int i = 1;
-    while (i < keys.length) {
-      moveKey(keys[i - 1], keys[i], info);
-      i += 2;
-    }
-  }
-
-  ///
-  ///  Compress Content
-  ///
-  List<String> contentShortKeys = [
-    "T", "type",
-    "N", "sn",
-    "W", "time",   // When
-    "G", "group",
-  ];
-
-  Map compressContent(Map content) {
-    shortenKeys(contentShortKeys, content);
-    return content;
-  }
-
-  Map extractContent(Map content) {
-    restoreKeys(contentShortKeys, content);
-    return content;
-  }
-
-  ///
-  ///  Compress SymmetricKey
-  ///
-  List<String> cryptoShortKeys = [
-    "A", "algorithm",
-    "D", "data",
-    "I", "iv",         // Initial Vector
-  ];
-
-  Map compressSymmetricKey(Map key) {
-    shortenKeys(cryptoShortKeys, key);
-    return key;
-  }
-
-  Map extractSymmetricKey(Map key) {
-    restoreKeys(cryptoShortKeys, key);
-    return key;
-  }
-
-  ///
-  ///  Compress ReliableMessage
-  ///
-  List<String> messageShortKeys = [
-    "F", "sender",      // From
-    "R", "receiver",    // Rcpt to
-    "W", "time",        // When
-    "T", "type",
-    "G", "group",
-    //------------------
-    "K", "key",         // or "keys"
-    "D", "data",
-    "V", "signature",   // Verify
-    //------------------
-    "M", "meta",
-    "P", "visa",        // Profile
-  ];
-
-  Map compressReliableMessage(Map msg) {
-    moveKey("keys", "K", msg);
-    shortenKeys(messageShortKeys, msg);
-    return msg;
-  }
-
-  Map extractReliableMessage(Map msg) {
-    var keys = msg["K"];
-    if (keys == null) {
-      // assert(msg["data"] != null, "message data should not empty: $msg");
-    } else if (keys is Map) {
-      assert(msg["keys"] == null, "message keys duplicated: $msg");
-      msg.remove("K");
-      msg["keys"] = keys;
-    } else if (keys is String) {
-      assert(msg["key"] == null, "message key duplicated: $msg");
-      msg.remove("K");
-      msg["key"] = keys;
-    } else {
-      assert(false, "message key error: $msg");
-    }
-    restoreKeys(messageShortKeys, msg);
     return msg;
   }
 

@@ -173,7 +173,7 @@ class PluginLoader {
   }
   void registerPlainKeyFactory() {
     /// Plain
-    SymmetricKey.setFactory(PlainKey.PLAIN, PlainKeyFactory());
+    SymmetricKey.setFactory(SymmetricAlgorithms.PLAIN, PlainKeyFactory());
   }
 
   // protected

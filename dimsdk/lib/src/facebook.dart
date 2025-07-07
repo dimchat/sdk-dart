@@ -47,6 +47,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   /// @param receiver - user/group ID
   /// @return local user
   Future<ID?> selectLocalUser(ID receiver) async {
+    assert(archivist != null, 'archivist not ready');
     List<ID>? users = await archivist?.getLocalUsers();
     //
     //  1.
@@ -100,6 +101,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   @override
   Future<User?> getUser(ID identifier) async {
     assert(identifier.isUser, 'user ID error: $identifier');
+    assert(barrack != null, 'barrack not ready');
     //
     //  1. get from user cache
     //
@@ -131,6 +133,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   @override
   Future<Group?> getGroup(ID identifier) async {
     assert(identifier.isGroup, 'group ID error: $identifier');
+    assert(barrack != null, 'barrack not ready');
     //
     //  1. get from group cache
     //
@@ -167,6 +170,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   @override
   Future<EncryptKey?> getPublicKeyForEncryption(ID user) async {
     assert(user.isUser, 'user ID error: $user');
+    assert(archivist != null, 'archivist not ready');
     //
     //  1. get pubic key from visa
     //
@@ -191,6 +195,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   @override
   Future<List<VerifyKey>> getPublicKeysForVerification(ID user) async {
     // assert(user.isUser, 'user ID error: $user');
+    assert(archivist != null, 'archivist not ready');
     List<VerifyKey> keys = [];
     //
     //  1. get pubic key from visa

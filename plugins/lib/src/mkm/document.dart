@@ -57,23 +57,33 @@ class GeneralDocumentFactory implements DocumentFactory {
   @override
   Document createDocument(ID identifier, {String? data, TransportableData? signature}) {
     String docType = getType(type, identifier);
-    if (data == null || signature == null/* || data.isEmpty || signature.isEmpty*/) {
+    if (data == null || data.isEmpty) {
+      assert(signature == null, 'document error: $identifier, data: $data, signature: $signature');
       // create empty document
-      if (docType == DocumentType.VISA) {
-        return BaseVisa.from(identifier);
-      } else if (docType == DocumentType.BULLETIN) {
-        return BaseBulletin.from(identifier);
-      } else {
-        return BaseDocument.from(identifier, docType);
+      switch (docType) {
+
+        case DocumentType.VISA:
+          return BaseVisa.from(identifier);
+
+        case DocumentType.BULLETIN:
+          return BaseBulletin.from(identifier);
+
+        default:
+          return BaseDocument.from(identifier, docType);
       }
     } else {
+      assert(signature != null, 'document error: $identifier, data: $data, signature: $signature');
       // create document with data & signature from local storage
-      if (docType == DocumentType.VISA) {
-        return BaseVisa.from(identifier, data: data, signature: signature);
-      } else if (docType == DocumentType.BULLETIN) {
-        return BaseBulletin.from(identifier, data: data, signature: signature);
-      } else {
-        return BaseDocument.from(identifier, docType, data: data, signature: signature);
+      switch (docType) {
+
+        case DocumentType.VISA:
+          return BaseVisa.from(identifier, data: data, signature: signature);
+
+        case DocumentType.BULLETIN:
+          return BaseBulletin.from(identifier, data: data, signature: signature);
+
+        default:
+          return BaseDocument.from(identifier, docType, data: data, signature: signature);
       }
     }
   }
@@ -94,12 +104,16 @@ class GeneralDocumentFactory implements DocumentFactory {
     var ext = SharedAccountExtensions();
     String? docType = ext.helper!.getDocumentType(doc, null);
     docType ??= getType('*', identifier);
-    if (docType == DocumentType.VISA) {
-      return BaseVisa(doc);
-    } else if (docType == DocumentType.BULLETIN) {
-      return BaseBulletin(doc);
-    } else {
-      return BaseDocument(doc);
+    switch (docType) {
+
+      case DocumentType.VISA:
+        return BaseVisa(doc);
+
+      case DocumentType.BULLETIN:
+        return BaseBulletin(doc);
+
+      default:
+        return BaseDocument(doc);
     }
   }
 

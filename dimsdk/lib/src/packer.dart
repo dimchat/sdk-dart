@@ -70,7 +70,7 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
       ReliableMessagePacker(delegate);
 
   // protected
-  Compressor? get compressor;
+  Compressor get compressor;
 
   // protected
   Archivist? get archivist => facebook?.archivist;
@@ -84,6 +84,7 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
     // TODO: check receiver before calling this, make sure the visa.key exists;
     //       otherwise, suspend this message for waiting receiver's visa/meta;
     //       if receiver is a group, query all members' visa too!
+    assert(facebook != null && messenger != null, 'twins not ready');
 
     SecureMessage? sMsg;
     // NOTICE: before sending group message, you can decide whether expose the group ID
@@ -150,7 +151,7 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
 
   @override
   Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async =>
-      compressor?.compressReliableMessage(rMsg.toMap());
+      compressor.compressReliableMessage(rMsg.toMap());
 
   //
   //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
@@ -158,7 +159,7 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
 
   @override
   Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
-    Object? info = compressor?.extractReliableMessage(data);
+    Object? info = compressor.extractReliableMessage(data);
     return ReliableMessage.parse(info);
   }
 
@@ -168,6 +169,7 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
   /// @return false on error
   // protected
   Future<bool> checkAttachments(ReliableMessage rMsg) async {
+    assert(archivist != null, 'archivist not ready');
     ID sender = rMsg.sender;
     // [Meta Protocol]
     Meta? meta = MessageUtils.getMeta(rMsg);
