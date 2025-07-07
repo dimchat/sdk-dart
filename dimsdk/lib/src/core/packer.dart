@@ -28,8 +28,6 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'dart:typed_data';
-
 import 'package:dimp/dkd.dart';
 
 
@@ -38,7 +36,7 @@ import 'package:dimp/dkd.dart';
 abstract interface class Packer {
 
   //
-  //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
+  //  InstantMessage -> SecureMessage -> ReliableMessage
   //
 
   ///  Encrypt message content
@@ -53,21 +51,9 @@ abstract interface class Packer {
   /// @return network message
   Future<ReliableMessage?> signMessage(SecureMessage sMsg);
 
-  ///  Serialize network message
-  ///
-  /// @param rMsg - network message
-  /// @return data package
-  Future<Uint8List?> serializeMessage(ReliableMessage rMsg);
-
   //
-  //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
+  //  ReliableMessage -> SecureMessage -> InstantMessage
   //
-
-  ///  Deserialize network message
-  ///
-  /// @param data - data package
-  /// @return network message
-  Future<ReliableMessage?> deserializeMessage(Uint8List data);
 
   ///  Verify encrypted content data
   ///

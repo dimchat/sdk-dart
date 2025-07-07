@@ -1,3 +1,7 @@
+## 2.0.2
+
+- Simplify message packer.
+
 ## 2.0.1
 
 - Archivist.

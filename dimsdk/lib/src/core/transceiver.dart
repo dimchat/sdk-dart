@@ -53,6 +53,24 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
   // protected
   Compressor get compressor;
 
+  ///  Serialize network message
+  ///
+  /// @param rMsg - network message
+  /// @return data package
+  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
+    Map info = rMsg.toMap();
+    return compressor.compressReliableMessage(info);
+  }
+
+  ///  Deserialize network message
+  ///
+  /// @param data - data package
+  /// @return network message
+  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
+    Object? info = compressor.extractReliableMessage(data);
+    return ReliableMessage.parse(info);
+  }
+
   //-------- InstantMessageDelegate
 
   @override

@@ -28,12 +28,9 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'dart:typed_data';
-
 import 'package:dimp/dimp.dart';
 
 import 'core/barrack.dart';
-import 'core/compressor.dart';
 import 'core/packer.dart';
 import 'dkd/instant.dart';
 import 'dkd/reliable.dart';
@@ -70,13 +67,10 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
       ReliableMessagePacker(delegate);
 
   // protected
-  Compressor get compressor;
-
-  // protected
   Archivist? get archivist => facebook?.archivist;
 
   //
-  //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
+  //  InstantMessage -> SecureMessage -> ReliableMessage
   //
 
   @override
@@ -149,19 +143,9 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
     return await securePacker.signMessage(sMsg);
   }
 
-  @override
-  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async =>
-      compressor.compressReliableMessage(rMsg.toMap());
-
   //
-  //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
+  //  ReliableMessage -> SecureMessage -> InstantMessage
   //
-
-  @override
-  Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
-    Object? info = compressor.extractReliableMessage(data);
-    return ReliableMessage.parse(info);
-  }
 
   ///  Check meta & visa
   ///

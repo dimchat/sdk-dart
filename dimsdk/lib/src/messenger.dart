@@ -103,14 +103,6 @@ abstract class Messenger extends Transceiver implements Packer, Processor {
       await packer?.signMessage(sMsg);
 
   @override
-  Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async =>
-      await packer?.serializeMessage(rMsg);
-
-  @override
-  Future<ReliableMessage?> deserializeMessage(Uint8List data) async =>
-      await packer?.deserializeMessage(data);
-
-  @override
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async =>
       await packer?.verifyMessage(rMsg);
 
