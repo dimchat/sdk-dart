@@ -1,3 +1,7 @@
+## 2.0.1
+
+- Symmetric Algorithms.
+
 ## 2.0.0
 
 - Algorithms.
