@@ -1,6 +1,6 @@
 name: pnf
 description: Portable Network File.
-version: 1.2.1
+version: 1.2.2
 homepage: https://github.com/dimchat/sdk-dart
 repository: https://github.com/dimchat/sdk-dart
 issue_tracker: https://github.com/dimchat/sdk-dart/issues
@@ -12,9 +12,9 @@ environment:
 dependencies:
    path: ^1.8.0
    dio: ^5.3.3
-   object_key: ^1.0.0
-   startrek: ^1.0.0
-   mkm: ^1.2.2
+   object_key: ^1.1.0
+   startrek: ^1.1.0
+   mkm: ^2.0.2
 
 dev_dependencies:
   lints: ^2.0.0

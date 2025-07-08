@@ -94,7 +94,7 @@ class HTTPClient {
     //
     DateTime? expired = checker.checkFailure(url, options);
     if (expired != null) {
-      print('[HTTP] cannot download: $url ($options) now, please try again after $expired');
+      print('[HTTP] cannot download: $url (headers: ${options?.headers}) now, please try again after $expired');
       return null;
     }
     try {
@@ -109,7 +109,7 @@ class HTTPClient {
         throw Exception(error);
       });
     } catch (e, st) {
-      print('[HTTP] failed to download "$url" error: $e, $st');
+      print('[HTTP] failed to download $url (headers: ${options?.headers}) error: $e, $st');
       //
       //  2. mark failure time
       //
