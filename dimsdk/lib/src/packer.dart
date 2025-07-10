@@ -70,7 +70,7 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
   Archivist? get archivist => facebook?.archivist;
 
   //
-  //  InstantMessage -> SecureMessage -> ReliableMessage
+  //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
   //
 
   @override
@@ -143,9 +143,19 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
     return await securePacker.signMessage(sMsg);
   }
 
+  // @override
+  // Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async =>
+  //     compressor.compressReliableMessage(rMsg.toMap());
+
   //
-  //  ReliableMessage -> SecureMessage -> InstantMessage
+  //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
   //
+
+  // @override
+  // Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
+  //   Object? info = compressor.extractReliableMessage(data);
+  //   return ReliableMessage.parse(info);
+  // }
 
   ///  Check meta & visa
   ///
@@ -153,7 +163,10 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
   /// @return false on error
   // protected
   Future<bool> checkAttachments(ReliableMessage rMsg) async {
-    assert(archivist != null, 'archivist not ready');
+    if (archivist == null) {
+      assert(false, 'archivist not ready');
+      return false;
+    }
     ID sender = rMsg.sender;
     // [Meta Protocol]
     Meta? meta = MessageUtils.getMeta(rMsg);

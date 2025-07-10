@@ -68,7 +68,7 @@ class InstantMessagePacker {
     //      (do it by application)
     InstantMessageDelegate? transceiver = delegate;
     if (transceiver == null) {
-      assert(false, 'messenger not ready');
+      assert(false, 'should not happen');
       return null;
     }
 
@@ -113,6 +113,7 @@ class InstantMessagePacker {
       // B) reused key
       return SecureMessage.parse(info);
     }
+    // encrypt + encode key
 
     Uint8List? encryptedKey;
     Object encodedKey;

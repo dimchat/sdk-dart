@@ -65,7 +65,7 @@ class SecureMessagePacker {
     assert(receiver.isUser, 'receiver error: $receiver');
     SecureMessageDelegate? transceiver = delegate;
     if (transceiver == null) {
-      assert(false, 'messenger not ready');
+      assert(false, 'should not happen');
       return null;
     }
 
@@ -175,7 +175,8 @@ class SecureMessagePacker {
   /// @param sMsg - encrypted message
   /// @return ReliableMessage object
   Future<ReliableMessage> signMessage(SecureMessage sMsg) async {
-    SecureMessageDelegate transceiver = delegate!;
+    SecureMessageDelegate? transceiver = delegate;
+    assert(transceiver != null, 'should not happen');
 
     //
     //  0. decode message data
@@ -187,7 +188,7 @@ class SecureMessagePacker {
     //
     //  1. Sign 'message.data' with sender's private key
     //
-    Uint8List signature = await transceiver.signData(ciphertext, sMsg);
+    Uint8List signature = await transceiver!.signData(ciphertext, sMsg);
     assert(signature.isNotEmpty, 'failed to sign message: '
         '${ciphertext.length} byte(s) '
         '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');

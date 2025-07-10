@@ -105,8 +105,8 @@ class BaseEntity implements Entity {
   // entity ID
   final ID _id;
 
-  // barrack
-  WeakReference<EntityDataSource>? _barrack;
+  // facebook
+  WeakReference<EntityDataSource>? _facebook;
 
   @override
   bool operator ==(Object other) {
@@ -138,11 +138,11 @@ class BaseEntity implements Entity {
   int get type => _id.type;
 
   @override
-  EntityDataSource? get dataSource => _barrack?.target;
+  EntityDataSource? get dataSource => _facebook?.target;
 
   @override
   set dataSource(EntityDataSource? facebook) =>
-      _barrack = facebook == null ? null : WeakReference(facebook);
+      _facebook = facebook == null ? null : WeakReference(facebook);
 
   @override
   Future<Meta> get meta async =>

@@ -36,7 +36,7 @@ import 'package:dimp/dkd.dart';
 abstract interface class Packer {
 
   //
-  //  InstantMessage -> SecureMessage -> ReliableMessage
+  //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
   //
 
   ///  Encrypt message content
@@ -51,9 +51,21 @@ abstract interface class Packer {
   /// @return network message
   Future<ReliableMessage?> signMessage(SecureMessage sMsg);
 
+  // ///  Serialize network message
+  // ///
+  // /// @param rMsg - network message
+  // /// @return data package
+  // Future<Uint8List?> serializeMessage(ReliableMessage rMsg);
+
   //
-  //  ReliableMessage -> SecureMessage -> InstantMessage
+  //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
   //
+
+  // ///  Deserialize network message
+  // ///
+  // /// @param data - data package
+  // /// @return network message
+  // Future<ReliableMessage?> deserializeMessage(Uint8List data);
 
   ///  Verify encrypted content data
   ///

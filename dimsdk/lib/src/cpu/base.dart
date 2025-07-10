@@ -34,9 +34,7 @@ import '../dkd/proc.dart';
 import '../twins.dart';
 
 
-
-///  Content Processing Unit
-///  ~~~~~~~~~~~~~~~~~~~~~~~
+/// CPU - Content Processing Unit
 class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   BaseContentProcessor(super.facebook, super.messenger);
 
@@ -83,8 +81,8 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
 
 }
 
-///  Command Processing Unit
-///  ~~~~~~~~~~~~~~~~~~~~~~~
+
+/// CPU - Command Processing Unit
 class BaseCommandProcessor extends BaseContentProcessor {
   BaseCommandProcessor(super.facebook, super.messenger);
 

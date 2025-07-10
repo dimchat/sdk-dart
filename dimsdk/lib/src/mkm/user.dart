@@ -204,11 +204,11 @@ class BaseUser extends BaseEntity implements User {
 
   @override
   Future<Uint8List> encrypt(Uint8List plaintext) async {
-    UserDataSource? barrack = dataSource;
-    assert(barrack != null, 'user data source not set yet');
+    UserDataSource? facebook = dataSource;
+    assert(facebook != null, 'user data source not set yet');
     // NOTICE: meta.key will never changed, so use visa.key to encrypt message
     //         is a better way
-    EncryptKey? pKey = await barrack?.getPublicKeyForEncryption(identifier);
+    EncryptKey? pKey = await facebook?.getPublicKeyForEncryption(identifier);
     assert(pKey != null, 'failed to get encrypt key for user: $identifier');
     return pKey!.encrypt(plaintext, null);
   }
@@ -219,20 +219,20 @@ class BaseUser extends BaseEntity implements User {
 
   @override
   Future<Uint8List> sign(Uint8List data) async {
-    UserDataSource? barrack = dataSource;
-    assert(barrack != null, 'user data source not set yet');
-    SignKey? sKey = await barrack?.getPrivateKeyForSignature(identifier);
+    UserDataSource? facebook = dataSource;
+    assert(facebook != null, 'user data source not set yet');
+    SignKey? sKey = await facebook?.getPrivateKeyForSignature(identifier);
     assert(sKey != null, 'failed to get sign key for user: $identifier');
     return sKey!.sign(data);
   }
 
   @override
   Future<Uint8List?> decrypt(Uint8List ciphertext) async {
-    UserDataSource? barrack = dataSource;
-    assert(barrack != null, 'user data source not set yet');
+    UserDataSource? facebook = dataSource;
+    assert(facebook != null, 'user data source not set yet');
     // NOTICE: if you provide a public key in visa for encryption,
     //         here you should return the private key paired with visa.key
-    List<DecryptKey>? keys = await barrack?.getPrivateKeysForDecryption(identifier);
+    List<DecryptKey>? keys = await facebook?.getPrivateKeysForDecryption(identifier);
     if (keys == null || keys.isEmpty) {
       assert(false, 'failed to get decrypt keys for user: $identifier');
       return null;
@@ -254,10 +254,10 @@ class BaseUser extends BaseEntity implements User {
   @override
   Future<Visa?> signVisa(Visa doc) async {
     assert(doc.identifier == identifier, 'visa ID not match: $identifier, ${doc.identifier}');
-    UserDataSource? barrack = dataSource;
-    assert(barrack != null, 'user data source not set yet');
+    UserDataSource? facebook = dataSource;
+    assert(facebook != null, 'user data source not set yet');
     // NOTICE: only sign visa with the private key paired with your meta.key
-    SignKey? sKey = await barrack?.getPrivateKeyForVisaSignature(identifier);
+    SignKey? sKey = await facebook?.getPrivateKeyForVisaSignature(identifier);
     if (sKey == null) {
       assert(false, 'failed to get sign key for visa: $identifier');
       return null;

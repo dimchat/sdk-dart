@@ -39,7 +39,6 @@ import 'contents.dart';
 
 
 /// Base ContentProcessor Creator
-/// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessorCreator {
   BaseContentProcessorCreator(super.facebook, super.messenger);
 

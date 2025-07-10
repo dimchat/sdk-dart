@@ -60,6 +60,7 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
   @override
   Future<List<Uint8List>> processPackage(Uint8List data) async {
     Messenger? transceiver = messenger;
+    assert(transceiver != null, 'messenger not ready');
     // 1. deserialize message
     ReliableMessage? rMsg = await transceiver?.deserializeMessage(data);
     if (rMsg == null) {
@@ -90,6 +91,7 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
   Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg) async {
     // TODO: override to check broadcast message before calling it
     Messenger? transceiver = messenger;
+    assert(transceiver != null, 'messenger not ready');
     // 1. verify message
     SecureMessage? sMsg = await transceiver?.verifyMessage(rMsg);
     if (sMsg == null) {
@@ -120,6 +122,7 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
   @override
   Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) async {
     Messenger? transceiver = messenger;
+    assert(transceiver != null, 'messenger not ready');
     // 1. decrypt message
     InstantMessage? iMsg = await transceiver?.decryptMessage(sMsg);
     if (iMsg == null) {
@@ -150,6 +153,7 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
   @override
   Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) async {
     Messenger? transceiver = messenger;
+    assert(facebook != null && transceiver != null, 'twins not ready');
     // 1. process content
     List<Content>? responses = await transceiver?.processContent(iMsg.content, rMsg);
     if (responses == null || responses.isEmpty) {

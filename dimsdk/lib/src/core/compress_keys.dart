@@ -31,6 +31,31 @@
 
 
 abstract interface class Shortener {
+  /** Short Keys
+
+    ======+==================================================+==================
+          |   Message        Content        Symmetric Key    |    Description
+    ------+--------------------------------------------------+------------------
+    "A"   |                                 "algorithm"      |
+    "C"   |   "content"      "command"                       |
+    "D"   |   "data"                        "data"           |
+    "F"   |   "sender"                                       |   (From)
+    "G"   |   "group"        "group"                         |
+    "I"   |                                 "iv"             |
+    "K"   |   "key", "keys"                                  |
+    "M"   |   "meta"                                         |
+    "N"   |                  "sn"                            |   (Number)
+    "P"   |   "visa"                                         |   (Profile)
+    "R"   |   "receiver"                                     |
+    "S"   |   ...                                            |
+    "T"   |   "type"         "type"                          |
+    "V"   |   "signature"                                    |   (Verification)
+    "W"   |   "time"         "time"                          |   (When)
+    ======+==================================================+==================
+
+    Note:
+        "S" - deprecated (ambiguous for "sender" and "signature")
+   */
 
   ///
   ///  Compress Content
@@ -88,8 +113,9 @@ class MessageShortener implements Shortener {
   List<String> contentShortKeys = [
     "T", "type",
     "N", "sn",
-    "W", "time",   // When
+    "W", "time",        // When
     "G", "group",
+    "C", "command",
   ];
 
   @override
@@ -110,7 +136,7 @@ class MessageShortener implements Shortener {
   List<String> cryptoShortKeys = [
     "A", "algorithm",
     "D", "data",
-    "I", "iv",         // Initial Vector
+    "I", "iv",          // Initial Vector
   ];
 
   @override
@@ -137,7 +163,7 @@ class MessageShortener implements Shortener {
     //------------------
     "K", "key",         // or "keys"
     "D", "data",
-    "V", "signature",   // Verify
+    "V", "signature",   // Verification
     //------------------
     "M", "meta",
     "P", "visa",        // Profile

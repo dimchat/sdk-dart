@@ -35,7 +35,7 @@ import 'package:dimp/dimp.dart';
 class MessageFactory implements EnvelopeFactory, InstantMessageFactory, SecureMessageFactory, ReliableMessageFactory {
   MessageFactory() {
     Random random = Random(DateTime.now().microsecondsSinceEpoch);
-    _sn = random.nextInt(0x7fffffff);
+    _sn = random.nextInt(0x80000000);  // 0 ~ 0x7fffffff
   }
 
   int _sn = 0;
@@ -45,7 +45,7 @@ class MessageFactory implements EnvelopeFactory, InstantMessageFactory, SecureMe
   /// @return 1 ~ 2^31-1
   /* synchronized */int _next() {
     assert(_sn >= 0, 'serial number error: $_sn');
-    if (_sn < 0x7fffffff) {
+    if (_sn < 0x7fffffff) {  // 2 ** 31 - 1
       _sn += 1;
     } else {
       _sn = 1;

@@ -189,7 +189,7 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
 
   @override
   Future<Content?> deserializeContent(Uint8List data, SymmetricKey password, SecureMessage sMsg) async {
-    // assert(sMsg.data.isNotEmpty, "message data empty");
+    // assert(sMsg.data.isNotEmpty, "message data empty: ${sMsg.toMap()}");
     Object? info = compressor.extractContent(data, password.toMap());
     return Content.parse(info);
     // NOTICE: check attachment for File/Image/Audio/Video message content

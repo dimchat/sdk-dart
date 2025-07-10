@@ -38,6 +38,7 @@ import 'mkm/user.dart';
 
 abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSource {
 
+  // protected
   Barrack? get barrack;
 
   Archivist? get archivist;

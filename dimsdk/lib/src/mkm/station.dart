@@ -98,8 +98,9 @@ class Station implements User {
       if (host != null) {
         _host = host;
       }
-      int port = Converter.getInt(doc.getProperty('port'), 0)!;
-      if (port > 0) {
+      int? port = Converter.getInt(doc.getProperty('port'), null);
+      if (port != null && port > 0) {
+        assert(16 < port && port < 65536, 'station port error: $port');
         _port = port;
       }
       ID? sp = ID.parse(doc.getProperty('provider'));

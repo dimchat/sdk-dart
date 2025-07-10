@@ -73,10 +73,11 @@ class HistoryCommandFactory extends GeneralCommandFactory {
 
   @override
   Command? parseCommand(Map content) {
-    // check 'sn', 'command'
-    if (content['sn'] == null || content['command'] == null) {
+    // check 'sn', 'command', 'time'
+    if (content['sn'] == null || content['command'] == null || content['time'] == null) {
       // content.sn should not be empty
       // content.command should not be empty
+      // content.time should not be empty
       assert(false, 'command error: $content');
       return null;
     }

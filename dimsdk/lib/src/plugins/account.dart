@@ -33,7 +33,6 @@ import 'package:dimp/mkm.dart';
 import 'package:dimp/plugins.dart';
 
 /// Account GeneralFactory
-/// ~~~~~~~~~~~~~~~~~~~~~~
 class AccountGeneralFactory implements GeneralAccountHelper,
                                        AddressHelper, IdentifierHelper,
                                        MetaHelper, DocumentHelper {
@@ -238,7 +237,7 @@ class AccountGeneralFactory implements GeneralAccountHelper,
       return null;
     }
     String? type = getDocumentType(info, null);
-    assert(type != null, 'document error: $doc');
+    //assert(type != null, 'document error: $doc');
     DocumentFactory? factory = type == null ? null : getDocumentFactory(type);
     if (factory == null) {
       // unknown document type, get default document factory

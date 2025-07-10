@@ -87,7 +87,7 @@ abstract class Messenger extends Transceiver implements Packer, Processor {
     ID sender = sMsg.sender;
     ID target = CipherKeyDelegate.getDestinationForMessage(sMsg);
     var db = cipherKeyDelegate;
-    await db?.cacheCipherKey(sender: sender, receiver: target, key: key);
+    return await db?.cacheCipherKey(sender: sender, receiver: target, key: key);
   }
 
   //
@@ -96,11 +96,19 @@ abstract class Messenger extends Transceiver implements Packer, Processor {
 
   @override
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async =>
-      packer?.encryptMessage(iMsg);
+      await packer?.encryptMessage(iMsg);
 
   @override
   Future<ReliableMessage?> signMessage(SecureMessage sMsg) async =>
       await packer?.signMessage(sMsg);
+
+  // @override
+  // Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async =>
+  //     await packer?.serializeMessage(rMsg);
+  //
+  // @override
+  // Future<ReliableMessage?> deserializeMessage(Uint8List data) async =>
+  //     await packer?.deserializeMessage(data);
 
   @override
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async =>

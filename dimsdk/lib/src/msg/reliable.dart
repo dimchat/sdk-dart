@@ -64,7 +64,7 @@ class ReliableMessagePacker {
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
     ReliableMessageDelegate? transceiver = delegate;
     if (transceiver == null) {
-      assert(false, 'messenger not ready');
+      assert(false, 'should not happen');
       return null;
     }
 

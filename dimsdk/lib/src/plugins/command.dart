@@ -72,7 +72,7 @@ class CommandGeneralFactory implements GeneralCommandHelper, CommandHelper {
     }
     // get factory by command name
     String? cmd = getCmd(info, null);
-    assert(cmd != null, 'command error: $content');
+    assert(cmd != null, 'command name error: $content');
     CommandFactory? factory = cmd == null ? null : getCommandFactory(cmd);
     if (factory == null) {
       // unknown command name, get base command factory
@@ -88,10 +88,11 @@ class CommandGeneralFactory implements GeneralCommandHelper, CommandHelper {
     ContentHelper? contentHelper = ext.contentHelper;
     // get factory by content type
     String? type = helper?.getContentType(info, null);
-    assert(type != null, 'command error: $info');
-    ContentFactory? factory = type == null ? null : contentHelper?.getContentFactory(type);
-    if (factory is CommandFactory) {
-      return factory as CommandFactory;
+    if (type != null) {
+      ContentFactory? factory = contentHelper?.getContentFactory(type);
+      if (factory is CommandFactory) {
+        return factory as CommandFactory;
+      }
     }
     assert(false, 'cannot parse command: $info');
     return null;

@@ -90,7 +90,7 @@ abstract interface class Archivist {
 
   ///  Save meta for entity ID (must verify first)
   ///
-  /// @param meta - entity meta
+  /// @param meta       - entity meta
   /// @param identifier - entity ID
   /// @return true on success
   Future<bool> saveMeta(Meta meta, ID identifier);
@@ -107,15 +107,15 @@ abstract interface class Archivist {
 
   ///  Get meta.key
   ///
-  /// @param user - user ID
+  /// @param identifier - entity ID
   /// @return null on not found
-  Future<VerifyKey?> getMetaKey(ID user);
+  Future<VerifyKey?> getMetaKey(ID identifier);
 
   ///  Get visa.key
   ///
-  /// @param user - user ID
+  /// @param identifier - entity ID
   /// @return null on not found
-  Future<EncryptKey?> getVisaKey(ID user);
+  Future<EncryptKey?> getVisaKey(ID identifier);
 
   //
   //  Local Users
