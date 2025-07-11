@@ -49,24 +49,24 @@ class IdentifierFactory implements IDFactory {
   @override
   ID createIdentifier({String? name, required Address address, String? terminal}) {
     String identifier = Identifier.concat(name: name, address: address, terminal: terminal);
-    ID? res = identifiers[identifier];
-    if (res == null) {
-      res = newID(identifier, name: name, address: address, terminal: terminal);
-      identifiers[identifier] = res;
+    ID? did = identifiers[identifier];
+    if (did == null) {
+      did = newID(identifier, name: name, address: address, terminal: terminal);
+      identifiers[identifier] = did;
     }
-    return res;
+    return did;
   }
 
   @override
   ID? parseIdentifier(String identifier) {
-    ID? res = identifiers[identifier];
-    if (res == null) {
-      res = parse(identifier);
-      if (res != null) {
-        identifiers[identifier] = res;
+    ID? did = identifiers[identifier];
+    if (did == null) {
+      did = parse(identifier);
+      if (did != null) {
+        identifiers[identifier] = did;
       }
     }
-    return res;
+    return did;
   }
 
   // protected

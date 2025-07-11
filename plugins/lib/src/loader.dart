@@ -169,7 +169,8 @@ class PluginLoader {
     /// AES
     var aes = AESKeyFactory();
     SymmetricKey.setFactory(SymmetricAlgorithms.AES, aes);
-    SymmetricKey.setFactory('AES/CBC/PKCS7Padding', aes);
+    SymmetricKey.setFactory(AESKey.AES_CBC_PKCS7, aes);
+    // SymmetricKey.setFactory('AES/CBC/PKCS7Padding', aes);
   }
   void registerPlainKeyFactory() {
     /// Plain
@@ -244,6 +245,7 @@ class PluginLoader {
     setDocumentFactory(DocumentType.BULLETIN);
   }
 
+  // protected
   void setDocumentFactory(String type, {DocumentFactory? factory}) {
     factory ??= GeneralDocumentFactory(type);
     Document.setFactory(type, factory);

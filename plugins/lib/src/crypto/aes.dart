@@ -53,7 +53,8 @@ class AESKey extends BaseSymmetricKey {
     }
   }
 
-  // static const String AES_CBC_PKCS7 = "AES/CBC/PKCS7Padding";
+  // ignore: constant_identifier_names
+  static const String AES_CBC_PKCS7 = "AES/CBC/PKCS7Padding";
 
   TransportableData? _keyData;
 

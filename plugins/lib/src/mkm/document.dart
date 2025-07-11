@@ -43,6 +43,7 @@ class GeneralDocumentFactory implements DocumentFactory {
 
   // protected
   String getType(String docType, ID identifier) {
+    assert(docType.isNotEmpty, 'document type empty');
     if (docType != '*') {
       return docType;
     } else if (identifier.isGroup) {
@@ -104,6 +105,7 @@ class GeneralDocumentFactory implements DocumentFactory {
     var ext = SharedAccountExtensions();
     String? docType = ext.helper!.getDocumentType(doc, null);
     docType ??= getType('*', identifier);
+    // create with document type
     switch (docType) {
 
       case DocumentType.VISA:

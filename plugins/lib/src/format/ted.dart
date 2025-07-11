@@ -42,21 +42,21 @@ class Base64Data extends Dictionary implements TransportableData {
   }
 
   ///
-  /// encode algorithm
+  /// Encode Algorithm
   ///
 
   @override
   String? get algorithm => _wrapper.algorithm;
 
   ///
-  /// binary data
+  /// Binary Data
   ///
 
   @override
   Uint8List? get data => _wrapper.data;
 
   ///
-  /// encoding
+  /// Encoding
   ///
 
   @override
@@ -67,6 +67,7 @@ class Base64Data extends Dictionary implements TransportableData {
   @override
   String toString() => _wrapper.toString();
 
+  /// Encode with 'Content-Type'
   // 2. "data:image/png;base64,{BASE64_ENCODE}"
   String encode(String mimeType) => _wrapper.encode(mimeType);
 
