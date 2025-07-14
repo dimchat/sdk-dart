@@ -39,7 +39,7 @@ class CommandGeneralFactory implements GeneralCommandHelper, CommandHelper {
   final Map<String, CommandFactory> _commandFactories = {};
 
   @override
-  String? getCmd(Map content, String? defaultValue) {
+  String? getCmd(Map content, [String? defaultValue]) {
     var cmd = content['command'];
     return Converter.getString(cmd, defaultValue);
   }
@@ -71,7 +71,7 @@ class CommandGeneralFactory implements GeneralCommandHelper, CommandHelper {
       return null;
     }
     // get factory by command name
-    String? cmd = getCmd(info, null);
+    String? cmd = getCmd(info);
     assert(cmd != null, 'command name error: $content');
     CommandFactory? factory = cmd == null ? null : getCommandFactory(cmd);
     if (factory == null) {
@@ -87,7 +87,7 @@ class CommandGeneralFactory implements GeneralCommandHelper, CommandHelper {
     GeneralMessageHelper? helper = ext.helper;
     ContentHelper? contentHelper = ext.contentHelper;
     // get factory by content type
-    String? type = helper?.getContentType(info, null);
+    String? type = helper?.getContentType(info);
     if (type != null) {
       ContentFactory? factory = contentHelper?.getContentFactory(type);
       if (factory is CommandFactory) {

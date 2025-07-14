@@ -37,7 +37,7 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
   final Map<String, PublicKeyFactory>       _publicKeyFactories = {};
 
   @override
-  String? getKeyAlgorithm(Map key, String? defaultValue) {
+  String? getKeyAlgorithm(Map key, [String? defaultValue]) {
     return Converter.getString(key['algorithm'], defaultValue);
   }
 
@@ -74,7 +74,7 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
       assert(false, 'symmetric key error: $key');
       return null;
     }
-    String? algo = getKeyAlgorithm(info, null);
+    String? algo = getKeyAlgorithm(info);
     assert(algo != null, 'symmetric key error: $key');
     var factory = algo == null ? null : getSymmetricKeyFactory(algo);
     if (factory == null) {
@@ -118,7 +118,7 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
       assert(false, 'private key error: $key');
       return null;
     }
-    String? algo = getKeyAlgorithm(info, null);
+    String? algo = getKeyAlgorithm(info);
     assert(algo != null, 'private key error: $key');
     var factory = algo == null ? null : getPrivateKeyFactory(algo);
     if (factory == null) {
@@ -155,7 +155,7 @@ class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
       assert(false, 'public key error: $key');
       return null;
     }
-    String? algo = getKeyAlgorithm(info, null);
+    String? algo = getKeyAlgorithm(info);
     assert(algo != null, 'public key error: $key');
     var factory = algo == null ? null : getPublicKeyFactory(algo);
     if (factory == null) {

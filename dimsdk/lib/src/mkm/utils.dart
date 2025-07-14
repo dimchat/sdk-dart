@@ -94,7 +94,7 @@ abstract interface class DocumentUtils {
 
   static String? getDocumentType(Document document) {
     var ext = SharedAccountExtensions();
-    return ext.helper?.getDocumentType(document.toMap(), null);
+    return ext.helper?.getDocumentType(document.toMap());
   }
 
   /// Check whether this time is before old time

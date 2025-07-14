@@ -112,7 +112,7 @@ class FormatGeneralFactory implements GeneralFormatHelper,
   }
 
   @override
-  String? getFormatAlgorithm(Map ted, String? defaultValue) {
+  String? getFormatAlgorithm(Map ted, [String? defaultValue]) {
     return Converter.getString(ted['algorithm'], defaultValue);
   }
 
@@ -151,7 +151,7 @@ class FormatGeneralFactory implements GeneralFormatHelper,
       // assert(false, 'TED error: $ted');
       return null;
     }
-    String? algo = getFormatAlgorithm(info, null);
+    String? algo = getFormatAlgorithm(info);
     // assert(algo != null, 'TED error: $ted');
     var factory = algo == null ? null : getTransportableDataFactory(algo);
     if (factory == null) {

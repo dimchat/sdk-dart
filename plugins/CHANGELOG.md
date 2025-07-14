@@ -1,3 +1,7 @@
+## 2.1.0
+
+- Default values.
+
 ## 2.0.1
 
 - Symmetric Algorithms.

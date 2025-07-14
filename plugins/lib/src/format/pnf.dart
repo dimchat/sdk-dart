@@ -122,7 +122,7 @@ class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
   }
 
   String? _getURLString() {
-    String? urlString = getString(r'URL', null);
+    String? urlString = getString(r'URL');
     if (urlString == null) {
       return null;
     } else if (urlString.startsWith(r'data:')) {

@@ -84,6 +84,7 @@ class MessageShortener implements Shortener {
   void moveKey(String from, String to, Map info) {
     var value = info[from];
     if (value != null) {
+      assert(info[to] == null, 'keys conflicted: "$from" -> "$to", $info');
       info.remove(from);
       info[to] = value;
     }

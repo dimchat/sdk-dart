@@ -46,9 +46,9 @@ class ECCPublicKey extends BasePublicKey {
     return ECCKeyUtils.encodePublicKeyData(publicKey, compressed: compressed);
   }
 
-  bool get compressed => getBool('compressed', false)!;
+  bool get compressed => getBool('compressed') ?? false;
 
-  String _key() => getString('data', '')!;
+  String _key() => getString('data') ?? '';
 
   @override
   bool verify(Uint8List data, Uint8List signature) {
@@ -101,7 +101,7 @@ class ECCPrivateKey extends BasePrivateKey {
   }
 
   String _key() {
-    String? pem = getString('data', null);
+    String? pem = getString('data');
     if (pem != null) {
       return pem;
     }

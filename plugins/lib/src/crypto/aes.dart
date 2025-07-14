@@ -77,13 +77,13 @@ class AESKey extends BaseSymmetricKey {
   // protected
   int getKeySize() {
     // TODO: get from key data
-    return getInt('keySize', 32)!;
+    return getInt('keySize') ?? 32;
   }
 
   // protected
   int getBlockSize() {
     // TODO: get from iv data
-    return getInt('blockSize', 16)!;  // cipher.getBlockSize();
+    return getInt('blockSize') ?? 16;  // cipher.getBlockSize();
   }
 
   @override
@@ -114,8 +114,8 @@ class AESKey extends BaseSymmetricKey {
     }
     if (base64 == null) {
       // compatible with old version
-      base64 = getString('iv', null);
-      base64 ??= getString('IV', null);
+      base64 = getString('iv');
+      base64 ??= getString('IV');
     }
     // decode IV data
     var ted = TransportableData.parse(base64);

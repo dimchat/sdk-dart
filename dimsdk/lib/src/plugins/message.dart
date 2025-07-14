@@ -47,7 +47,7 @@ class MessageGeneralFactory implements GeneralMessageHelper,
   ReliableMessageFactory? _reliableMessageFactory;
 
   @override
-  String? getContentType(Map content, String? defaultValue) {
+  String? getContentType(Map content, [String? defaultValue]) {
     return Converter.getString(content['type'], defaultValue);
   }
 
@@ -78,7 +78,7 @@ class MessageGeneralFactory implements GeneralMessageHelper,
       return null;
     }
     // get factory by content type
-    String? type = getContentType(info, null);
+    String? type = getContentType(info);
     assert(type != null, 'content error: $content');
     ContentFactory? factory = type == null ? null : getContentFactory(type);
     if (factory == null) {

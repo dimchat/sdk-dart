@@ -42,7 +42,7 @@ class GeneralCommandFactory implements ContentFactory, CommandFactory {
     GeneralCommandHelper? helper = ext.helper;
     CommandHelper? cmdHelper = ext.cmdHelper;
     // get factory by command name
-    String? cmd = helper?.getCmd(content, null);
+    String? cmd = helper?.getCmd(content);
     CommandFactory? factory = cmd == null ? null : cmdHelper?.getCommandFactory(cmd);
     if (factory == null) {
       // check for group command
@@ -95,7 +95,7 @@ class GroupCommandFactory extends HistoryCommandFactory {
     GeneralCommandHelper? helper = ext.helper;
     CommandHelper? cmdHelper = ext.cmdHelper;
     // get factory by command name
-    String? cmd = helper?.getCmd(content, null);
+    String? cmd = helper?.getCmd(content);
     CommandFactory? factory = cmd == null ? null : cmdHelper?.getCommandFactory(cmd);
     factory ??= this;
     return factory.parseCommand(content);

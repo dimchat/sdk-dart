@@ -45,7 +45,7 @@ class RSAPublicKey extends BasePublicKey implements EncryptKey {
   }
 
   String _key() {
-    return getString('data', '')!;
+    return getString('data') ?? '';
   }
 
   @override
@@ -105,7 +105,7 @@ class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
   }
 
   String _key() {
-    String? pem = getString('data', null);
+    String? pem = getString('data');
     if (pem != null) {
       return pem;
     }

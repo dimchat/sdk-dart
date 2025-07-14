@@ -1,3 +1,7 @@
+## 2.1.0
+
+- Default values.
+
 ## 2.0.2
 
 - Simplify message packer.

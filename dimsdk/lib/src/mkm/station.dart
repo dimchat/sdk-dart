@@ -94,11 +94,11 @@ class Station implements User {
   Future<void> reload() async {
     Document? doc = await profile;
     if (doc != null) {
-      String? host = Converter.getString(doc.getProperty('host'), null);
+      String? host = Converter.getString(doc.getProperty('host'));
       if (host != null) {
         _host = host;
       }
-      int? port = Converter.getInt(doc.getProperty('port'), null);
+      int? port = Converter.getInt(doc.getProperty('port'));
       if (port != null && port > 0) {
         assert(16 < port && port < 65536, 'station port error: $port');
         _port = port;
