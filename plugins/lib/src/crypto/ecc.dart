@@ -38,7 +38,7 @@ import 'ecc_utils.dart';
 ///          compressed   : 0
 ///      }
 class ECCPublicKey extends BasePublicKey {
-  ECCPublicKey(super.dict);
+  ECCPublicKey([super.dict]);
 
   @override
   Uint8List get data {
@@ -70,7 +70,7 @@ class ECCPublicKey extends BasePublicKey {
 ///          data         : "..." // base64_encode()
 ///      }
 class ECCPrivateKey extends BasePrivateKey {
-  ECCPrivateKey(super.dict) : _publicKey = null;
+  ECCPrivateKey([super.dict]) : _publicKey = null;
 
   PublicKey? _publicKey;
 

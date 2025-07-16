@@ -36,7 +36,7 @@ import 'rsa_utils.dart';
 ///          data      : "..." // base64_encode()
 ///      }
 class RSAPublicKey extends BasePublicKey implements EncryptKey {
-  RSAPublicKey(super.dict);
+  RSAPublicKey([super.dict]);
 
   @override
   Uint8List get data {
@@ -49,7 +49,7 @@ class RSAPublicKey extends BasePublicKey implements EncryptKey {
   }
 
   @override
-  Uint8List encrypt(Uint8List plaintext, Map? extra) {
+  Uint8List encrypt(Uint8List plaintext, [Map? extra]) {
     var publicKey = RSAKeyUtils.decodePublicKey(_key());
     return RSAKeyUtils.encrypt(plaintext, publicKey);
   }
@@ -73,7 +73,7 @@ class RSAPublicKey extends BasePublicKey implements EncryptKey {
 ///          data      : "..." // base64_encode()
 ///      }
 class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
-  RSAPrivateKey(super.dict) : _publicKey = null;
+  RSAPrivateKey([super.dict]) : _publicKey = null;
 
   PublicKey? _publicKey;
 
@@ -122,7 +122,7 @@ class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
   }
 
   @override
-  Uint8List? decrypt(Uint8List ciphertext, Map? params) {
+  Uint8List? decrypt(Uint8List ciphertext, [Map? params]) {
     try {
       var privateKey = RSAKeyUtils.decodePrivateKey(_key());
       return RSAKeyUtils.decrypt(ciphertext, privateKey);

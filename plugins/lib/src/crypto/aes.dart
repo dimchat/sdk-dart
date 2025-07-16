@@ -38,7 +38,7 @@ import 'package:dimp/dimp.dart';
 ///          data     : "{BASE64_ENCODE}}" // password data
 ///      }
 class AESKey extends BaseSymmetricKey {
-  AESKey(super.dict) {
+  AESKey([super.dict]) {
     // TODO: check algorithm parameters
     // 1. check mode = 'CBC'
     // 2. check padding = 'PKCS7Padding'
@@ -150,7 +150,7 @@ class AESKey extends BaseSymmetricKey {
   }
 
   @override
-  Uint8List encrypt(Uint8List plaintext, Map? extra) {
+  Uint8List encrypt(Uint8List plaintext, [Map? extra]) {
     // 1. if 'IV' not found in extra params, new a random 'IV'
     IV? iv = getInitVector(extra);
     iv ??= newInitVector(extra);
@@ -162,7 +162,7 @@ class AESKey extends BaseSymmetricKey {
   }
 
   @override
-  Uint8List? decrypt(Uint8List ciphertext, Map? params) {
+  Uint8List? decrypt(Uint8List ciphertext, [Map? params]) {
     // 1. if 'IV' not found in extra params, use an empty 'IV'
     IV? iv = getInitVector(params);
     iv ??= zeroInitVector();

@@ -210,7 +210,7 @@ class BaseUser extends BaseEntity implements User {
     //         is a better way
     EncryptKey? pKey = await facebook?.getPublicKeyForEncryption(identifier);
     assert(pKey != null, 'failed to get encrypt key for user: $identifier');
-    return pKey!.encrypt(plaintext, null);
+    return pKey!.encrypt(plaintext);
   }
 
   //
@@ -240,7 +240,7 @@ class BaseUser extends BaseEntity implements User {
     Uint8List? plaintext;
     for (DecryptKey key in keys) {
       // try decrypting it with each private key
-      plaintext = key.decrypt(ciphertext, null);
+      plaintext = key.decrypt(ciphertext);
       if (plaintext != null) {
         // OK!
         return plaintext;

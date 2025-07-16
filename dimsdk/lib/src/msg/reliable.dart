@@ -99,7 +99,7 @@ class ReliableMessagePacker {
     }
 
     // OK, pack message
-    Map info = rMsg.copyMap(false);
+    Map info = rMsg.copyMap();
     info.remove('signature');
     return SecureMessage.parse(info);
   }

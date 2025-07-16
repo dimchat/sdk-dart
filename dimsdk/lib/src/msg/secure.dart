@@ -148,7 +148,7 @@ class SecureMessagePacker {
     ///      (do it by application)
 
     // OK, pack message
-    Map info = sMsg.copyMap(false);
+    Map info = sMsg.copyMap();
     info.remove('key');
     info.remove('keys');
     info.remove('data');
@@ -202,7 +202,7 @@ class SecureMessagePacker {
     //     '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
 
     // OK, pack message
-    Map info = sMsg.copyMap(false);
+    Map info = sMsg.copyMap();
     info['signature'] = base64;
     return ReliableMessage.parse(info)!;
   }

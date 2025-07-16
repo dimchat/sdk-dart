@@ -48,7 +48,7 @@ import 'eth.dart';
 ///      code    = sha256(sha256(network + hash)).prefix(4);
 ///      address = base58_encode(network + hash + code);
 class DefaultMeta extends BaseMeta {
-  DefaultMeta(super.dict);
+  DefaultMeta([super.dict]);
 
   DefaultMeta.from(String type, VerifyKey key, String seed, TransportableData fingerprint)
       : super.from(type, key, seed: seed, fingerprint: fingerprint);
@@ -89,7 +89,7 @@ class DefaultMeta extends BaseMeta {
 ///      code    = sha256(sha256(network + hash)).prefix(4);
 ///      address = base58_encode(network + hash + code);
 class BTCMeta extends BaseMeta {
-  BTCMeta(super.dict);
+  BTCMeta([super.dict]);
 
   BTCMeta.from(String type, VerifyKey key, {String? seed, TransportableData? fingerprint})
       : super.from(type, key, seed: seed, fingerprint: fingerprint);
@@ -129,7 +129,7 @@ class BTCMeta extends BaseMeta {
 ///      digest  = keccak256(CT);
 ///      address = hex_encode(digest.suffix(20));
 class ETHMeta extends BaseMeta {
-  ETHMeta(super.dict);
+  ETHMeta([super.dict]);
 
   ETHMeta.from(String type, VerifyKey key, {String? seed, TransportableData? fingerprint})
       : super.from(type, key, seed: seed, fingerprint: fingerprint);

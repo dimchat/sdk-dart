@@ -190,7 +190,7 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
       cpu = factory.getContentProcessorForType(ContentType.ANY);
       assert(cpu != null, 'failed to get default CPU');
     }
-    return cpu!.processContent(content, rMsg);
+    return await cpu!.processContent(content, rMsg);
     // TODO: override to filter the responses
   }
 

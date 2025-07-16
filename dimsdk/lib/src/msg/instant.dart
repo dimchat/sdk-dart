@@ -100,7 +100,7 @@ class InstantMessagePacker {
     assert(encodedData != null, 'failed to encode content data: $ciphertext');
 
     // replace 'content' with encrypted 'data'
-    Map info = iMsg.copyMap(false);
+    Map info = iMsg.copyMap();
     info.remove('content');
     info['data'] = encodedData;
 

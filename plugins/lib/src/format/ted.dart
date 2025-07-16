@@ -28,11 +28,11 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 
 class Base64Data extends Dictionary implements TransportableData {
-  Base64Data(super.dict);
+  Base64Data([super.dict]);
 
   late final BaseDataWrapper _wrapper = BaseDataWrapper(toMap());
 
-  Base64Data.fromData(Uint8List binary) : super(null) {
+  Base64Data.fromData(Uint8List binary) {
     // encode algorithm
     _wrapper.algorithm = EncodeAlgorithms.BASE_64;
     // binary data

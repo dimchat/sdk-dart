@@ -31,18 +31,18 @@ import 'package:dimp/dimp.dart';
 ///  Symmetric key for broadcast message,
 ///  which will do nothing when en/decoding message data
 class PlainKey extends BaseSymmetricKey {
-  PlainKey(super.dict);
+  PlainKey([super.dict]);
 
   @override
   Uint8List get data => Uint8List(0);
 
   @override
-  Uint8List? decrypt(Uint8List ciphertext, Map? params) {
+  Uint8List? decrypt(Uint8List ciphertext, [Map? params]) {
     return ciphertext;
   }
 
   @override
-  Uint8List encrypt(Uint8List plaintext, Map? extra) {
+  Uint8List encrypt(Uint8List plaintext, [Map? extra]) {
     return plaintext;
   }
 

@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:dimp/dimp.dart';
 import 'package:test/test.dart';
 
-// import 'package:dimsdk/plugins.dart';
+import 'package:dimsdk/plugins.dart';
 
 import 'loader.dart';
 
@@ -249,7 +249,7 @@ void main() {
     setUp(() {
       // Additional setup goes here.
 
-      // ExtensionLoader().run();
+      ExtensionLoader().run();
 
       ClientPluginLoader().run();
 
