@@ -36,6 +36,7 @@ import '../twins.dart';
 import 'base.dart';
 import 'commands.dart';
 import 'contents.dart';
+// import 'customized.dart';
 
 
 /// Base ContentProcessor Creator
@@ -45,6 +46,13 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
   @override
   ContentProcessor? createContentProcessor(String msgType) {
     switch (msgType) {
+
+      // // application customized
+      // case ContentType.APPLICATION:
+      // case 'application':
+      // case ContentType.CUSTOMIZED:
+      // case 'customized':
+      //   return CustomizedContentProcessor(facebook!, messenger!);
 
       // forward content
       case ContentType.FORWARD:

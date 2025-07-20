@@ -25,125 +25,157 @@
 
 ## Extensions
 
-### 1. extends Content
+### Content
 
 extends [CustomizedContent](https://github.com/dimchat/core-dart#extends-content)
 
-### 2. extends ContentProcessor
+### ContentProcessor
 
 ```dart
 import 'package:dimsdk/dimsdk.dart';
 
+import '../../common/protocol/groups.dart';
 
-///  Handler for Customized Content
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-abstract interface class CustomizedContentHandler {
 
-  ///  Do your job
-  ///
-  /// @param act     - action
-  /// @param sender  - user ID
-  /// @param content - customized content
-  /// @param rMsg    - network message
-  /// @return responses
-  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content,
-      ReliableMessage rMsg);
+/*  Command Transform:
+
+    +===============================+===============================+
+    |      Customized Content       |      Group Query Command      |
+    +-------------------------------+-------------------------------+
+    |   "type" : i2s(0xCC)          |   "type" : i2s(0x88)          |
+    |   "sn"   : 123                |   "sn"   : 123                |
+    |   "time" : 123.456            |   "time" : 123.456            |
+    |   "app"  : "chat.dim.group"   |                               |
+    |   "mod"  : "history"          |                               |
+    |   "act"  : "query"            |                               |
+    |                               |   "command"   : "query"       |
+    |   "group"     : "{GROUP_ID}"  |   "group"     : "{GROUP_ID}"  |
+    |   "last_time" : 0             |   "last_time" : 0             |
+    +===============================+===============================+
+ */
+class GroupHistoryHandler extends BaseCustomizedHandler {
+  GroupHistoryHandler(super.facebook, super.messenger);
+
+  bool matches(String app, String mod) => app == GroupHistory.APP && mod == GroupHistory.MOD;
+
+  @override
+  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) async {
+    var transceiver = messenger;
+    if (transceiver == null) {
+      assert(false, 'messenger lost');
+      return [];
+    } else if (act == GroupHistory.ACT_QUERY) {
+      assert(GroupHistory.APP == content.application);
+      assert(GroupHistory.MOD == content.module);
+      assert(content.group != null, 'group command error: $content, sender: $sender');
+    } else {
+      assert(false, 'unknown action: $act, $content, sender: $sender');
+      return await super.handleAction(act, sender, content, rMsg);
+    }
+    Map info = content.copyMap(false);
+    info['type'] = ContentType.COMMAND;
+    info['command'] = GroupCommand.QUERY;
+    Content? query = Content.parse(info);
+    if (query is QueryCommand) {
+      return await transceiver.processContent(query, rMsg);
+    }
+    assert(false, 'query command error: $query, $content, sender: $sender');
+    String text = 'Query command error.';
+    return respondReceipt(text, envelope: rMsg.envelope, content: content);
+  }
 
 }
 
 
 ///  Customized Content Processing Unit
 ///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class CustomizedContentProcessor extends BaseContentProcessor implements CustomizedContentHandler {
-  CustomizedContentProcessor(super.facebook, super.messenger);
-
-  @override
-  Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
-    assert(content is CustomizedContent, 'customized content error: $content');
-    CustomizedContent customized = content as CustomizedContent;
-    // 1. check app id
-    String app = customized.application;
-    List<Content>? res = filter(app, content, rMsg);
-    if (res != null) {
-      // app id not found
-      return res;
-    }
-    // 2. get handler with module name
-    String mod = customized.module;
-    CustomizedContentHandler? handler = fetch(mod, customized, rMsg);
-    if (handler == null) {
-      // module not support
-      return [];
-    }
-    // 3. do the job
-    String act = customized.action;
-    ID sender = rMsg.sender;
-    return await handler.handleAction(act, sender, customized, rMsg);
+class AppCustomizedProcessor extends CustomizedContentProcessor {
+  AppCustomizedProcessor(Facebook facebook, Messenger messenger) : super(facebook, messenger) {
+    groupHistoryHandler = createGroupHistoryHandler(facebook, messenger);
   }
 
   // protected
-  List<Content>? filter(String app, CustomizedContent content, ReliableMessage rMsg) {
-    /// override for your application
-    String text = 'Content not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Customized content (app: \${app}) not support yet!',
-      'replacements': {
-        'app': app,
-      }
-    });
-  }
+  GroupHistoryHandler createGroupHistoryHandler(Facebook facebook, Messenger messenger) =>
+      GroupHistoryHandler(facebook, messenger);
 
   // protected
-  CustomizedContentHandler? fetch(String mod, CustomizedContent content, ReliableMessage rMsg) {
-    /// override for your module
-    // if the application has too many modules, I suggest you to
-    // use different handler to do the jobs for each module.
-    return this;
-  }
+  late final GroupHistoryHandler groupHistoryHandler;
 
+  /// override for your modules
   @override
-  Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) async {
-    /// override for customized actions
-    String app = content.application;
-    String mod = content.module;
-    String text = 'Content not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
-      'template': 'Customized content (app: \${app}, mod: \${mod}, act: \${act}) not support yet!',
-      'replacements': {
-        'app': app,
-        'mod': mod,
-        'act': act,
+  CustomizedContentHandler filter(String app, String mod, CustomizedContent content, ReliableMessage rMsg) {
+    if (content.group != null) {
+      if (groupHistoryHandler.matches(app, mod)) {
+        return groupHistoryHandler;
       }
-    });
+    }
+    return super.filter(app, mod, content, rMsg);
   }
 
 }
 ```
 
-### 3. extends ExtensionLoader
+### ContentProcessorCreator
+
+```dart
+import 'package:dimsdk/dimsdk.dart';
+
+import 'customized.dart';
+import 'handshake.dart';
+
+
+class ClientContentProcessorCreator extends BaseContentProcessorCreator {
+  ClientContentProcessorCreator(super.facebook, super.messenger);
+
+  @override
+  ContentProcessor? createContentProcessor(String msgType) {
+    switch (msgType) {
+
+      // application customized
+      case ContentType.APPLICATION:
+      case ContentType.CUSTOMIZED:
+      case 'application':
+      case 'customized':
+        return AppCustomizedProcessor(facebook!, messenger!);
+
+    }
+    // others
+    return super.createContentProcessor(msgType);
+  }
+
+  @override
+  ContentProcessor? createCommandProcessor(String msgType, String cmd) {
+    switch (cmd) {
+      case HandshakeCommand.HANDSHAKE:
+        return HandshakeCommandProcessor(facebook!, messenger!);
+      // ...
+    }
+    // others
+    return super.createCommandProcessor(msgType, cmd);
+  }
+
+}
+```
+
+### ExtensionLoader
 
 ```dart
 import 'package:dimsdk/plugins.dart';
 
+import '../../common/protocol/handshake.dart';
+
 
 /// Extensions Loader
 /// ~~~~~~~~~~~~~~~~~
-class CommonLoader extends ExtensionLoader {
+class CommonExtensionLoader extends ExtensionLoader {
 
-  // protected
+  @override
   void registerCustomizedFactories() {
     
     // Application Customized
-    Content.setFactory(ContentType.APPLICATION, ContentParser((dict) => AppCustomizedContent(dict)));
-    Content.setFactory(ContentType.CUSTOMIZED, ContentParser((dict) => AppCustomizedContent(dict)));
+    setContentFactory(ContentType.CUSTOMIZED, 'customized', creator: (dict) => AppCustomizedContent(dict));
+    setContentFactory(ContentType.APPLICATION, 'application', creator: (dict) => AppCustomizedContent(dict));
     
-  }
-
-  @override
-  void registerContentFactories() {
-    super.registerContentFactories();
-    
-    registerCustomizedFactories();
   }
 
   @override
@@ -151,7 +183,7 @@ class CommonLoader extends ExtensionLoader {
     super.registerCommandFactories();
 
     // Handshake
-    Command.setFactory(HandshakeCommand.HANDSHAKE, CommandParser((dict) => BaseHandshakeCommand(dict)));
+    setCommandFactory(HandshakeCommand.HANDSHAKE, creator: (dict) => BaseHandshakeCommand(dict));
 
   }
 
@@ -163,11 +195,30 @@ class CommonLoader extends ExtensionLoader {
 You must load all extensions before your business run:
 
 ```dart
+import 'package:dim_plugins/plugins.dart';
+
 import 'common_loader.dart';
+
+
+class LibraryLoader {
+  LibraryLoader({ExtensionLoader? extensionLoader, PluginLoader? pluginLoader}) {
+    this.extensionLoader = extensionLoader ?? CommonExtensionLoader();
+    this.pluginLoader = pluginLoader ?? PluginLoader();
+  }
+
+  late final ExtensionLoader extensionLoader;
+  late final PluginLoader pluginLoader;
+
+  void run() {
+    extensionLoader.run();
+    pluginLoader.run();
+  }
+
+}
 
 void main() {
 
-  var loader = CommonLoader();
+  var loader = LibraryLoader();
   loader.run();
   
   // do your jobs after all extensions loaded.
@@ -176,7 +227,7 @@ void main() {
 
 ```
 
-Also, to let your **CustomizedContentProcessor** start to work,
+Also, to let your **AppCustomizedProcessor** start to work,
 you must override ```BaseContentProcessorCreator``` for message types:
 
 1. ContentType.APPLICATION 

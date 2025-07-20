@@ -259,11 +259,27 @@ import 'package:dimsdk/plugins.dart';
 import 'compat_loader.dart';
 
 
+class LibraryLoader {
+  LibraryLoader({ExtensionLoader? extensionLoader, PluginLoader? pluginLoader}) {
+    this.extensionLoader = extensionLoader ?? ExtensionLoader();
+    this.pluginLoader = pluginLoader ?? CompatiblePluginLoader();
+  }
+
+  late final ExtensionLoader extensionLoader;
+  late final PluginLoader pluginLoader;
+
+  void run() {
+    extensionLoader.run();
+    pluginLoader.run();
+  }
+
+}
+
+
 void main() {
 
-  ExtensionLoader().run();
-
-  CompatiblePluginLoader().run();
+  var loader = LibraryLoader();
+  loader.run();
   
   // do your jobs after all extensions & plugins loaded
   

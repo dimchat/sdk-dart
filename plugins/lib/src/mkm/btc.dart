@@ -59,7 +59,7 @@ class BTCAddress extends ConstantString implements Address {
   ///  Generate BTC address with fingerprint and network ID
   ///
   /// @param fingerprint - meta.fingerprint or key.data
-  /// @param network - address type
+  /// @param network     - address type
   /// @return Address object
   static BTCAddress generate(Uint8List fingerprint, int network) {
     // 1. digest = ripemd160(sha256(fingerprint))

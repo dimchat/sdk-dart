@@ -194,6 +194,18 @@ class ExtensionLoader {
     // unknown content type
     setContentFactory(ContentType.ANY, '*', creator: (dict) => BaseContent(dict));
 
+    // Application Customized Content
+    registerCustomizedFactories();
+  }
+
+  /// Customized content factories
+  // protected
+  void registerCustomizedFactories() {
+
+    // Application Customized
+    setContentFactory(ContentType.CUSTOMIZED, 'customized', creator: (dict) => AppCustomizedContent(dict));
+    //setContentFactory(ContentType.APPLICATION, 'application', creator: (dict) => AppCustomizedContent(dict));
+
   }
 
   // protected
