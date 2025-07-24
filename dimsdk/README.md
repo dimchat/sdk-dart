@@ -34,6 +34,42 @@ extends [CustomizedContent](https://github.com/dimchat/core-dart#extends-content
 ```dart
 import 'package:dimsdk/dimsdk.dart';
 
+
+///  Customized Content Processing Unit
+///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+///  Handle content for application customized
+class AppCustomizedProcessor extends CustomizedContentProcessor {
+  AppCustomizedProcessor(super.facebook, super.messenger);
+
+  final Map<String, CustomizedContentHandler> _handlers = {};
+
+  void setHandler({
+    required String app, required String mod,
+    required CustomizedContentHandler handler
+  }) => _handlers['$app:$mod'] = handler;
+
+  // protected
+  CustomizedContentHandler? getHandler({
+    required String app, required String mod,
+  }) => _handlers['$app:$mod'];
+
+  /// override for your modules
+  @override
+  CustomizedContentHandler filter(String app, String mod, CustomizedContent content, ReliableMessage rMsg) {
+    CustomizedContentHandler? handler = getHandler(app: app, mod: mod);
+    if (handler != null) {
+      return handler;
+    }
+    // default handler
+    return super.filter(app, mod, content, rMsg);
+  }
+
+}
+```
+
+```dart
+import 'package:dimsdk/dimsdk.dart';
+
 import '../../common/protocol/groups.dart';
 
 
@@ -56,21 +92,27 @@ import '../../common/protocol/groups.dart';
 class GroupHistoryHandler extends BaseCustomizedHandler {
   GroupHistoryHandler(super.facebook, super.messenger);
 
-  bool matches(String app, String mod) => app == GroupHistory.APP && mod == GroupHistory.MOD;
-
   @override
   Future<List<Content>> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) async {
+    if (content.group == null) {
+      assert(false, 'group command error: $content, sender: $sender');
+      String text = 'Group command error.';
+      return respondReceipt(text, envelope: rMsg.envelope, content: content);
+    } else if (GroupHistory.ACT_QUERY == act) {
+      assert(GroupHistory.APP == content.application);
+      assert(GroupHistory.MOD == content.module);
+      return await transformQueryCommand(content, rMsg);
+    }
+    assert(false, 'unknown action: $act, $content, sender: $sender');
+    return await super.handleAction(act, sender, content, rMsg);
+  }
+
+  // private
+  Future<List<Content>> transformQueryCommand(CustomizedContent content, ReliableMessage rMsg) async {
     var transceiver = messenger;
     if (transceiver == null) {
       assert(false, 'messenger lost');
       return [];
-    } else if (act == GroupHistory.ACT_QUERY) {
-      assert(GroupHistory.APP == content.application);
-      assert(GroupHistory.MOD == content.module);
-      assert(content.group != null, 'group command error: $content, sender: $sender');
-    } else {
-      assert(false, 'unknown action: $act, $content, sender: $sender');
-      return await super.handleAction(act, sender, content, rMsg);
     }
     Map info = content.copyMap(false);
     info['type'] = ContentType.COMMAND;
@@ -79,37 +121,9 @@ class GroupHistoryHandler extends BaseCustomizedHandler {
     if (query is QueryCommand) {
       return await transceiver.processContent(query, rMsg);
     }
-    assert(false, 'query command error: $query, $content, sender: $sender');
+    assert(false, 'query command error: $query, $content, sender: ${rMsg.sender}');
     String text = 'Query command error.';
     return respondReceipt(text, envelope: rMsg.envelope, content: content);
-  }
-
-}
-
-
-///  Customized Content Processing Unit
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class AppCustomizedProcessor extends CustomizedContentProcessor {
-  AppCustomizedProcessor(Facebook facebook, Messenger messenger) : super(facebook, messenger) {
-    groupHistoryHandler = createGroupHistoryHandler(facebook, messenger);
-  }
-
-  // protected
-  GroupHistoryHandler createGroupHistoryHandler(Facebook facebook, Messenger messenger) =>
-      GroupHistoryHandler(facebook, messenger);
-
-  // protected
-  late final GroupHistoryHandler groupHistoryHandler;
-
-  /// override for your modules
-  @override
-  CustomizedContentHandler filter(String app, String mod, CustomizedContent content, ReliableMessage rMsg) {
-    if (content.group != null) {
-      if (groupHistoryHandler.matches(app, mod)) {
-        return groupHistoryHandler;
-      }
-    }
-    return super.filter(app, mod, content, rMsg);
   }
 
 }
@@ -127,17 +141,32 @@ import 'handshake.dart';
 class ClientContentProcessorCreator extends BaseContentProcessorCreator {
   ClientContentProcessorCreator(super.facebook, super.messenger);
 
+  // protected
+  AppCustomizedProcessor createCustomizedContentProcessor(Facebook facebook, Messenger messenger) {
+    var cpu = AppCustomizedProcessor(facebook, messenger);
+    
+    // 'chat.dim.group:history'
+    cpu.setHandler(
+      app: GroupHistory.APP,
+      mod: GroupHistory.MOD,
+      handler: GroupHistoryHandler(facebook, messenger),
+    );
+    
+    return cpu;
+  }
+
   @override
   ContentProcessor? createContentProcessor(String msgType) {
     switch (msgType) {
 
       // application customized
       case ContentType.APPLICATION:
-      case ContentType.CUSTOMIZED:
       case 'application':
+      case ContentType.CUSTOMIZED:
       case 'customized':
-        return AppCustomizedProcessor(facebook!, messenger!);
+        return createCustomizedContentProcessor(facebook!, messenger!);
 
+      // ...
     }
     // others
     return super.createContentProcessor(msgType);
@@ -146,8 +175,10 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
   @override
   ContentProcessor? createCommandProcessor(String msgType, String cmd) {
     switch (cmd) {
+    
       case HandshakeCommand.HANDSHAKE:
         return HandshakeCommandProcessor(facebook!, messenger!);
+        
       // ...
     }
     // others
@@ -227,7 +258,7 @@ void main() {
 
 ```
 
-Also, to let your **AppCustomizedProcessor** start to work,
+To let your **AppCustomizedProcessor** start to work,
 you must override ```BaseContentProcessorCreator``` for message types:
 
 1. ContentType.APPLICATION 

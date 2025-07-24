@@ -103,7 +103,7 @@ class UnknownAddress extends ConstantString implements Address {
   UnknownAddress(super.string);
 
   @override
-  int get network => 0;
+  int get network => 0;  // EntityType.USER;
 
 }
 ```
@@ -121,35 +121,10 @@ class CompatibleMetaFactory extends BaseMetaFactory {
   CompatibleMetaFactory(super.type);
 
   @override
-  Meta createMeta(VerifyKey pKey, {String? seed, TransportableData? fingerprint}) {
-    Meta out;
-    switch (type) {
-
-      case Meta.MKM:
-        out = DefaultMeta.from('1', pKey, seed!, fingerprint!);
-        break;
-
-      case Meta.BTC:
-        out = BTCMeta.from('2', pKey);
-        break;
-
-      case Meta.ETH:
-        out = ETHMeta.from('4', pKey);
-        break;
-
-      default:
-        // TODO: other types of meta
-        throw Exception('unknown meta type: $type');
-    }
-    assert(out.isValid, 'meta error: $out');
-    return out;
-  }
-
-  @override
   Meta? parseMeta(Map meta) {
     Meta out;
     var ext = SharedAccountExtensions();
-    String? version = ext.helper!.getMetaType(meta, '');
+    String? version = ext.helper!.getMetaType(meta);
     switch (version) {
 
       case 'MKM':
