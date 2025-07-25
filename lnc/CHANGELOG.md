@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Remove time utils.
+
 ## 1.1.0
 
 - Shorten Log.

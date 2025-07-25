@@ -89,9 +89,11 @@ mixin Logging {
 
 
 class DefaultLogger with LogMixin {
-  // override for customized logger
+  DefaultLogger([LogPrinter? logPrinter]) {
+    _printer = logPrinter ?? LogPrinter();
+  }
 
-  final LogPrinter _printer = LogPrinter();
+  late final LogPrinter _printer;
 
   @override
   LogPrinter get printer => _printer;
@@ -99,6 +101,14 @@ class DefaultLogger with LogMixin {
 }
 
 abstract class Logger {
+
+  //
+  //  Tags
+  //
+  static String   DEBUG_TAG = " DEBUG ";
+  static String    INFO_TAG = "       ";
+  static String WARNING_TAG = "WARNING";
+  static String   ERROR_TAG = " ERROR ";
 
   LogPrinter get printer;
 
@@ -130,6 +140,9 @@ mixin LogMixin implements Logger {
     }
     String desc = 'total $size chars';
     int pos = (maxLen - desc.length - 10) >> 1;
+    if (pos <= 0) {
+      return text;
+    }
     String prefix = text.substring(0, pos);
     String suffix = text.substring(size - pos);
     return '$prefix ... $desc ... $suffix';
@@ -167,19 +180,19 @@ mixin LogMixin implements Logger {
 
   @override
   void debug(String msg) => (Log.level & Log.DEBUG_FLAG) > 0 &&
-      output(msg, caller: caller, tag: ' DEBUG ', color: colorGreen) > 0;
+      output(msg, caller: caller, tag: Logger.DEBUG_TAG, color: colorGreen) > 0;
 
   @override
   void info(String msg) => (Log.level & Log.INFO_FLAG) > 0 &&
-      output(msg, caller: caller, tag: '       ', color: '') > 0;
+      output(msg, caller: caller, tag: Logger.INFO_TAG, color: '') > 0;
 
   @override
   void warning(String msg) => (Log.level & Log.WARNING_FLAG) > 0 &&
-      output(msg, caller: caller, tag: 'WARNING', color: colorYellow) > 0;
+      output(msg, caller: caller, tag: Logger.WARNING_TAG, color: colorYellow) > 0;
 
   @override
   void error(String msg) => (Log.level & Log.ERROR_FLAG) > 0 &&
-      output(msg, caller: caller, tag: ' ERROR ', color: colorRed) > 0;
+      output(msg, caller: caller, tag: Logger.ERROR_TAG, color: colorRed) > 0;
 
 }
 
@@ -194,7 +207,7 @@ class LogPrinter {
   void output(String body, {String head = '', String tail = ''}) {
     int size = body.length;
     if (0 < limitLength && limitLength < size) {
-      body = '${body.substring(0, limitLength - 3)}...';
+      body = '${body.substring(0, limitLength - 4)} ...';
       size = limitLength;
     }
     int start = 0, end = chunkLength;
