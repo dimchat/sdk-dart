@@ -30,10 +30,10 @@
  */
 import 'package:object_key/object_key.dart';
 
-import 'log.dart';
+import 'log/log.dart';
 
 ///  Notification observer
-abstract class Observer {
+abstract interface class Observer {
 
   Future<void> onReceiveNotification(Notification notification);
 }

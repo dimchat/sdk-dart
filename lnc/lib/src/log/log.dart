@@ -28,6 +28,10 @@
  * SOFTWARE.
  * =============================================================================
  */
+import '../time.dart';
+
+import 'caller.dart';
+import 'printer.dart';
 
 
 /// Simple Log
@@ -100,7 +104,7 @@ class DefaultLogger with LogMixin {
 
 }
 
-abstract class Logger {
+abstract interface class Logger {
 
   //
   //  Tags
@@ -126,9 +130,12 @@ mixin LogMixin implements Logger {
   static String colorGreen  = '\x1B[92m';  // debug
   static String colorClear  = '\x1B[0m';
 
-  String get now => LogTimer().now;
+  // protected
+  String get now => Time.now;
 
-  LogCaller get caller => LogCaller('lnc/src/log.dart', StackTrace.current);
+  /// Override for customized caller tracer
+  // protected
+  LogCaller get caller => LogCaller('lnc/src/log/log.dart', StackTrace.current);
 
   static String shorten(String text, int maxLen) {
     assert(maxLen > 128, 'too short: $maxLen');
@@ -146,6 +153,7 @@ mixin LogMixin implements Logger {
     return '$prefix ... $desc ... $suffix';
   }
 
+  // protected
   void output(String msg, {required String tag, required String color}) {
     //
     //  0. shorten message
@@ -221,179 +229,6 @@ mixin LogMixin implements Logger {
     if (flag > 0) {
       output(msg, tag: Logger.ERROR_TAG, color: colorRed);
     }
-  }
-
-}
-
-class LogPrinter {
-
-  int chunkLength = 1000;  // split output when it's too long
-  int limitLength = -1;    // max output length, -1 means unlimited
-
-  String carriageReturn = '↩️';
-
-  /// colorful print
-  void output(String body, {
-    String head = '', String tail = '',
-    required String tag, required LogCaller caller,
-  }) {
-    int size = body.length;
-    if (0 < limitLength && limitLength < size) {
-      body = '${body.substring(0, limitLength - 4)} ...';
-      size = limitLength;
-    }
-    // print chunks
-    int start = 0, end = chunkLength;
-    for (; end < size; start = end, end += chunkLength) {
-      println(head + body.substring(start, end) + tail + carriageReturn,
-        tag: tag, caller: caller,
-      );
-    }
-    if (start == 0) {
-      // too short, print the whole message
-      println(head + body + tail,
-        tag: tag, caller: caller,
-      );
-    } else {
-      // print last chunk
-      println(head + body.substring(start) + tail,
-        tag: tag, caller: caller,
-      );
-    }
-  }
-
-  /// override for redirecting outputs
-  void println(String x, {
-    required String tag, required LogCaller caller,
-  }) => print(x);
-
-}
-
-class LogTimer {
-
-  /// full string for current time: 'yyyy-mm-dd HH:MM:SS'
-  String get now {
-    DateTime time = DateTime.now();
-    String m = _twoDigits(time.month);
-    String d = _twoDigits(time.day);
-    String h = _twoDigits(time.hour);
-    String min = _twoDigits(time.minute);
-    String sec = _twoDigits(time.second);
-    return '${time.year}-$m-$d $h:$min:$sec';
-  }
-
-  static String _twoDigits(int n) {
-    if (n >= 10) return "$n";
-    return "0$n";
-  }
-
-}
-
-// #0      LogMixin.caller (package:lnc/src/log.dart:85:55)
-// #1      LogMixin.debug (package:lnc/src/log.dart:105:41)
-// #2      Log.debug (package:lnc/src/log.dart:50:45)
-// #3      main.<anonymous closure>.<anonymous closure> (file:///Users/moky/client/test/client_test.dart:14:11)
-// #4      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:215:19)
-// <asynchronous suspension>
-// #5      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:213:7)
-// <asynchronous suspension>
-// #6      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:258:9)
-// <asynchronous suspension>
-
-// #?      function (path:1:2)
-// #?      function (path:1)
-class LogCaller {
-  LogCaller(this.anchor, this.stacks);
-
-  // private
-  final String anchor;      // anchor tag
-  final StackTrace stacks;  // stack traces
-  Map? _caller;
-
-  // final String name;
-  // final String path;
-  // final int line;
-
-  @override
-  String toString() => '$path:$line';
-
-  String? get name => caller?['name'];
-  String? get path => caller?['path'];
-  int? get line => caller?['line'];
-
-  //
-  //  trace caller
-  //
-
-  // private
-  Map? get caller {
-    Map? info = _caller;
-    if (info == null) {
-      List<String> traces = stacks.toString().split('\n');
-      info = locate(anchor, traces);
-      _caller = info;
-    }
-    return info;
-  }
-
-  /// locate the real caller: '#3      ...'
-  // protected
-  Map? locate(String anchor, List<String> traces) {
-    bool flag = false;
-    for (var element in traces) {
-      if (checkAnchor(anchor, element)) {
-        // skip anchor(s)
-        flag = true;
-      } else if (flag) {
-        // get next element of the anchor(s)
-        return parseCaller(element);
-      }
-    }
-    assert(false, 'caller not found: $anchor -> $traces');
-    return null;
-  }
-
-  // protected
-  bool checkAnchor(String anchor, String line) {
-    if (line.contains(anchor)) {
-      // skip for 'lnc/src/log.dart:'
-      return true;
-    }
-    // assert(line.startsWith('#3      '), 'unknown stack trace: $current');
-    return !line.startsWith('#');
-  }
-
-  /// parse caller info from trace
-  // protected
-  Map? parseCaller(String text) {
-    // skip '#0      '
-    int pos = text.indexOf(' ');
-    text = text.substring(pos + 1).trimLeft();
-    // split 'name' & '(path:line:column)'
-    pos = text.lastIndexOf(' ');
-    String name = text.substring(0, pos);
-    String tail = text.substring(pos + 1);
-    String path = 'unknown.file';
-    String line = '-1';
-    int pos1 = tail.indexOf(':');
-    if (pos1 > 0) {
-      pos = tail.indexOf(':', pos1 + 1);
-      if (pos > 0) {
-        path = tail.substring(1, pos);
-        pos1 = pos + 1;
-        pos = tail.indexOf(':', pos1);
-        if (pos > 0) {
-          line = tail.substring(pos1, pos);
-        } else if (pos1 < tail.length) {
-          line = tail.substring(pos1, tail.length - 1);
-        }
-      }
-    }
-    return {
-      'name': name,
-      'path': path,
-      'line': int.tryParse(line),
-    };
   }
 
 }

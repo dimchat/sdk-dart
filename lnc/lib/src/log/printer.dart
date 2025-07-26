@@ -28,40 +28,47 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'caller.dart';
 
-abstract class Time {
 
-  ///  Now()
-  ///
-  /// @return current time
-  static DateTime get currentTime => DateTime.now();
+class LogPrinter {
 
-  /// 1 second = 1000 milliseconds
-  static int get currentTimeMilliseconds => currentTime.millisecondsSinceEpoch;
-  /// 1 second = 1000000 microseconds
-  static int get currentTimeMicroseconds => currentTime.microsecondsSinceEpoch;
-  // static int get currentTimeMillis => currentTimeMilliseconds;
-  static double get currentTimeSeconds => currentTimeMicroseconds / 1000000.0;
+  static int chunkLength = 1000;  // split output when it's too long
+  static int limitLength = -1;    // max output length, -1 means unlimited
 
-  ///  Now() as timestamp
-  ///
-  /// @return current timestamp in seconds from Jan 1, 1970 UTC
-  static double get currentTimestamp => currentTimeSeconds;
+  static String carriageReturn = '↩️';
 
-  /// full string for current time: 'yyyy-mm-dd HH:MM:SS'
-  static String get now {
-    DateTime time = DateTime.now();
-    String m = _twoDigits(time.month);
-    String d = _twoDigits(time.day);
-    String h = _twoDigits(time.hour);
-    String min = _twoDigits(time.minute);
-    String sec = _twoDigits(time.second);
-    return '${time.year}-$m-$d $h:$min:$sec';
+  /// colorful print
+  void output(String body, {
+    String head = '', String tail = '',
+    required String tag, required LogCaller caller,
+  }) {
+    int size = body.length;
+    if (0 < limitLength && limitLength < size) {
+      body = '${body.substring(0, limitLength - 4)} ...';
+      size = limitLength;
+    }
+    String x;
+    // print chunks
+    int start = 0, end = chunkLength;
+    for (; end < size; start = end, end += chunkLength) {
+      x = head + body.substring(start, end) + tail + carriageReturn;
+      println(x, tag: tag, caller: caller);
+    }
+    if (start > 0) {
+      // print last chunk
+      x = head + body.substring(start) + tail;
+    } else {
+      // too short, print the whole message
+      x = head + body + tail;
+    }
+    println(x, tag: tag, caller: caller);
   }
 
-  static String _twoDigits(int n) {
-    if (n >= 10) return "$n";
-    return "0$n";
-  }
+  /// override for redirecting outputs
+  // protected
+  void println(String x, {
+    required String tag, required LogCaller caller,
+  }) => print(x);
 
 }
