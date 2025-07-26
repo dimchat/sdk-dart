@@ -1,3 +1,7 @@
+## 1.1.2
+
+- LogCaller.
+
 ## 1.1.1
 
 - Remove time utils.

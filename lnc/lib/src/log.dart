@@ -126,11 +126,9 @@ mixin LogMixin implements Logger {
   static String colorGreen  = '\x1B[92m';  // debug
   static String colorClear  = '\x1B[0m';
 
-  String? get now =>
-      Log.showTime ? LogTimer().now : null;
+  String get now => LogTimer().now;
 
-  LogCaller? get caller =>
-      Log.showCaller ? LogCaller.parse(StackTrace.current) : null;
+  LogCaller get caller => LogCaller('lnc/src/log.dart', StackTrace.current);
 
   static String shorten(String text, int maxLen) {
     assert(maxLen > 128, 'too short: $maxLen');
@@ -148,51 +146,82 @@ mixin LogMixin implements Logger {
     return '$prefix ... $desc ... $suffix';
   }
 
-  int output(String msg, {LogCaller? caller, String? tag, String color = ''}) {
+  void output(String msg, {required String tag, required String color}) {
+    //
+    //  0. shorten message
+    //
     int maxLen = Log.MAX_LEN;
     if (maxLen > 0) {
       msg = shorten(msg, maxLen);
     }
-    String body;
-    // insert caller
-    if (caller == null) {
-      body = msg;
+    //
+    //  1. set color
+    //
+    String clear;
+    if (Log.colorful && color.isNotEmpty) {
+      clear = colorClear;
     } else {
-      body = '$caller >\t$msg';
+      color = '';
+      clear = '';
     }
-    // insert tag
-    if (tag != null) {
+    //
+    //  2. build body
+    //
+    String body;
+    //  2.1. insert caller
+    var locate = caller;
+    if (Log.showCaller) {
+      body = '$locate >\t$msg';
+    } else {
+      body = msg;
+    }
+    //  2.2. insert time
+    if (Log.showTime) {
+      body = '[$now] $tag | $body';
+    } else {
       body = '$tag | $body';
     }
-    // insert time
-    String? time = now;
-    if (time != null) {
-      body = '[$time] $body';
-    }
-    // colored print
-    if (Log.colorful && color.isNotEmpty) {
-      printer.output(body, head: color, tail: colorClear);
+    //
+    //  3. colored print
+    //
+    if (Log.colorful) {
+      printer.output(body, head: color, tail: clear, tag: tag, caller: locate);
     } else {
-      printer.output(body);
+      printer.output(body, tag: tag, caller: locate);
     }
-    return body.length;
   }
 
   @override
-  void debug(String msg) => (Log.level & Log.DEBUG_FLAG) > 0 &&
-      output(msg, caller: caller, tag: Logger.DEBUG_TAG, color: colorGreen) > 0;
+  void debug(String msg) {
+    var flag = Log.level & Log.DEBUG_FLAG;
+    if (flag > 0) {
+      output(msg, tag: Logger.DEBUG_TAG, color: colorGreen);
+    }
+  }
 
   @override
-  void info(String msg) => (Log.level & Log.INFO_FLAG) > 0 &&
-      output(msg, caller: caller, tag: Logger.INFO_TAG, color: '') > 0;
+  void info(String msg) {
+    var flag = Log.level & Log.INFO_FLAG;
+    if (flag > 0) {
+      output(msg, tag: Logger.INFO_TAG, color: '');
+    }
+  }
 
   @override
-  void warning(String msg) => (Log.level & Log.WARNING_FLAG) > 0 &&
-      output(msg, caller: caller, tag: Logger.WARNING_TAG, color: colorYellow) > 0;
+  void warning(String msg) {
+    var flag = Log.level & Log.WARNING_FLAG;
+    if (flag > 0) {
+      output(msg, tag: Logger.WARNING_TAG, color: colorYellow);
+    }
+  }
 
   @override
-  void error(String msg) => (Log.level & Log.ERROR_FLAG) > 0 &&
-      output(msg, caller: caller, tag: Logger.ERROR_TAG, color: colorRed) > 0;
+  void error(String msg) {
+    var flag = Log.level & Log.ERROR_FLAG;
+    if (flag > 0) {
+      output(msg, tag: Logger.ERROR_TAG, color: colorRed);
+    }
+  }
 
 }
 
@@ -204,30 +233,39 @@ class LogPrinter {
   String carriageReturn = '↩️';
 
   /// colorful print
-  void output(String body, {String head = '', String tail = ''}) {
+  void output(String body, {
+    String head = '', String tail = '',
+    required String tag, required LogCaller caller,
+  }) {
     int size = body.length;
     if (0 < limitLength && limitLength < size) {
       body = '${body.substring(0, limitLength - 4)} ...';
       size = limitLength;
     }
+    // print chunks
     int start = 0, end = chunkLength;
     for (; end < size; start = end, end += chunkLength) {
-      _print(head + body.substring(start, end) + tail + carriageReturn);
+      println(head + body.substring(start, end) + tail + carriageReturn,
+        tag: tag, caller: caller,
+      );
     }
-    if (start >= size) {
-      // all chunks printed
-      assert(start == size, 'should not happen');
-    } else if (start == 0) {
-      // body too short
-      _print(head + body + tail);
+    if (start == 0) {
+      // too short, print the whole message
+      println(head + body + tail,
+        tag: tag, caller: caller,
+      );
     } else {
       // print last chunk
-      _print(head + body.substring(start) + tail);
+      println(head + body.substring(start) + tail,
+        tag: tag, caller: caller,
+      );
     }
   }
 
   /// override for redirecting outputs
-  void _print(Object? object) => print(object);
+  void println(String x, {
+    required String tag, required LogCaller caller,
+  }) => print(x);
 
 }
 
@@ -265,39 +303,69 @@ class LogTimer {
 // #?      function (path:1:2)
 // #?      function (path:1)
 class LogCaller {
-  LogCaller(this.name, this.path, this.line);
+  LogCaller(this.anchor, this.stacks);
 
-  final String name;
-  final String path;
-  final int line;
+  // private
+  final String anchor;      // anchor tag
+  final StackTrace stacks;  // stack traces
+  Map? _caller;
+
+  // final String name;
+  // final String path;
+  // final int line;
 
   @override
   String toString() => '$path:$line';
 
+  String? get name => caller?['name'];
+  String? get path => caller?['path'];
+  int? get line => caller?['line'];
+
+  //
+  //  trace caller
+  //
+
+  // private
+  Map? get caller {
+    Map? info = _caller;
+    if (info == null) {
+      List<String> traces = stacks.toString().split('\n');
+      info = locate(anchor, traces);
+      _caller = info;
+    }
+    return info;
+  }
+
   /// locate the real caller: '#3      ...'
-  static String? locate(StackTrace current) {
-    List<String> array = current.toString().split('\n');
-    for (String line in array) {
-      if (line.contains('lnc/src/log.dart:')) {
-        // skip for Log
-        continue;
-      }
-      // assert(line.startsWith('#3      '), 'unknown stack trace: $current');
-      if (line.startsWith('#')) {
-        return line;
+  // protected
+  Map? locate(String anchor, List<String> traces) {
+    bool flag = false;
+    for (var element in traces) {
+      if (checkAnchor(anchor, element)) {
+        // skip anchor(s)
+        flag = true;
+      } else if (flag) {
+        // get next element of the anchor(s)
+        return parseCaller(element);
       }
     }
-    // unknown format
+    assert(false, 'caller not found: $anchor -> $traces');
     return null;
   }
 
-  /// parse caller info from trace
-  static LogCaller? parse(StackTrace current) {
-    String? text = locate(current);
-    if (text == null) {
-      // unknown format
-      return null;
+  // protected
+  bool checkAnchor(String anchor, String line) {
+    if (line.contains(anchor)) {
+      // skip for 'lnc/src/log.dart:'
+      return true;
     }
+    // assert(line.startsWith('#3      '), 'unknown stack trace: $current');
+    return !line.startsWith('#');
+  }
+
+  /// parse caller info from trace
+  // protected
+  Map? parseCaller(String text) {
     // skip '#0      '
     int pos = text.indexOf(' ');
     text = text.substring(pos + 1).trimLeft();
@@ -321,7 +389,11 @@ class LogCaller {
         }
       }
     }
-    return LogCaller(name, path, int.parse(line));
+    return {
+      'name': name,
+      'path': path,
+      'line': int.tryParse(line),
+    };
   }
 
 }
