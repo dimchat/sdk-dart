@@ -68,29 +68,32 @@ class Log {
 
 /// Log with class name
 mixin Logging {
-  
-  void logDebug(String msg) {
-    Type clazz = runtimeType;
-    Log.debug('$clazz >\t$msg');
-  }
 
-  void logInfo(String msg) {
-    Type clazz = runtimeType;
-    Log.info('$clazz >\t$msg');
-  }
+  String get className => _runtimeType(this) ?? 'Object';
 
-  void logWarning(String msg) {
-    Type clazz = runtimeType;
-    Log.warning('$clazz >\t$msg');
-  }
+  void logDebug(String msg) =>
+      Log.logger.debug(msg, className: _runtimeType(this));
 
-  void logError(String msg) {
-    Type clazz = runtimeType;
-    Log.error('$clazz >\t$msg');
-  }
+  void logInfo(String msg) =>
+      Log.logger.info(msg, className: _runtimeType(this));
+
+  void logWarning(String msg) =>
+      Log.logger.warning(msg, className: _runtimeType(this));
+
+  void logError(String msg) =>
+      Log.logger.error(msg, className: _runtimeType(this));
 
 }
 
+String? _runtimeType(Object object, {String? className}) {
+  assert(() {
+    // Calling `toString` on a runtime type is a non-trivial operation
+    // that can negatively impact performance
+    className = object.runtimeType.toString();
+    return true;
+  }());
+  return className;
+}
 
 class DefaultLogger with LogMixin {
   DefaultLogger([LogPrinter? logPrinter]) {
@@ -116,10 +119,27 @@ abstract interface class Logger {
 
   LogPrinter get printer;
 
-  void   debug(String msg);
-  void    info(String msg);
-  void warning(String msg);
-  void   error(String msg);
+  void   debug(String msg, {String? className});
+  void    info(String msg, {String? className});
+  void warning(String msg, {String? className});
+  void   error(String msg, {String? className});
+
+  /// limit log info
+  static String shorten(String text, int maxLen) {
+    assert(maxLen > 128, 'too short: $maxLen');
+    int size = text.length;
+    if (size <= maxLen) {
+      return text;
+    }
+    String desc = 'total $size chars';
+    int pos = (maxLen - desc.length - 10) >> 1;
+    if (pos <= 0) {
+      return text;
+    }
+    String prefix = text.substring(0, pos);
+    String suffix = text.substring(size - pos);
+    return '$prefix ... $desc ... $suffix';
+  }
 
 }
 
@@ -137,30 +157,14 @@ mixin LogMixin implements Logger {
   // protected
   LogCaller get caller => LogCaller('lnc/src/log/log.dart', StackTrace.current);
 
-  static String shorten(String text, int maxLen) {
-    assert(maxLen > 128, 'too short: $maxLen');
-    int size = text.length;
-    if (size <= maxLen) {
-      return text;
-    }
-    String desc = 'total $size chars';
-    int pos = (maxLen - desc.length - 10) >> 1;
-    if (pos <= 0) {
-      return text;
-    }
-    String prefix = text.substring(0, pos);
-    String suffix = text.substring(size - pos);
-    return '$prefix ... $desc ... $suffix';
-  }
-
   // protected
-  void output(String msg, {required String tag, required String color}) {
+  void output(String msg, {String? className, required String tag, required String color}) {
     //
     //  0. shorten message
     //
     int maxLen = Log.MAX_LEN;
     if (maxLen > 0) {
-      msg = shorten(msg, maxLen);
+      msg = Logger.shorten(msg, maxLen);
     }
     //
     //  1. set color
@@ -176,14 +180,22 @@ mixin LogMixin implements Logger {
     //  2. build body
     //
     String body;
-    //  2.1. insert caller
+    //  2.1. insert caller & class name
     var locate = caller;
     if (Log.showCaller) {
-      body = '$locate >\t$msg';
+      if (className == null) {
+        body = '$locate >\t$msg';
+      } else {
+        body = '$locate | $className >\t$msg';
+      }
     } else {
-      body = msg;
+      if (className == null) {
+        body = msg;
+      } else {
+        body = '$className >\t$msg';
+      }
     }
-    //  2.2. insert time
+    //  2.2. insert time & tag
     if (Log.showTime) {
       body = '[$now] $tag | $body';
     } else {
@@ -200,35 +212,47 @@ mixin LogMixin implements Logger {
   }
 
   @override
-  void debug(String msg) {
-    var flag = Log.level & Log.DEBUG_FLAG;
-    if (flag > 0) {
-      output(msg, tag: Logger.DEBUG_TAG, color: colorGreen);
-    }
+  void debug(String msg, {String? className}) {
+    assert(() {
+      var flag = Log.level & Log.DEBUG_FLAG;
+      if (flag > 0) {
+        output(msg, className: className, tag: Logger.DEBUG_TAG, color: colorGreen);
+      }
+      return true;
+    }());
   }
 
   @override
-  void info(String msg) {
-    var flag = Log.level & Log.INFO_FLAG;
-    if (flag > 0) {
-      output(msg, tag: Logger.INFO_TAG, color: '');
-    }
+  void info(String msg, {String? className}) {
+    assert(() {
+      var flag = Log.level & Log.INFO_FLAG;
+      if (flag > 0) {
+        output(msg, className: className, tag: Logger.INFO_TAG, color: '');
+      }
+      return true;
+    }());
   }
 
   @override
-  void warning(String msg) {
-    var flag = Log.level & Log.WARNING_FLAG;
-    if (flag > 0) {
-      output(msg, tag: Logger.WARNING_TAG, color: colorYellow);
-    }
+  void warning(String msg, {String? className}) {
+    assert(() {
+      var flag = Log.level & Log.WARNING_FLAG;
+      if (flag > 0) {
+        output(msg, className: className, tag: Logger.WARNING_TAG, color: colorYellow);
+      }
+      return true;
+    }());
   }
 
   @override
-  void error(String msg) {
-    var flag = Log.level & Log.ERROR_FLAG;
-    if (flag > 0) {
-      output(msg, tag: Logger.ERROR_TAG, color: colorRed);
-    }
+  void error(String msg, {String? className}) {
+    //assert(() {
+      var flag = Log.level & Log.ERROR_FLAG;
+      if (flag > 0) {
+        output(msg, className: className, tag: Logger.ERROR_TAG, color: colorRed);
+      }
+    //  return true;
+    //}());
   }
 
 }

@@ -30,30 +30,10 @@
  */
 import 'package:object_key/object_key.dart';
 
-import 'log/log.dart';
+import '../log/log.dart';
 
-///  Notification observer
-abstract interface class Observer {
+import 'base.dart';
 
-  Future<void> onReceiveNotification(Notification notification);
-}
-
-///  Notification object with name, sender and extra info
-class Notification {
-  Notification(this.name, this.sender, this.userInfo);
-
-  final String name;
-  final dynamic sender;
-  final Map? userInfo;
-
-  @override
-  String toString() {
-    Type clazz = runtimeType;
-    return '<$clazz name="$name">\n\t<sender>$sender</sender>\n'
-        '\t<info>$userInfo</info>\n</$clazz>';
-  }
-
-}
 
 ///  Notification center
 class NotificationCenter {

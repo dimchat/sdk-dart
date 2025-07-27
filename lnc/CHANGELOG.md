@@ -1,3 +1,7 @@
+## 1.2.1
+
+- Show class name while logging.
+
 ## 1.2.0
 
 - Rewritable LogPrinter.

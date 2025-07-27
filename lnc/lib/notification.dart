@@ -1,3 +1,4 @@
 library lnc;
 
-export 'src/notification.dart';
+export 'src/notification/base.dart';
+export 'src/notification/center.dart';
