@@ -130,9 +130,11 @@ class FileSystemException implements IOException {
   /// Creates a new file system exception with optional parts.
   const FileSystemException([this.message = "", this.path = "", this.osError]);
 
+  String get className => 'FileSystemException';
+
   @override
   String toString() {
-    Type clazz = runtimeType;
+    String clazz = className;
     return '<$clazz path="$path" />';
   }
 

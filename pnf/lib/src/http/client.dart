@@ -153,7 +153,7 @@ class HTTPClient {
 
   static int? getContentLength(Response response) {
     String? value = response.headers.value(Headers.contentLengthHeader);
-    return Converter.getInt(value, null);
+    return Converter.getInt(value);
   }
 
 }

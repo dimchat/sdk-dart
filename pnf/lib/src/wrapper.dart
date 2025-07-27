@@ -75,15 +75,24 @@ enum PortableNetworkStatus {
   error,        //    -    |    -
 }
 
+String _runtimeType(Object object, String className) {
+  assert(() {
+    className = object.runtimeType.toString();
+    return true;
+  }());
+  return className;
+}
 
 abstract class PortableNetworkWrapper {
   PortableNetworkWrapper(this.pnf);
 
   final PortableNetworkFile pnf;
 
+  String get className => _runtimeType(this, 'PortableNetworkWrapper');
+
   @override
   String toString() {
-    Type clazz = runtimeType;
+    String clazz = className;
     Uri? url = pnf.url;
     if (url != null) {
       return '<$clazz URL="$url" />';

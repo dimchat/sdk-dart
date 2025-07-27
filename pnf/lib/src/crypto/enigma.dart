@@ -44,9 +44,11 @@ class Enigma {
 
   final Map<String, Uint8List> _dictionary = {};
 
+  String get className => 'Enigma';
+
   @override
   String toString() {
-    Type clazz = runtimeType;
+    String clazz = className;
     String keys = _dictionary.keys.toString();
     return '<$clazz>\r\n'
         '    keys: $keys\r\n'

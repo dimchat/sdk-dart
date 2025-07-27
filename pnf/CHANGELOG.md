@@ -1,3 +1,7 @@
+## 1.2.3
+
+- Runtime class name.
+
 ## 1.2.2
 
 - SymmetricAlgorithms
