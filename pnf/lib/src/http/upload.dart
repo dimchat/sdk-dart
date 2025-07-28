@@ -71,24 +71,53 @@ class FileUploader extends Runner implements Uploader {
     return null;
   }
   // private
-  Future<int> removeTasks(UploadInfo params, String? response) async {
+  Future<int> removeTasks(UploadTask task, String? response) async {
+    UploadInfo? params = task.uploadParams;
+    if (params == null) {
+      assert(false, 'upload task error: $task');
+      return -1;
+    }
+    UploadInfo? uploadParams;
     int success = 0;
     List<UploadTask> array = _tasks.toList();
     for (UploadTask item in array) {
-      // 1. check params
-      if (item.uploadParams != params) {
+      //
+      //  0. check duplicated
+      //
+      if (identical(item, task)) {
+        // duplicated task, remove it from waiting queue directly
+        _tasks.remove(item);
+        success += 1;
         continue;
       }
+      //
+      //  1. prepare params of the task
+      //
+      uploadParams = null;
       try {
-        // 2. process the task with same params (upload URL & form data)
         if (await item.prepareUpload()) {
-          await item.processResponse(response);
+          uploadParams = item.uploadParams;
+          assert(uploadParams != null, 'upload params error: $item');
         }
+      } catch (e, st) {
+        print('[HTTP] failed to prepare upload task: $item, error: $e, $st');
+      }
+      if (uploadParams != params) {
+        assert(uploadParams != null, 'upload params error: $item');
+        continue;
+      }
+      //
+      //  2. process the task with same params (upload URL & form data)
+      //
+      try {
+        await item.processResponse(response);
         success += 1;
       } catch (e, st) {
         print('[HTTP] failed to handle response: ${response?.length} bytes, $params, error: $e, $st');
       }
-      // 3. remove this task from waiting queue
+      //
+      //  3. remove this task from waiting queue
+      //
       _tasks.remove(item);
     }
     return success;
@@ -120,24 +149,44 @@ class FileUploader extends Runner implements Uploader {
 
   /// Upload synchronously
   Future<String?> handleUploadTask(UploadTask task) async {
-    // prepare the task
+    //
+    //  0. prepare the task
+    //
     UploadInfo? params;
-    if (await task.prepareUpload()) {
-      params = task.uploadParams;
-      assert(params != null, 'upload params error: $task');
+    try {
+      if (await task.prepareUpload()) {
+        params = task.uploadParams;
+        assert(params != null, 'upload params error: $task');
+      }
+    } catch (e, st) {
+      print('[HTTP] failed to prepare upload task: $task, error: $e, $st');
     }
     if (params == null) {
       // this task doesn't need to upload again
       return null;
     }
-    // upload to remote URL
+    //
+    //  1. upload to remote URL
+    //
     String? text = await upload(params.url, params.data,
       onSendProgress: (count, total) => task.uploadProgress(count, total),
     );
-    // upload success, process respond data
-    await task.processResponse(text);
-    // clear other tasks with same URL & form data
-    await removeTasks(params, text);
+    //
+    //  2. upload success, process respond data
+    //
+    try {
+      await task.processResponse(text);
+    } catch (e, st) {
+      print('[HTTP] failed to handle response: ${text?.length} bytes, $params, error: $e, $st');
+    }
+    //
+    //  3. clear other tasks with same URL & form data
+    //
+    if (text == null) {
+      // FIXME: try again when upload failed?
+      // return null;
+    }
+    await removeTasks(task, text);
     // done
     return text;
   }

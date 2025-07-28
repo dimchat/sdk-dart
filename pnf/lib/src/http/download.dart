@@ -71,8 +71,8 @@ class FileDownloader implements Downloader {
   DownloadTask? getTask(int maxPriority) => queue.nextTask(maxPriority);
 
   /// finish same tasks
-  Future<int> removeTasks(DownloadInfo params, Uint8List? downData) async =>
-      await queue.removeTasks(params, downData);
+  Future<int> removeTasks(DownloadTask task, Uint8List? downData) async =>
+      await queue.removeTasks(task, downData);
 
   void setup() {
     spiders.add(Spider(priority: DownloadPriority.URGENT, downloader: this));
@@ -106,24 +106,44 @@ class FileDownloader implements Downloader {
 
   /// Download synchronously
   Future<Uint8List?> handleDownloadTask(DownloadTask task) async {
-    // prepare the task
+    //
+    //  0. prepare the task
+    //
     DownloadInfo? params;
-    if (await task.prepareDownload()) {
-      params = task.downloadParams;
-      assert(params != null, 'download params error: $task');
+    try {
+      if (await task.prepareDownload()) {
+        params = task.downloadParams;
+        assert(params != null, 'download params error: $task');
+      }
+    } catch (e, st) {
+      print('[HTTP] failed to prepare download task: $task, error: $e, $st');
     }
     if (params == null) {
       // this task doesn't need to download again
       return null;
     }
-    // download from remote URL
+    //
+    //  1. download from remote URL
+    //
     Uint8List? data = await download(params.url,
       onReceiveProgress: (count, total) => task.downloadProgress(count, total),
     );
-    // download success, process respond data
-    await task.processResponse(data);
-    // clear other tasks with same URL
-    await removeTasks(params, data);
+    //
+    //  2. download success, process respond data
+    //
+    try {
+      await task.processResponse(data);
+    } catch (e, st) {
+      print('[HTTP] failed to handle data: ${data?.length} bytes, $params, error: $e, $st');
+    }
+    //
+    //  3. clear other tasks with same URL
+    //
+    if (data == null) {
+      // FIXME: try again when download failed?
+      // return null;
+    }
+    await removeTasks(task, data);
     // done
     return data;
   }

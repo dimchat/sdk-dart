@@ -40,7 +40,13 @@ class DownloadQueue {
   final List<int> _priorities = [];
   final Map<int, List<DownloadTask>> _fleets = {};
 
-  Future<int> removeTasks(DownloadInfo params, Uint8List? downData) async {
+  Future<int> removeTasks(DownloadTask task, Uint8List? downData) async {
+    DownloadInfo? params = task.downloadParams;
+    if (params == null) {
+      assert(false, 'download task error: $task');
+      return -1;
+    }
+    DownloadInfo? downloadParams;
     int success = 0;
     List<DownloadTask>? fleet;
     List<DownloadTask> array;
@@ -52,20 +58,43 @@ class DownloadQueue {
       }
       array = fleet.toList();  // copy
       for (DownloadTask item in array) {
-        // 1. check params
-        if (item.downloadParams != params) {
+        //
+        //  0. check duplicated
+        //
+        if (identical(item, task)) {
+          // duplicated task, remove it from waiting queue directly
+          fleet.remove(item);
+          success += 1;
           continue;
         }
+        //
+        //  1. prepare params of the task
+        //
+        downloadParams = null;
         try {
-          // 2. process the task with same params (download URL)
           if (await item.prepareDownload()) {
-            await item.processResponse(downData);
+            downloadParams = item.downloadParams;
+            assert(downloadParams != null, 'download params error: $item');
           }
+        } catch (e, st) {
+          print('[HTTP] failed to prepare download task: $item, error: $e, $st');
+        }
+        if (downloadParams != params) {
+          assert(downloadParams != null, 'download params error: $item');
+          continue;
+        }
+        //
+        //  2. process the task with same params (download URL)
+        //
+        try {
+          await item.processResponse(downData);
           success += 1;
         } catch (e, st) {
           print('[HTTP] failed to handle data: ${downData?.length} bytes, $params, error: $e, $st');
         }
-        // 3. remove this task from waiting queue
+        //
+        //  3. remove this task from waiting queue
+        //
         fleet.remove(item);
       }
     }

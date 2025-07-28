@@ -177,7 +177,7 @@ abstract class PortableNetworkUpper extends PortableNetworkWrapper
       await postNotification(NotificationNames.kPortableNetworkError, {
         'PNF': pnf,
         'URL': downloadURL,
-        'error': 'Failed to decrypt data',
+        'error': 'Cannot encrypt data',
       });
       await setStatus(PortableNetworkStatus.error);
       return false;

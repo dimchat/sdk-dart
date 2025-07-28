@@ -1,3 +1,7 @@
+## 1.3.0
+
+- Check duplicated tasks.
+
 ## 1.2.3
 
 - Runtime class name.
