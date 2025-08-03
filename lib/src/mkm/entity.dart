@@ -124,9 +124,18 @@ class BaseEntity implements Entity {
   @override
   int get hashCode => _id.hashCode;
 
+  String get className {
+    String name = 'Entity';
+    assert(() {
+      name = runtimeType.toString();
+      return true;
+    }());
+    return name;
+  }
+
   @override
   String toString() {
-    Type clazz = runtimeType;
+    String clazz = className;
     int network = _id.address.network;
     return '<$clazz id="$_id" network=$network />';
   }

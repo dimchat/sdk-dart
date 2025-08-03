@@ -82,9 +82,18 @@ class Station implements User {
     return _user.hashCode;
   }
 
+  String get className {
+    String name = 'Station';
+    assert(() {
+      name = runtimeType.toString();
+      return true;
+    }());
+    return name;
+  }
+
   @override
   String toString() {
-    Type clazz = runtimeType;
+    String clazz = className;
     int network = identifier.address.network;
     // TODO: check (host:port)
     return '<$clazz id="$identifier" network=$network host="$host" port=$port />';

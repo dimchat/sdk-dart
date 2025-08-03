@@ -1,3 +1,7 @@
+## 2.1.2
+
+- Class Name.
+
 ## 2.1.1
 
 - Positional Arguments.
