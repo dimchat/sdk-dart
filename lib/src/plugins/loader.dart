@@ -245,17 +245,18 @@ class ExtensionLoader {
 
     // Group Commands
     setCommandFactory('group', factory: GroupCommandFactory());
-    setCommandFactory(GroupCommand.INVITE, creator: (dict) => InviteGroupCommand(dict));
+    setCommandFactory(GroupCommand.INVITE,  creator: (dict) => InviteGroupCommand(dict));
     /// 'expel' is deprecated (use 'reset' instead)
-    setCommandFactory(GroupCommand.EXPEL,  creator: (dict) => ExpelGroupCommand(dict));
-    setCommandFactory(GroupCommand.JOIN,   creator: (dict) => JoinGroupCommand(dict));
-    setCommandFactory(GroupCommand.QUIT,   creator: (dict) => QuitGroupCommand(dict));
-    setCommandFactory(GroupCommand.QUERY,  creator: (dict) => QueryGroupCommand(dict));
-    setCommandFactory(GroupCommand.RESET,  creator: (dict) => ResetGroupCommand(dict));
+    setCommandFactory(GroupCommand.EXPEL,   creator: (dict) => ExpelGroupCommand(dict));
+    setCommandFactory(GroupCommand.JOIN,    creator: (dict) => JoinGroupCommand(dict));
+    setCommandFactory(GroupCommand.QUIT,    creator: (dict) => QuitGroupCommand(dict));
+    /// 'query' is deprecated
+    //setCommandFactory(GroupCommand.QUERY, creator: (dict) => QueryGroupCommand(dict));
+    setCommandFactory(GroupCommand.RESET,   creator: (dict) => ResetGroupCommand(dict));
     // Group Admin Commands
-    setCommandFactory(GroupCommand.HIRE,   creator: (dict) => HireGroupCommand(dict));
-    setCommandFactory(GroupCommand.FIRE,   creator: (dict) => FireGroupCommand(dict));
-    setCommandFactory(GroupCommand.RESIGN, creator: (dict) => ResignGroupCommand(dict));
+    setCommandFactory(GroupCommand.HIRE,    creator: (dict) => HireGroupCommand(dict));
+    setCommandFactory(GroupCommand.FIRE,    creator: (dict) => FireGroupCommand(dict));
+    setCommandFactory(GroupCommand.RESIGN,  creator: (dict) => ResignGroupCommand(dict));
 
   }
 
