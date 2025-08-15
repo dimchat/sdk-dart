@@ -32,11 +32,12 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-import '../dkd/instant.dart';
-import '../dkd/reliable.dart';
-import '../dkd/secure.dart';
 import '../mkm/entity.dart';
 import '../mkm/user.dart';
+
+import '../msg/instant_delegate.dart';
+import '../msg/reliable_delegate.dart';
+import '../msg/secure_delegate.dart';
 
 import 'compressor.dart';
 

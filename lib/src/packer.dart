@@ -32,12 +32,12 @@ import 'package:dimp/dimp.dart';
 
 import 'core/barrack.dart';
 import 'core/packer.dart';
-import 'dkd/instant.dart';
-import 'dkd/reliable.dart';
-import 'dkd/secure.dart';
-import 'msg/instant.dart';
-import 'msg/reliable.dart';
-import 'msg/secure.dart';
+import 'msg/instant_delegate.dart';
+import 'msg/reliable_delegate.dart';
+import 'msg/secure_delegate.dart';
+import 'msg/instant_packer.dart';
+import 'msg/reliable_packer.dart';
+import 'msg/secure_packer.dart';
 import 'msg/utils.dart';
 
 import 'facebook.dart';

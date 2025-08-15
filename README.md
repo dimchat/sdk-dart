@@ -188,75 +188,7 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
 }
 ```
 
-### ExtensionLoader
-
-```dart
-import 'package:dimsdk/plugins.dart';
-
-import '../../common/protocol/handshake.dart';
-
-
-/// Extensions Loader
-/// ~~~~~~~~~~~~~~~~~
-class CommonExtensionLoader extends ExtensionLoader {
-
-  @override
-  void registerCustomizedFactories() {
-    
-    // Application Customized
-    setContentFactory(ContentType.CUSTOMIZED, 'customized', creator: (dict) => AppCustomizedContent(dict));
-    setContentFactory(ContentType.APPLICATION, 'application', creator: (dict) => AppCustomizedContent(dict));
-    
-  }
-
-  @override
-  void registerCommandFactories() {
-    super.registerCommandFactories();
-
-    // Handshake
-    setCommandFactory(HandshakeCommand.HANDSHAKE, creator: (dict) => BaseHandshakeCommand(dict));
-
-  }
-
-}
-```
-
-## Usages
-
-You must load all extensions before your business run:
-
-```dart
-import 'package:dim_plugins/plugins.dart';
-
-import 'common_loader.dart';
-
-
-class LibraryLoader {
-  LibraryLoader({ExtensionLoader? extensionLoader, PluginLoader? pluginLoader}) {
-    this.extensionLoader = extensionLoader ?? CommonExtensionLoader();
-    this.pluginLoader = pluginLoader ?? PluginLoader();
-  }
-
-  late final ExtensionLoader extensionLoader;
-  late final PluginLoader pluginLoader;
-
-  void run() {
-    extensionLoader.run();
-    pluginLoader.run();
-  }
-
-}
-
-void main() {
-
-  var loader = LibraryLoader();
-  loader.run();
-  
-  // do your jobs after all extensions loaded.
-  
-}
-
-```
+## Usage
 
 To let your **AppCustomizedProcessor** start to work,
 you must override ```BaseContentProcessorCreator``` for message types:
@@ -268,5 +200,5 @@ and then set your **creator** for ```GeneralContentProcessorFactory``` in the ``
 
 ----
 
-Copyright &copy; 2023 Albert Moky
+Copyright &copy; 2023-2025 Albert Moky
 [![Followers](https://img.shields.io/github/followers/moky)](https://github.com/moky?tab=followers)

@@ -32,7 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-import '../dkd/instant.dart';
+import 'instant_delegate.dart';
 
 
 class InstantMessagePacker {

@@ -28,7 +28,6 @@
  * SOFTWARE.
  * ==============================================================================
  */
-import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
 
 import '../mkm/bot.dart';

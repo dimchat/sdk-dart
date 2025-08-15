@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  Dao-Ke-Dao: Universal Message Module
+ *  DIMP : Decentralized Instant Messaging Protocol
  *
  *                                Written in 2023 by Moky <albert.moky@gmail.com>
  *
@@ -30,12 +30,18 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dkd.dart';
+import 'package:dimp/dimp.dart';
+
+import 'reliable_delegate.dart';
 
 
-///  Reliable Message Delegate
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~
-abstract interface class ReliableMessageDelegate/* implements SecureMessageDelegate*/ {
+class ReliableMessagePacker {
+  ReliableMessagePacker(ReliableMessageDelegate messenger)
+      : _messenger = WeakReference(messenger);
+
+  final WeakReference<ReliableMessageDelegate> _messenger;
+
+  ReliableMessageDelegate? get delegate => _messenger.target;
 
   /*
    *  Verify the Reliable Message to Secure Message
@@ -51,18 +57,51 @@ abstract interface class ReliableMessageDelegate/* implements SecureMessageDeleg
    *    +----------+
    */
 
-  // ///  1. Decode 'message.signature' from String (Base64)
-  // ///
-  // /// @param signature - base64 string object
-  // /// @param rMsg      - reliable message
-  // /// @return signature data
-  // Future<Uint8List?> decodeSignature(Object signature, ReliableMessage rMsg);
-
-  ///  2. Verify the message data and signature with sender's public key
+  ///  Verify 'data' and 'signature' field with sender's public key
   ///
-  ///  @param data      - message content(encrypted) data
-  ///  @param signature - signature for message content(encrypted) data
-  ///  @param rMsg      - reliable message object
-  ///  @return YES on signature matched
-  Future<bool> verifyDataSignature(Uint8List data, Uint8List signature, ReliableMessage rMsg);
+  /// @param rMsg     - network message
+  /// @return SecureMessage object if signature matched
+  Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
+    ReliableMessageDelegate? transceiver = delegate;
+    if (transceiver == null) {
+      assert(false, 'should not happen');
+      return null;
+    }
+
+    //
+    //  0. Decode 'message.data' to encrypted content data
+    //
+    Uint8List ciphertext = rMsg.data;
+    if (ciphertext.isEmpty) {
+      assert(false, 'failed to decode message data: '
+          '${rMsg.sender} => ${rMsg.receiver}, ${rMsg.group}');
+      return null;
+    }
+
+    //
+    //  1. Decode 'message.signature' from String (Base64)
+    //
+    Uint8List signature = rMsg.signature;
+    if (signature.isEmpty) {
+      assert(false, 'failed to decode message signature: '
+          '${rMsg.sender} => ${rMsg.receiver}, ${rMsg.group}');
+      return null;
+    }
+
+    //
+    //  2. Verify the message data and signature with sender's public key
+    //
+    bool ok = await transceiver.verifyDataSignature(ciphertext, signature, rMsg);
+    if (!ok) {
+      assert(false, 'message signature not match: '
+          '${rMsg.sender} => ${rMsg.receiver}, ${rMsg.group}');
+      return null;
+    }
+
+    // OK, pack message
+    Map info = rMsg.copyMap();
+    info.remove('signature');
+    return SecureMessage.parse(info);
+  }
+
 }

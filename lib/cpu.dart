@@ -3,6 +3,9 @@
 /// Content Processing Units
 library dimsdk;
 
+export 'src/dkd/proc.dart';        // CPU interfaces
+export 'src/dkd/factory.dart';
+
 export 'src/cpu/base.dart';        // require 'dkd/proc.dart'
 export 'src/cpu/commands.dart';    // require 'base.dart'
 export 'src/cpu/contents.dart';    // require 'base.dart'

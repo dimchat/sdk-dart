@@ -32,7 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
-import '../dkd/secure.dart';
+import 'secure_delegate.dart';
 
 
 class SecureMessagePacker {

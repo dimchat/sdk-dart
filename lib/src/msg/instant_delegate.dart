@@ -30,9 +30,7 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/crypto.dart';
-import 'package:dimp/dkd.dart';
-import 'package:dimp/mkm.dart';
+import 'package:dimp/dimp.dart';
 
 
 ///  Instant Message Delegate
