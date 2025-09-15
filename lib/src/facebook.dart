@@ -113,7 +113,9 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     //
     //  2. check visa key
     //
-    if (identifier.isBroadcast) {} else {
+    if (identifier.isBroadcast) {
+      // no need to check visa key for broadcast user
+    } else {
       EncryptKey? visaKey = await getPublicKeyForEncryption(identifier);
       if (visaKey == null) {
         assert(false, 'visa.key not found: $identifier');
@@ -145,7 +147,9 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     //
     //  2. check members
     //
-    if (identifier.isBroadcast) {} else {
+    if (identifier.isBroadcast) {
+      // no need to check members for broadcast group
+    } else {
       List<ID> members = await getMembers(identifier);
       if (members.isEmpty) {
         assert(false, 'group members not found: $identifier');

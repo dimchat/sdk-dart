@@ -41,6 +41,7 @@ abstract interface class MetaUtils {
   ///  (must call this when received a new meta from network)
   ///
   /// @param identifier - entity ID
+  /// @param meta       - entity meta
   /// @return true on matched
   static bool matchIdentifier(ID identifier, Meta meta) {
     assert(meta.isValid, 'meta not valid: $meta');
@@ -63,6 +64,7 @@ abstract interface class MetaUtils {
   ///  Check whether meta matches with public key
   ///
   /// @param pKey - public key
+  /// @param meta - entity meta
   /// @return true on matched
   static bool matchPublicKey(VerifyKey pKey, Meta meta) {
     assert(meta.isValid, 'meta not valid: $meta');

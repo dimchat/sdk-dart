@@ -252,17 +252,18 @@ class BaseUser extends BaseEntity implements User {
 
   @override
   Future<Visa?> signVisa(Visa doc) async {
-    assert(doc.identifier == identifier, 'visa ID not match: $identifier, ${doc.identifier}');
+    ID did = doc.identifier;
+    assert(did == identifier, 'visa ID not match: $identifier, $did');
     UserDataSource? facebook = dataSource;
     assert(facebook != null, 'user data source not set yet');
     // NOTICE: only sign visa with the private key paired with your meta.key
-    SignKey? sKey = await facebook?.getPrivateKeyForVisaSignature(identifier);
+    SignKey? sKey = await facebook?.getPrivateKeyForVisaSignature(did);
     if (sKey == null) {
-      assert(false, 'failed to get sign key for visa: $identifier');
+      assert(false, 'failed to get sign key for visa: $did');
       return null;
     }
     if (doc.sign(sKey) == null) {
-      assert(false, 'failed to sign visa: $identifier, $doc');
+      assert(false, 'failed to sign visa: $did, $doc');
       return null;
     }
     return doc;
@@ -272,7 +273,8 @@ class BaseUser extends BaseEntity implements User {
   Future<bool> verifyVisa(Visa doc) async {
     // NOTICE: only verify visa with meta.key
     //         (if meta not exists, user won't be created)
-    if (identifier != doc.identifier) {
+    ID did = doc.identifier;
+    if (identifier != did) {
       // visa ID not match
       return false;
     }

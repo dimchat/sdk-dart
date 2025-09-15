@@ -1,3 +1,7 @@
+## 2.2.0
+
+- Mapper forEach.
+
 ## 2.1.3
 
 - Remove plugins.
