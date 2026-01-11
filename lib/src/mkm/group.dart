@@ -31,7 +31,6 @@
 import 'package:dimp/mkm.dart';
 
 import 'entity.dart';
-import 'utils.dart';
 
 
 /// This class is for creating group
@@ -41,11 +40,7 @@ import 'utils.dart';
 ///         owner
 ///         members
 ///         administrators - Optional
-///         assistants     - group bots
 abstract interface class Group implements Entity {
-
-  /// group document
-  Future<Bulletin?> get bulletin;
 
   Future<ID> get founder;
   Future<ID> get owner;
@@ -54,8 +49,6 @@ abstract interface class Group implements Entity {
   //         (usually the first one)
   Future<List<ID>> get members;
 
-  /// group bots
-  Future<List<ID>> get assistants;
 }
 
 
@@ -83,11 +76,6 @@ abstract interface class GroupDataSource implements EntityDataSource {
   /// @return members list (ID)
   Future<List<ID>> getMembers(ID group);
 
-  ///  Get assistants for this group
-  ///
-  /// @param group - group ID
-  /// @return bot ID list
-  Future<List<ID>> getAssistants(ID group);
 }
 
 //
@@ -111,10 +99,6 @@ class BaseGroup extends BaseEntity implements Group {
   }
 
   @override
-  Future<Bulletin?> get bulletin async =>
-      DocumentUtils.lastBulletin(await documents);
-
-  @override
   Future<ID> get founder async {
     _founder ??= await dataSource!.getFounder(identifier);
     return _founder!;
@@ -127,9 +111,5 @@ class BaseGroup extends BaseEntity implements Group {
   @override
   Future<List<ID>> get members async =>
       await dataSource!.getMembers(identifier);
-
-  @override
-  Future<List<ID>> get assistants async =>
-      await dataSource!.getAssistants(identifier);
 
 }

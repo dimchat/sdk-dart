@@ -32,6 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import '../crypto/bundle.dart';
 import 'instant_delegate.dart';
 
 
@@ -99,15 +100,20 @@ class InstantMessagePacker {
     }
     assert(encodedData != null, 'failed to encode content data: $ciphertext');
 
-    // replace 'content' with encrypted 'data'
-    Map info = iMsg.copyMap();
-    info.remove('content');
-    info['data'] = encodedData;
-
     //
     //  4. Serialize message key to data (JsON / ProtoBuf / ...)
     //
     Uint8List? pwd = await transceiver.serializeKey(password, iMsg);
+    // NOTICE:
+    //    if the key is reused, iMsg must be updated with key digest.
+    Map info = iMsg.copyMap();
+
+    // replace 'content' with encrypted 'data'
+    info.remove('content');
+    info['data'] = encodedData;
+
+    // check serialized key data,
+    // if key data is null here, build the secure message directly.
     if (pwd == null) {
       // A) broadcast message has no key
       // B) reused key
@@ -115,59 +121,74 @@ class InstantMessagePacker {
     }
     // encrypt + encode key
 
-    Uint8List? encryptedKey;
-    Object encodedKey;
-    if (members == null) // personal message
-    {
+    if (members == null) {
+      // personal message
       ID receiver = iMsg.receiver;
       assert(receiver.isUser, 'message.receiver error: $receiver');
-      //
-      //  5. Encrypt key data to 'message.key/keys' with receiver's public key
-      //
-      encryptedKey = await transceiver.encryptKey(pwd, receiver, iMsg);
-      if (encryptedKey == null) {
-        // public key for encryption not found
-        // TODO: suspend this message for waiting receiver's visa
-        return null;
-      }
-      //
-      //  6. Encode message key to String (Base64)
-      //
-      encodedKey = TransportableData.encode(encryptedKey);
-      // insert as 'key'
-      info['key'] = encodedKey;
+      members = [receiver];
+    } else {
+      // group message
+      ID receiver = iMsg.receiver;
+      assert(receiver.isGroup, 'message.receiver error: $receiver');
+      assert(members.isNotEmpty, 'group members empty: $receiver');
     }
-    else // group message
-    {
-      Map<String, dynamic> keys = {};
-      for (ID receiver in members) {
-        //
-        //  5. Encrypt key data to 'message.keys' with member's public key
-        //
-        encryptedKey = await transceiver.encryptKey(pwd, receiver, iMsg);
-        if (encryptedKey == null) {
-          // public key for member not found
-          // TODO: suspend this message for waiting member's visa
-          continue;
-        }
-        //
-        //  6. Encode message key to String (Base64)
-        //
-        encodedKey = TransportableData.encode(encryptedKey);
-        // insert to 'message.keys' with member ID
-        keys[receiver.toString()] = encodedKey;
-      }
-      if (keys.isEmpty) {
-        // public key for member(s) not found
+
+    Map<ID, EncryptedBundle> bundleMap = {};
+    EncryptedBundle? bundle;
+    for (ID receiver in members) {
+      //
+      //  5. Encrypt key data to 'message.keys' with member's public key
+      //
+      bundle = await transceiver.encryptKey(pwd, receiver, iMsg);
+      if (bundle == null || bundle.isEmpty) {
+        // public key for member not found
         // TODO: suspend this message for waiting member's visa
-        return null;
+        continue;
       }
-      // insert as 'keys'
-      info['keys'] = keys;
+      bundleMap[receiver] = bundle;
     }
+
+    //
+    //  6. Encode message key to String (Base64)
+    //
+    Map<String, Object>? msgKeys = await encodeKeys(bundleMap, iMsg);
+    if (msgKeys == null || msgKeys.isEmpty) {
+      // public key for member(s) not found
+      // TODO: suspend this message for waiting member's visa
+      return null;
+    }
+
+    // insert as 'keys'
+    info['keys'] = msgKeys;
 
     // OK, pack message
     return SecureMessage.parse(info);
+  }
+
+  // protected
+  Future<Map<String, Object>?> encodeKeys(Map<ID, EncryptedBundle> bundleMap, InstantMessage iMsg) async {
+    InstantMessageDelegate? transceiver = delegate;
+    if (transceiver == null) {
+      assert(false, 'should not happen');
+      return null;
+    }
+    Map<String, Object> msgKeys = {};
+    ID receiver;
+    EncryptedBundle bundle;
+    Map<String, Object> encodedKeys;
+    for (MapEntry<ID, EncryptedBundle> entry in bundleMap.entries) {
+      receiver = entry.key;
+      bundle = entry.value;
+      encodedKeys = await transceiver.encodeKey(bundle, receiver, iMsg);
+      if (encodedKeys.isEmpty) {
+        assert(false, 'failed to encode key data: $receiver');
+        continue;
+      }
+      // insert to 'message.keys' with ID + terminal
+      msgKeys.addAll(encodedKeys);
+    }
+    // TODO: put key digest
+    return msgKeys;
   }
 
 }

@@ -38,7 +38,6 @@ import 'msg/secure_delegate.dart';
 import 'msg/instant_packer.dart';
 import 'msg/reliable_packer.dart';
 import 'msg/secure_packer.dart';
-import 'msg/utils.dart';
 
 import 'facebook.dart';
 import 'messenger.dart';
@@ -157,42 +156,8 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
   //   return ReliableMessage.parse(info);
   // }
 
-  ///  Check meta & visa
-  ///
-  /// @param rMsg - received message
-  /// @return false on error
-  // protected
-  Future<bool> checkAttachments(ReliableMessage rMsg) async {
-    if (archivist == null) {
-      assert(false, 'archivist not ready');
-      return false;
-    }
-    ID sender = rMsg.sender;
-    // [Meta Protocol]
-    Meta? meta = MessageUtils.getMeta(rMsg);
-    if (meta != null) {
-      await archivist?.saveMeta(meta, sender);
-    }
-    // [Visa Protocol]
-    Visa? visa = MessageUtils.getVisa(rMsg);
-    if (visa != null) {
-      await archivist?.saveDocument(visa);
-    }
-    //
-    //  TODO: check [Visa Protocol] before calling this
-    //        make sure the sender's meta(visa) exists
-    //        (do it by application)
-    //
-    return true;
-  }
-
   @override
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
-    // make sure sender's meta exists before verifying message
-    if (await checkAttachments(rMsg)) {} else {
-      return null;
-    }
-
     assert(rMsg.signature.isNotEmpty, 'message signature cannot be empty: $rMsg');
     // verify 'data' with 'signature'
     return await reliablePacker.verifyMessage(rMsg);

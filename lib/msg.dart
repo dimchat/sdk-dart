@@ -10,5 +10,3 @@ export 'src/msg/reliable_delegate.dart';
 export 'src/msg/instant_packer.dart';
 export 'src/msg/secure_packer.dart';
 export 'src/msg/reliable_packer.dart';
-
-export 'src/msg/utils.dart';

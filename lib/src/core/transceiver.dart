@@ -32,6 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import '../crypto/bundle.dart';
 import '../mkm/entity.dart';
 import '../mkm/user.dart';
 
@@ -109,7 +110,7 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
   }
 
   @override
-  Future<Uint8List?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg) async {
+  Future<EncryptedBundle?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg) async {
     assert(!BaseMessage.isBroadcast(iMsg), 'broadcast message has no key: $iMsg');
     assert(receiver.isUser, 'receiver error: $receiver');
     // TODO: make sure the receiver's public key exists
@@ -119,27 +120,49 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
       return null;
     }
     // encrypt with public key of the receiver (or group member)
-    return await contact.encrypt(key);
+    return await contact.encryptBundle(key);
   }
 
-  // @override
-  // Future<Object> encodeKey(Uint8List key, InstantMessage iMsg) async {
-  //   assert(!BaseMessage.isBroadcast(iMsg), 'broadcast message has no key: $iMsg');
-  //   // message key had been encrypted by a public key,
-  //   // so the data should be encode here (with algorithm 'base64' as default).
-  //   return TransportableData.encode(key);
-  // }
+  @override
+  Future<Map<String, Object>> encodeKey(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) async {
+    assert(!BaseMessage.isBroadcast(iMsg), 'broadcast message has no key: $iMsg');
+    // message key had been encrypted by a public key,
+    // so the data should be encode here (with algorithm 'base64' as default).
+    return bundle.encode(receiver);
+    // TODO: check for wildcard
+  }
 
   //-------- SecureMessageDelegate
 
-  // @override
-  // Future<Uint8List?> decodeKey(Object key, SecureMessage sMsg) async {
-  //   assert(!BaseMessage.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
-  //   return TransportableData.decode(key);
-  // }
+  @override
+  Future<EncryptedBundle?> decodeKey(Map keys, ID receiver, SecureMessage sMsg) async {
+    assert(!BaseMessage.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
+    assert(receiver.isUser, 'receiver error: $receiver');
+    User? user = await facebook.getUser(receiver);
+    if (user == null) {
+      assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
+      return null;
+    }
+    Set<String> terminals = await user.terminals;
+    EncryptedBundle bundle = EncryptedBundle.decode(keys, receiver, terminals);
+    if (bundle.isNotEmpty) {
+      // OK
+      return bundle;
+    } else if (terminals.contains('*')) {
+      assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
+      return null;
+    }
+    // check for wildcard
+    bundle = EncryptedBundle.decode(keys, receiver, {'*'});
+    if (bundle.isEmpty) {
+      assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
+      return null;
+    }
+    return bundle;
+  }
 
   @override
-  Future<Uint8List?> decryptKey(Uint8List key, ID receiver, SecureMessage sMsg) async {
+  Future<Uint8List?> decryptKey(EncryptedBundle bundle, ID receiver, SecureMessage sMsg) async {
     // NOTICE: the receiver must be a member ID
     //         if it's a group message
     assert(!BaseMessage.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
@@ -150,7 +173,7 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
       return null;
     }
     // decrypt with private key of the receiver (or group member)
-    return await user.decrypt(key);
+    return await user.decryptBundle(bundle);
   }
 
   @override

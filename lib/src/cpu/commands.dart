@@ -31,7 +31,6 @@
 import 'package:dimp/dimp.dart';
 
 import '../core/barrack.dart';
-import '../mkm/utils.dart';
 
 import 'base.dart';
 
@@ -69,6 +68,12 @@ class MetaCommandProcessor extends BaseCommandProcessor {
       });
     }
     // meta got
+    return await respondMeta(identifier, meta, receiver: envelope.sender);
+  }
+
+  // protected
+  Future<List<Content>> respondMeta(ID identifier, Meta meta, {required ID receiver}) async {
+    // TODO: check response expired
     return [
       MetaCommand.response(identifier, meta)
     ];
@@ -100,7 +105,7 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   }) async {
     bool? ok;
     // check meta
-    ok = await checkMeta(meta, identifier: identifier);
+    ok = checkMeta(meta, identifier: identifier);
     if (!ok) {
       String text = 'Meta not valid.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
@@ -126,8 +131,14 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   }
 
   // protected
-  Future<bool> checkMeta(Meta meta, {required ID identifier}) async =>
-      meta.isValid && MetaUtils.matchIdentifier(identifier, meta);
+  bool checkMeta(Meta meta, {required ID identifier}) {
+    if (!meta.isValid) {
+      return false;
+    }
+    Address old = identifier.address;
+    Address gen = Address.generate(meta, old.network);
+    return old == gen;
+  }
 
 }
 
@@ -144,18 +155,6 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     if (documents == null) {
       // query entity documents for ID
       return await _getDocuments(identifier, content: command, envelope: rMsg.envelope);
-    }
-    // check document ID
-    for (Document doc in documents) {
-      if (doc.identifier != identifier) {
-        // error
-        return respondReceipt('Document ID not match.', content: command, envelope: rMsg.envelope, extra: {
-          'template': 'Document ID not match: \${did}.',
-          'replacements': {
-            'did': identifier.toString(),
-          },
-        });
-      }
     }
     // received new documents
     return await _putDocuments(documents, identifier: identifier, content: content, envelope: rMsg.envelope);
@@ -178,7 +177,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     DateTime? queryTime = content.lastTime;
     if (queryTime != null) {
       // check last document time
-      Document? last = DocumentUtils.lastDocument(documents);
+      Document? last = getLastDocument(documents);
       assert(last != null, 'should not happen');
       DateTime? lastTime = last?.time;
       if (lastTime == null) {
@@ -195,10 +194,45 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
         });
       }
     }
+    // documents got
+    return await respondDocuments(identifier, documents, receiver: envelope.sender);
+  }
+
+  // protected
+  Future<List<Content>> respondDocuments(ID identifier, List<Document> docs, {required ID receiver}) async {
+    // TODO: check response expired
     Meta? meta = await facebook?.getMeta(identifier);
     return [
-      DocumentCommand.response(identifier, meta, documents)
+      DocumentCommand.response(identifier, meta, docs)
     ];
+  }
+
+  // protected
+  Document? getLastDocument(Iterable<Document> documents) {
+    Document? lastDoc;
+    DateTime? lastTime;
+    DateTime? docTime;
+    for (Document doc in documents) {
+      docTime = doc.time;
+      if (lastDoc == null) {
+        // first document
+        lastDoc = doc;
+        lastTime = docTime;
+      } else if (lastTime == null) {
+        // the first document has no time (old version),
+        // if this document has time, use the new one
+        if (docTime != null) {
+          // first document with time
+          lastDoc = doc;
+          lastTime = docTime;
+        }
+      } else if (docTime != null && docTime.isAfter(lastTime)) {
+        // new document
+        lastDoc = doc;
+        lastTime = docTime;
+      }
+    }
+    return lastDoc;
   }
 
   Future<List<Content>> _putDocuments(List<Document> documents, {
@@ -255,7 +289,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
   }) async {
     bool? ok;
     // check document
-    ok = await checkDocument(doc, meta: meta);
+    ok = checkDocument(doc, meta: meta, identifier: identifier);
     if (!ok) {
       // document error
       String text = 'Document not accepted.';
@@ -282,9 +316,22 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
   }
 
   // protected
-  Future<bool> checkDocument(Document doc, {required Meta meta}) async {
-    if (doc.isValid) {
+  bool checkDocument(Document doc, {required Meta meta, required ID identifier}) {
+    // check meta with ID
+    if (!checkMeta(meta, identifier: identifier)) {
       return true;
+    }
+    // check document ID
+    ID? docID = ID.parse(doc['did']);
+    if (docID != null) {
+      Address inside = docID.address;
+      Address outside = identifier.address;
+      if (inside != outside) {
+        assert(false, 'ID not matched: $identifier, $doc');
+        return false;
+      }
+    } else {
+      assert(false, 'document ID not found: $doc');
     }
     // NOTICE: if this is a bulletin document for group,
     //             verify it with the group owner's meta.key
@@ -293,4 +340,5 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     return doc.verify(meta.publicKey);
     // TODO: check for group document
   }
+
 }

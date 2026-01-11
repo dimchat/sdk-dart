@@ -102,33 +102,19 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   @override
   Future<User?> getUser(ID identifier) async {
     assert(identifier.isUser, 'user ID error: $identifier');
-    assert(barrack != null, 'barrack not ready');
-    //
-    //  1. get from user cache
-    //
-    User? user = barrack?.getUser(identifier);
-    if (user != null) {
-      return user;
+    Barrack? factory = barrack;
+    if (factory == null) {
+      assert(false, 'barrack not ready');
+      return null;
     }
-    //
-    //  2. check visa key
-    //
-    if (identifier.isBroadcast) {
-      // no need to check visa key for broadcast user
-    } else {
-      EncryptKey? visaKey = await getPublicKeyForEncryption(identifier);
-      if (visaKey == null) {
-        assert(false, 'visa.key not found: $identifier');
-        return null;
+    // get from user cache
+    User? user = factory.getUser(identifier);
+    if (user == null) {
+      // create user and cache it
+      user = factory.createUser(identifier);
+      if (user != null) {
+        factory.cacheUser(user);
       }
-      // NOTICE: if visa.key exists, then visa & meta must exist too.
-    }
-    //
-    //  3. create user and cache it
-    //
-    user = barrack?.createUser(identifier);
-    if (user != null) {
-      barrack?.cacheUser(user);
     }
     return user;
   }
@@ -136,92 +122,21 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   @override
   Future<Group?> getGroup(ID identifier) async {
     assert(identifier.isGroup, 'group ID error: $identifier');
-    assert(barrack != null, 'barrack not ready');
-    //
-    //  1. get from group cache
-    //
-    Group? group = barrack?.getGroup(identifier);
-    if (group != null) {
-      return group;
+    Barrack? factory = barrack;
+    if (factory == null) {
+      assert(false, 'barrack not ready');
+      return null;
     }
-    //
-    //  2. check members
-    //
-    if (identifier.isBroadcast) {
-      // no need to check members for broadcast group
-    } else {
-      List<ID> members = await getMembers(identifier);
-      if (members.isEmpty) {
-        assert(false, 'group members not found: $identifier');
-        return null;
+    // get from group cache
+    Group? group = factory.getGroup(identifier);
+    if (group == null) {
+      // create group and cache it
+      group = factory.createGroup(identifier);
+      if (group != null) {
+        factory.cacheGroup(group);
       }
-      // NOTICE: if members exist, then owner (founder) must exist,
-      //         and bulletin & meta must exist too.
-    }
-    //
-    //  3. create group and cache it
-    //
-    group = barrack?.createGroup(identifier);
-    if (group != null) {
-      barrack?.cacheGroup(group);
     }
     return group;
-  }
-
-  //
-  //  User DataSource
-  //
-
-  @override
-  Future<EncryptKey?> getPublicKeyForEncryption(ID user) async {
-    assert(user.isUser, 'user ID error: $user');
-    assert(archivist != null, 'archivist not ready');
-    //
-    //  1. get pubic key from visa
-    //
-    EncryptKey? visaKey = await archivist?.getVisaKey(user);
-    if (visaKey != null) {
-      // if visa.key exists, use it for encryption
-      return visaKey;
-    }
-    //
-    //  2. get key from meta
-    //
-    VerifyKey? metaKey = await archivist?.getMetaKey(user);
-    if (metaKey is EncryptKey) {
-      // if visa.key not exists and meta.key is encrypt key,
-      // use it for encryption
-      return metaKey as EncryptKey;
-    }
-    // assert(false, 'failed to get encrypt key for user: $user');
-    return null;
-  }
-
-  @override
-  Future<List<VerifyKey>> getPublicKeysForVerification(ID user) async {
-    // assert(user.isUser, 'user ID error: $user');
-    assert(archivist != null, 'archivist not ready');
-    List<VerifyKey> keys = [];
-    //
-    //  1. get pubic key from visa
-    //
-    EncryptKey? visaKey = await archivist?.getVisaKey(user);
-    if (visaKey is VerifyKey) {
-      // the sender may use communication key to sign message.data,
-      // so try to verify it with visa.key first
-      keys.add(visaKey as VerifyKey);
-    }
-    //
-    //  2. get key from meta
-    //
-    VerifyKey? metaKey = await archivist?.getMetaKey(user);
-    if (metaKey != null) {
-      // the sender may use identity key to sign message.data,
-      // try to verify it with meta.key too
-      keys.add(metaKey);
-    }
-    assert(keys.isNotEmpty, 'failed to get verify key for user: $user');
-    return keys;
   }
 
 }

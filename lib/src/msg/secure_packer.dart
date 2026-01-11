@@ -32,6 +32,7 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import '../crypto/bundle.dart';
 import 'secure_delegate.dart';
 
 
@@ -56,6 +57,29 @@ class SecureMessagePacker {
    *    +----------+
    */
 
+  // protected
+  Future<EncryptedBundle?> decodeKey(SecureMessage sMsg, ID receiver) async {
+    Map? msgKeys = sMsg.encryptedKeys;
+    if (msgKeys == null) {
+      // get from 'key'
+      var base64 = sMsg['key'];
+      if (base64 == null) {
+        // broadcast message?
+        // reused key?
+        return null;
+      }
+      msgKeys = {
+        receiver.toString(): base64,
+      };
+    }
+    SecureMessageDelegate? transceiver = delegate;
+    if (transceiver == null) {
+      assert(false, 'should not happen');
+      return null;
+    }
+    return await transceiver.decodeKey(msgKeys, receiver, sMsg);
+  }
+
   ///  Decrypt message, replace encrypted 'data' with 'content' field
   ///
   /// @param sMsg     - encrypted message
@@ -69,38 +93,39 @@ class SecureMessagePacker {
       return null;
     }
 
+    Uint8List? pwd;  // serialized symmetric key data
+
     //
     //  1. Decode 'message.key' to encrypted symmetric key data
     //
-    Uint8List? encryptedKey = sMsg.encryptedKey;
-    Uint8List? keyData;
-    if (encryptedKey != null) {
-      assert(encryptedKey.isNotEmpty, 'encrypted key data should not be empty: '
-          '${sMsg.sender} => $receiver, ${sMsg.group}');
+    EncryptedBundle? bundle = await decodeKey(sMsg, receiver);
+    if (bundle == null || bundle.isEmpty) {
+      // broadcast message?
+      // reused key?
+      pwd = null;
+    } else {
       //
       //  2. Decrypt 'message.key' with receiver's private key
       //
-      keyData = await transceiver.decryptKey(encryptedKey, receiver, sMsg);
-      if (keyData == null) {
+      pwd = await transceiver.decryptKey(bundle, receiver, sMsg);
+      if (pwd == null || pwd.isEmpty) {
         // A: my visa updated but the sender doesn't got the new one;
         // B: key data error.
-        throw Exception('failed to decrypt message key: ${encryptedKey.length} byte(s) '
+        throw Exception('failed to decrypt message key: $bundle '
             '${sMsg.sender} => $receiver, ${sMsg.group}');
         // TODO: check whether my visa key is changed, push new visa to this contact
       }
-      assert(keyData.isNotEmpty, 'message key data should not be empty: '
-          '${sMsg.sender} => $receiver, ${sMsg.group}');
     }
 
     //
     //  3. Deserialize message key from data (JsON / ProtoBuf / ...)
     //     (if key is empty, means it should be reused, get it from key cache)
     //
-    SymmetricKey? password = await transceiver.deserializeKey(keyData, sMsg);
+    SymmetricKey? password = await transceiver.deserializeKey(pwd, sMsg);
     if (password == null) {
       // A: key data is empty, and cipher key not found from local storage;
       // B: key data error.
-      throw Exception('failed to get message key: ${keyData?.length} byte(s) '
+      throw Exception('failed to get message key: ${pwd?.length} byte(s) '
           '${sMsg.sender} => $receiver, ${sMsg.group}');
       // TODO: ask the sender to send again (with new message key)
     }

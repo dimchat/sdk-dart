@@ -43,20 +43,20 @@ class AppCustomizedProcessor extends CustomizedContentProcessor {
 
   final Map<String, CustomizedContentHandler> _handlers = {};
 
-  void setHandler({
+  void setContentHandler({
     required String app, required String mod,
     required CustomizedContentHandler handler
   }) => _handlers['$app:$mod'] = handler;
 
   // protected
-  CustomizedContentHandler? getHandler({
+  CustomizedContentHandler? getContentHandler({
     required String app, required String mod,
   }) => _handlers['$app:$mod'];
 
   /// override for your modules
   @override
   CustomizedContentHandler filter(String app, String mod, CustomizedContent content, ReliableMessage rMsg) {
-    CustomizedContentHandler? handler = getHandler(app: app, mod: mod);
+    CustomizedContentHandler? handler = getContentHandler(app: app, mod: mod);
     if (handler != null) {
       return handler;
     }
@@ -146,7 +146,7 @@ class ClientContentProcessorCreator extends BaseContentProcessorCreator {
     var cpu = AppCustomizedProcessor(facebook, messenger);
     
     // 'chat.dim.group:history'
-    cpu.setHandler(
+    cpu.setContentHandler(
       app: GroupHistory.APP,
       mod: GroupHistory.MOD,
       handler: GroupHistoryHandler(facebook, messenger),
@@ -200,5 +200,5 @@ and then set your **creator** for ```GeneralContentProcessorFactory``` in the ``
 
 ----
 
-Copyright &copy; 2023-2025 Albert Moky
+Copyright &copy; 2023-2026 Albert Moky
 [![Followers](https://img.shields.io/github/followers/moky)](https://github.com/moky?tab=followers)

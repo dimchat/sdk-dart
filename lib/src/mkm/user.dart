@@ -32,8 +32,9 @@ import 'dart:typed_data';
 
 import 'package:dimp/mkm.dart';
 
+import '../crypto/agent.dart';
+import '../crypto/bundle.dart';
 import 'entity.dart';
-import 'utils.dart';
 
 
 ///  User account for communication
@@ -49,13 +50,15 @@ import 'utils.dart';
 ///      4. decrypt(data) - decrypt (symmetric key) data
 abstract interface class User implements Entity {
 
-  /// user document
-  Future<Visa?> get visa;
-
   ///  Get all contacts of the user
   ///
   /// @return contact list
   Future<List<ID>> get contacts;
+
+  ///  Get visa.terminal
+  ///
+  /// @return terminal list
+  Future<Set<String>> get terminals;
 
   ///  Verify data and signature with user's public keys
   ///
@@ -67,8 +70,8 @@ abstract interface class User implements Entity {
   ///  Encrypt data, try visa.key first, if not found, use meta.key
   ///
   /// @param plaintext - message data
-  /// @return encrypted data
-  Future<Uint8List> encrypt(Uint8List plaintext);
+  /// @return encrypted data with targets (ID terminals)
+  Future<EncryptedBundle> encryptBundle(Uint8List plaintext);
 
   //
   //  Interfaces for Local User
@@ -82,9 +85,9 @@ abstract interface class User implements Entity {
 
   ///  Decrypt data with user's private key(s)
   ///
-  /// @param ciphertext - encrypted data
+  /// @param bundle - encrypted data with targets (ID terminals)
   /// @return plain text
-  Future<Uint8List?> decrypt(Uint8List ciphertext);
+  Future<Uint8List?> decryptBundle(EncryptedBundle bundle);
 
   //
   //  Interfaces for Visa
@@ -120,20 +123,6 @@ abstract interface class UserDataSource implements EntityDataSource {
   /// @param user - user ID
   /// @return contacts list (ID)
   Future<List<ID>> getContacts(ID user);
-
-  ///  Get user's public key for encryption
-  ///  (visa.key or meta.key)
-  ///
-  /// @param user - user ID
-  /// @return visa.key or meta.key
-  Future<EncryptKey?> getPublicKeyForEncryption(ID user);
-
-  ///  Get user's public keys for verification
-  ///  [visa.key, meta.key]
-  ///
-  /// @param user - user ID
-  /// @return public keys
-  Future<List<VerifyKey>> getPublicKeysForVerification(ID user);
 
   ///  Get user's private keys for decryption
   ///  (which paired with [visa.key, meta.key])
@@ -174,24 +163,24 @@ class BaseUser extends BaseEntity implements User {
   }
 
   @override
-  Future<Visa?> get visa async =>
-      DocumentUtils.lastVisa(await documents);
-
-  @override
   Future<List<ID>> get contacts async =>
       await dataSource!.getContacts(identifier);
 
   @override
+  Future<Set<String>> get terminals async {
+    List<Document> docs = await documents;
+    assert(docs.isNotEmpty, 'failed to get documents: $identifier');
+    VisaAgent visaAgent = SharedVisaAgent().agent;
+    return visaAgent.getTerminals(docs);
+  }
+
+  @override
   Future<bool> verify(Uint8List data, Uint8List signature) async {
-    UserDataSource? facebook = dataSource;
-    assert(facebook != null, 'user data source not set yet');
-    List<VerifyKey>? keys = await facebook?.getPublicKeysForVerification(identifier);
-    if (keys == null || keys.isEmpty) {
-      assert(false, 'failed to get verify keys: $identifier');
-      return false;
-    }
-    for (VerifyKey pKey in keys) {
-      if (pKey.verify(data, signature)) {
+    VisaAgent visaAgent = SharedVisaAgent().agent;
+    List<VerifyKey> keys = visaAgent.getVerifyKeys(await meta, await documents);
+    assert(keys.isNotEmpty, 'failed to get verify keys: $identifier');
+    for (VerifyKey pubKey in keys) {
+      if (pubKey.verify(data, signature)) {
         // matched!
         return true;
       }
@@ -202,14 +191,11 @@ class BaseUser extends BaseEntity implements User {
   }
 
   @override
-  Future<Uint8List> encrypt(Uint8List plaintext) async {
-    UserDataSource? facebook = dataSource;
-    assert(facebook != null, 'user data source not set yet');
+  Future<EncryptedBundle> encryptBundle(Uint8List plaintext) async {
     // NOTICE: meta.key will never changed, so use visa.key to encrypt message
     //         is a better way
-    EncryptKey? pKey = await facebook?.getPublicKeyForEncryption(identifier);
-    assert(pKey != null, 'failed to get encrypt key for user: $identifier');
-    return pKey!.encrypt(plaintext);
+    VisaAgent visaAgent = SharedVisaAgent().agent;
+    return visaAgent.encryptedBundle(plaintext, await meta, await documents);
   }
 
   //
@@ -218,31 +204,37 @@ class BaseUser extends BaseEntity implements User {
 
   @override
   Future<Uint8List> sign(Uint8List data) async {
-    UserDataSource? facebook = dataSource;
-    assert(facebook != null, 'user data source not set yet');
-    SignKey? sKey = await facebook?.getPrivateKeyForSignature(identifier);
+    SignKey? sKey = await privateKeyForSignature;
     assert(sKey != null, 'failed to get sign key for user: $identifier');
     return sKey!.sign(data);
   }
 
   @override
-  Future<Uint8List?> decrypt(Uint8List ciphertext) async {
-    UserDataSource? facebook = dataSource;
-    assert(facebook != null, 'user data source not set yet');
+  Future<Uint8List?> decryptBundle(EncryptedBundle bundle) async {
     // NOTICE: if you provide a public key in visa for encryption,
     //         here you should return the private key paired with visa.key
-    List<DecryptKey>? keys = await facebook?.getPrivateKeysForDecryption(identifier);
-    if (keys == null || keys.isEmpty) {
-      assert(false, 'failed to get decrypt keys for user: $identifier');
-      return null;
-    }
+    Map<String, Uint8List> map = bundle.toMap();
+    assert(map.isNotEmpty, 'key data empty: $bundle');
+    String terminal;
+    Uint8List ciphertext;
     Uint8List? plaintext;
-    for (DecryptKey key in keys) {
+    List<DecryptKey>? keys;
+    for (MapEntry<String, Uint8List> entry in map.entries) {
+      terminal = entry.key;
+      ciphertext = entry.value;
+      // get private keys for terminal
+      keys = await getPrivateKeysForDecryption(terminal);
+      if (keys == null) {
+        assert(false, 'failed to get decrypt keys for user: $identifier, terminal: $terminals');
+        continue;
+      }
       // try decrypting it with each private key
-      plaintext = key.decrypt(ciphertext);
-      if (plaintext != null) {
-        // OK!
-        return plaintext;
+      for (DecryptKey priKey in keys) {
+        plaintext = priKey.decrypt(ciphertext);
+        if (plaintext != null && plaintext.isNotEmpty) {
+          // OK
+          return plaintext;
+        }
       }
     }
     // decryption failed
@@ -252,12 +244,10 @@ class BaseUser extends BaseEntity implements User {
 
   @override
   Future<Visa?> signVisa(Visa doc) async {
-    ID did = doc.identifier;
-    assert(did == identifier, 'visa ID not match: $identifier, $did');
-    UserDataSource? facebook = dataSource;
-    assert(facebook != null, 'user data source not set yet');
+    ID? did = ID.parse(doc['did']);
+    assert(did == null || did.address == identifier.address, 'visa ID not match: $did, $identifier');
     // NOTICE: only sign visa with the private key paired with your meta.key
-    SignKey? sKey = await facebook?.getPrivateKeyForVisaSignature(did);
+    SignKey? sKey = await privateKeyForVisaSignature;
     if (sKey == null) {
       assert(false, 'failed to get sign key for visa: $did');
       return null;
@@ -273,14 +263,43 @@ class BaseUser extends BaseEntity implements User {
   Future<bool> verifyVisa(Visa doc) async {
     // NOTICE: only verify visa with meta.key
     //         (if meta not exists, user won't be created)
-    ID did = doc.identifier;
-    if (identifier != did) {
-      // visa ID not match
-      return false;
-    }
+    ID? did = ID.parse(doc['did']);
+    assert(did == null || did.address == identifier.address, 'visa ID not match: $did, $identifier');
     // if meta not exists, user won't be created
     VerifyKey pKey = (await meta).publicKey;
     return doc.verify(pKey);
+  }
+
+  //
+  //  Private Keys
+  //
+
+  // protected
+  Future<List<DecryptKey>?> getPrivateKeysForDecryption(String terminal) async {
+    UserDataSource? facebook = dataSource;
+    if (facebook == null) {
+      assert(false, 'user data source not set yet');
+      return null;
+    }
+    if (terminal.isEmpty || terminal == '*') {
+      return await facebook.getPrivateKeysForDecryption(identifier);
+    }
+    ID uid = ID.create(name: identifier.name, address: identifier.address, terminal: terminal);
+    return await facebook.getPrivateKeysForDecryption(uid);
+}
+
+  // protected
+  Future<SignKey?> get privateKeyForSignature async {
+    UserDataSource? facebook = dataSource;
+    assert(facebook != null, 'user data source not set yet');
+    return await facebook?.getPrivateKeyForSignature(identifier);
+  }
+
+  // protected
+  Future<SignKey?> get privateKeyForVisaSignature async {
+    UserDataSource? facebook = dataSource;
+    assert(facebook != null, 'user data source not set yet');
+    return await facebook?.getPrivateKeyForVisaSignature(identifier);
   }
 
 }

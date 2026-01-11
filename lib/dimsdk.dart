@@ -5,8 +5,9 @@ library dimsdk;
 
 export 'dimp.dart';
 
-export 'mkm.dart';   // includes 'mkm/*'
-export 'msg.dart';   // includes 'msg/*'
-export 'core.dart';  // includes 'core/*', 'src/*'
+export 'crypto.dart';  // includes 'crypto/*
+export 'mkm.dart';     // includes 'mkm/*'
+export 'msg.dart';     // includes 'msg/*'
+export 'core.dart';    // includes 'core/*', 'src/*'
 
-export 'cpu.dart';   // includes 'cpu/*', 'dkd/*'
+export 'cpu.dart';     // includes 'cpu/*', 'dkd/*'

@@ -32,6 +32,8 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import '../crypto/bundle.dart';
+
 
 ///  Secure Message Delegate
 ///  ~~~~~~~~~~~~~~~~~~~~~~~
@@ -54,20 +56,21 @@ abstract interface class SecureMessageDelegate {
   //  Decrypt Key
   //
 
-  // ///  1. Decode 'message.key' to encrypted symmetric key data
-  // ///
-  // /// @param key  - base64 string object
-  // /// @param sMsg - secure message object
-  // /// @return encrypted symmetric key data
-  // Future<Uint8List?> decodeKey(Object key, SecureMessage sMsg);
+  ///  1. Decode 'message.key' to encrypted symmetric key data
+  ///
+  /// @param keys     - encoded key data and targets (ID + terminals)
+  /// @param receiver - actual receiver (user, or group member)
+  /// @param sMsg     - secure message object
+  /// @return encrypted symmetric key data and targets (ID terminals)
+  Future<EncryptedBundle?> decodeKey(Map keys, ID receiver, SecureMessage sMsg);
 
   ///  2. Decrypt 'message.key' with receiver's private key
   ///
-  ///  @param key      - encrypted symmetric key data
+  ///  @param bundle   - encrypted symmetric key data and targets (ID terminals)
   ///  @param receiver - actual receiver (user, or group member)
   ///  @param sMsg     - secure message object
-  ///  @return serialized symmetric key
-  Future<Uint8List?> decryptKey(Uint8List key, ID receiver, SecureMessage sMsg);
+  ///  @return serialized data of symmetric key
+  Future<Uint8List?> decryptKey(EncryptedBundle bundle, ID receiver, SecureMessage sMsg);
 
   ///  3. Deserialize message key from data (JsON / ProtoBuf / ...)
   ///     (if key data is empty, means it should be reused, get it from key cache)

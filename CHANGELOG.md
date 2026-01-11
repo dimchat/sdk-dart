@@ -1,3 +1,7 @@
+## 2.2.1
+
+- EncryptedBundle.
+
 ## 2.2.0
 
 - Mapper forEach.

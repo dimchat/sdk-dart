@@ -32,6 +32,8 @@ import 'dart:typed_data';
 
 import 'package:dimp/dimp.dart';
 
+import '../crypto/bundle.dart';
+
 
 ///  Instant Message Delegate
 ///  ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -94,13 +96,14 @@ abstract interface class InstantMessageDelegate {
   /// @param receiver - actual receiver (user, or group member)
   /// @param iMsg     - instant message object
   /// @return encrypted symmetric key data, null on visa not found
-  Future<Uint8List?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg);
+  Future<EncryptedBundle?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg);
 
-  // ///  6. Encode 'message.key' to String (Base64)
-  // ///
-  // /// @param key  - encrypted symmetric key data
-  // /// @param iMsg - instant message object
-  // /// @return String object
-  // Future<Object> encodeKey(Uint8List key, InstantMessage iMsg);
+  ///  6. Encode 'message.key' to String (Base64)
+  ///
+  /// @param key      - encrypted symmetric key data and targets (ID terminals)
+  /// @param receiver - actual receiver (user, or group member)
+  /// @param iMsg     - instant message object
+  /// @return encoded key data and targets (ID + terminals)
+  Future<Map<String, Object>> encodeKey(EncryptedBundle bundle, ID receiver, InstantMessage iMsg);
 
 }

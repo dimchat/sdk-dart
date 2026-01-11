@@ -30,17 +30,14 @@
  */
 import 'package:dimp/mkm.dart';
 
-import '../mkm/bot.dart';
 import '../mkm/group.dart';
-import '../mkm/provider.dart';
-import '../mkm/station.dart';
 import '../mkm/user.dart';
 
 
 ///  Entity Factory
 ///  ~~~~~~~~~~~~~~
 ///  Entity pool to manage User/Group instances
-abstract class Barrack {
+abstract interface class Barrack {
 
   void cacheUser(User user);
 
@@ -54,37 +51,19 @@ abstract class Barrack {
   ///
   /// @param identifier - user ID
   /// @return user, null on not ready
-  User? createUser(ID identifier) {
-    assert(identifier.isUser, 'user ID error: $identifier');
-    int network = identifier.type;
-    // check user type
-    if (network == EntityType.STATION) {
-      return Station.fromID(identifier);
-    } else if (network == EntityType.BOT) {
-      return Bot(identifier);
-    }
-    // general user, or 'anyone@anywhere'
-    return BaseUser(identifier);
-  }
+  User? createUser(ID identifier);
 
   ///  Create group when members exist
   ///
   /// @param identifier - group ID
   /// @return group, null on not ready
-  Group? createGroup(ID identifier) {
-    assert(identifier.isGroup, 'group ID error: $identifier');
-    int network = identifier.type;
-    // check group type
-    if (network == EntityType.ISP) {
-      return ServiceProvider(identifier);
-    }
-    // general group, or 'everyone@everywhere'
-    return BaseGroup(identifier);
-  }
+  Group? createGroup(ID identifier);
 
 }
 
 
+///  Database Access
+///  ~~~~~~~~~~~~~~~
 abstract interface class Archivist {
 
   ///  Save meta for entity ID (must verify first)
@@ -99,22 +78,6 @@ abstract interface class Archivist {
   /// @param doc - entity document
   /// @return true on success
   Future<bool> saveDocument(Document doc);
-
-  //
-  //  Public Keys
-  //
-
-  ///  Get meta.key
-  ///
-  /// @param identifier - entity ID
-  /// @return null on not found
-  Future<VerifyKey?> getMetaKey(ID identifier);
-
-  ///  Get visa.key
-  ///
-  /// @param identifier - entity ID
-  /// @return null on not found
-  Future<EncryptKey?> getVisaKey(ID identifier);
 
   //
   //  Local Users
