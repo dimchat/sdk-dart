@@ -73,6 +73,7 @@ class MetaCommandProcessor extends BaseCommandProcessor {
 
   // protected
   Future<List<Content>> respondMeta(ID identifier, Meta meta, {required ID receiver}) async {
+    assert(receiver != identifier, 'cycled response: $identifier');
     // TODO: check response expired
     return [
       MetaCommand.response(identifier, meta)
@@ -106,7 +107,7 @@ class MetaCommandProcessor extends BaseCommandProcessor {
     bool? ok;
     // check meta
     ok = checkMeta(meta, identifier: identifier);
-    if (!ok) {
+    if (ok != true) {
       String text = 'Meta not valid.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Meta not valid: \${did}.',
@@ -200,6 +201,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
 
   // protected
   Future<List<Content>> respondDocuments(ID identifier, List<Document> docs, {required ID receiver}) async {
+    assert(receiver != identifier, 'cycled response: $identifier');
     // TODO: check response expired
     Meta? meta = await facebook?.getMeta(identifier);
     return [
@@ -290,7 +292,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     bool? ok;
     // check document
     ok = checkDocument(doc, meta: meta, identifier: identifier);
-    if (!ok) {
+    if (ok != true) {
       // document error
       String text = 'Document not accepted.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
@@ -300,7 +302,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
         },
       });
     }
-    ok = await archivist?.saveDocument(doc);
+    ok = await archivist?.saveDocument(doc, identifier);
     if (ok != true) {
       // document expired
       String text = 'Document not changed.';
@@ -319,7 +321,8 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
   bool checkDocument(Document doc, {required Meta meta, required ID identifier}) {
     // check meta with ID
     if (!checkMeta(meta, identifier: identifier)) {
-      return true;
+      // meta error
+      return false;
     }
     // check document ID
     ID? docID = ID.parse(doc['did']);

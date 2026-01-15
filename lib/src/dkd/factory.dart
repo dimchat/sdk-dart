@@ -38,7 +38,7 @@ import 'proc.dart';
 class GeneralContentProcessorFactory implements ContentProcessorFactory {
   GeneralContentProcessorFactory(this.creator);
 
-  // private
+  // protected
   final ContentProcessorCreator creator;
 
   final Map<String, ContentProcessor> _contentProcessors = {};

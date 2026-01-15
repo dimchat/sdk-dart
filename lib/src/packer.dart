@@ -30,7 +30,6 @@
  */
 import 'package:dimp/dimp.dart';
 
-import 'core/barrack.dart';
 import 'core/packer.dart';
 import 'msg/instant_delegate.dart';
 import 'msg/reliable_delegate.dart';
@@ -64,9 +63,6 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
       SecureMessagePacker(delegate);
   ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate delegate) =>
       ReliableMessagePacker(delegate);
-
-  // protected
-  Archivist? get archivist => facebook?.archivist;
 
   //
   //  InstantMessage -> SecureMessage -> ReliableMessage -> Data

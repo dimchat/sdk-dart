@@ -225,7 +225,7 @@ class BaseUser extends BaseEntity implements User {
       // get private keys for terminal
       keys = await getPrivateKeysForDecryption(terminal);
       if (keys == null) {
-        assert(false, 'failed to get decrypt keys for user: $identifier, terminal: $terminals');
+        assert(false, 'failed to get decrypt keys for user: $identifier, terminal: $terminal');
         continue;
       }
       // try decrypting it with each private key

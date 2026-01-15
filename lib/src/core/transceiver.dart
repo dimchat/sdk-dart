@@ -115,12 +115,9 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
     assert(receiver.isUser, 'receiver error: $receiver');
     // TODO: make sure the receiver's public key exists
     User? contact = await facebook.getUser(receiver);
-    if (contact == null) {
-      assert(false, 'failed to encrypt message key for contact: $receiver');
-      return null;
-    }
+    assert(contact != null, 'failed to encrypt message key for contact: $receiver');
     // encrypt with public key of the receiver (or group member)
-    return await contact.encryptBundle(key);
+    return await contact?.encryptBundle(key);
   }
 
   @override
@@ -143,20 +140,21 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
       assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
       return null;
     }
+    // decode key bundle for all terminals
     Set<String> terminals = await user.terminals;
     EncryptedBundle bundle = EncryptedBundle.decode(keys, receiver, terminals);
-    if (bundle.isNotEmpty) {
-      // OK
-      return bundle;
-    } else if (terminals.contains('*')) {
-      assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
-      return null;
-    }
-    // check for wildcard
-    bundle = EncryptedBundle.decode(keys, receiver, {'*'});
     if (bundle.isEmpty) {
-      assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
-      return null;
+      // check for wildcard
+      if (terminals.contains('*')) {
+        assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
+        return null;
+      }
+      // decode key bundle for '*'
+      bundle = EncryptedBundle.decode(keys, receiver, {'*'});
+      if (bundle.isEmpty) {
+        assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
+        return null;
+      }
     }
     return bundle;
   }
@@ -168,12 +166,9 @@ abstract class Transceiver implements InstantMessageDelegate, SecureMessageDeleg
     assert(!BaseMessage.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
     assert(receiver.isUser, 'receiver error: $receiver');
     User? user = await facebook.getUser(receiver);
-    if (user == null) {
-      assert(false, 'failed to decrypt key: ${sMsg.sender} => $receiver, ${sMsg.group}');
-      return null;
-    }
+    assert(user != null, 'failed to decrypt key: ${sMsg.sender} => $receiver, ${sMsg.group}');
     // decrypt with private key of the receiver (or group member)
-    return await user.decryptBundle(bundle);
+    return await user?.decryptBundle(bundle);
   }
 
   @override

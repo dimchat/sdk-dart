@@ -75,9 +75,10 @@ abstract interface class Archivist {
 
   ///  Save entity document with ID (must verify first)
   ///
-  /// @param doc - entity document
+  /// @param doc        - entity document
+  /// @param identifier - entity ID
   /// @return true on success
-  Future<bool> saveDocument(Document doc);
+  Future<bool> saveDocument(Document doc, ID identifier);
 
   //
   //  Local Users

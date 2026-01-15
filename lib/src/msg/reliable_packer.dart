@@ -63,10 +63,7 @@ class ReliableMessagePacker {
   /// @return SecureMessage object if signature matched
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg) async {
     ReliableMessageDelegate? transceiver = delegate;
-    if (transceiver == null) {
-      assert(false, 'should not happen');
-      return null;
-    }
+    assert(transceiver != null, 'reliable message delegate not found');
 
     //
     //  0. Decode 'message.data' to encrypted content data
@@ -91,8 +88,8 @@ class ReliableMessagePacker {
     //
     //  2. Verify the message data and signature with sender's public key
     //
-    bool ok = await transceiver.verifyDataSignature(ciphertext, signature, rMsg);
-    if (!ok) {
+    bool? ok = await transceiver?.verifyDataSignature(ciphertext, signature, rMsg);
+    if (ok != true) {
       assert(false, 'message signature not match: '
           '${rMsg.sender} => ${rMsg.receiver}, ${rMsg.group}');
       return null;

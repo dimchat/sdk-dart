@@ -73,11 +73,8 @@ class SecureMessagePacker {
       };
     }
     SecureMessageDelegate? transceiver = delegate;
-    if (transceiver == null) {
-      assert(false, 'should not happen');
-      return null;
-    }
-    return await transceiver.decodeKey(msgKeys, receiver, sMsg);
+    assert(transceiver != null, 'secure message delegate not found');
+    return await transceiver?.decodeKey(msgKeys, receiver, sMsg);
   }
 
   ///  Decrypt message, replace encrypted 'data' with 'content' field
@@ -88,10 +85,7 @@ class SecureMessagePacker {
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg, ID receiver) async {
     assert(receiver.isUser, 'receiver error: $receiver');
     SecureMessageDelegate? transceiver = delegate;
-    if (transceiver == null) {
-      assert(false, 'should not happen');
-      return null;
-    }
+    assert(transceiver != null, 'secure message delegate not found');
 
     Uint8List? pwd;  // serialized symmetric key data
 
@@ -107,7 +101,7 @@ class SecureMessagePacker {
       //
       //  2. Decrypt 'message.key' with receiver's private key
       //
-      pwd = await transceiver.decryptKey(bundle, receiver, sMsg);
+      pwd = await transceiver?.decryptKey(bundle, receiver, sMsg);
       if (pwd == null || pwd.isEmpty) {
         // A: my visa updated but the sender doesn't got the new one;
         // B: key data error.
@@ -121,7 +115,7 @@ class SecureMessagePacker {
     //  3. Deserialize message key from data (JsON / ProtoBuf / ...)
     //     (if key is empty, means it should be reused, get it from key cache)
     //
-    SymmetricKey? password = await transceiver.deserializeKey(pwd, sMsg);
+    SymmetricKey? password = await transceiver?.deserializeKey(pwd, sMsg);
     if (password == null) {
       // A: key data is empty, and cipher key not found from local storage;
       // B: key data error.
@@ -143,8 +137,8 @@ class SecureMessagePacker {
     //
     //  5. Decrypt 'message.data' with symmetric key
     //
-    Uint8List? body = await transceiver.decryptContent(ciphertext, password, sMsg);
-    if (body == null) {
+    Uint8List? body = await transceiver?.decryptContent(ciphertext, password, sMsg);
+    if (body == null || body.isEmpty) {
       // A: password is a reused key loaded from local storage, but it's expired;
       // B: key error.
       throw Exception('failed to decrypt message data with key: $password'
@@ -158,7 +152,7 @@ class SecureMessagePacker {
     //
     //  6. Deserialize message content from data (JsON / ProtoBuf / ...)
     //
-    Content? content = await transceiver.deserializeContent(body, password, sMsg);
+    Content? content = await transceiver?.deserializeContent(body, password, sMsg);
     if (content == null) {
       assert(false, 'failed to deserialize content: ${body.length} byte(s) '
           '${sMsg.sender} => $receiver, ${sMsg.group}');
@@ -199,24 +193,30 @@ class SecureMessagePacker {
   ///
   /// @param sMsg - encrypted message
   /// @return ReliableMessage object
-  Future<ReliableMessage> signMessage(SecureMessage sMsg) async {
+  Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
     SecureMessageDelegate? transceiver = delegate;
-    assert(transceiver != null, 'should not happen');
+    assert(transceiver != null, 'secure message delegate not found');
 
     //
     //  0. decode message data
     //
     Uint8List ciphertext = sMsg.data;
-    assert(ciphertext.isNotEmpty, 'failed to decode message data: '
-        '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
+    if (ciphertext.isEmpty) {
+      assert(false, 'failed to decode message data: '
+          '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
+      return null;
+    }
 
     //
     //  1. Sign 'message.data' with sender's private key
     //
-    Uint8List signature = await transceiver!.signData(ciphertext, sMsg);
-    assert(signature.isNotEmpty, 'failed to sign message: '
-        '${ciphertext.length} byte(s) '
-        '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
+    Uint8List? signature = await transceiver?.signData(ciphertext, sMsg);
+    if (signature == null || signature.isEmpty) {
+      assert(false, 'failed to sign message: '
+          '${ciphertext.length} byte(s) '
+          '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
+      return null;
+    }
 
     //
     //  2. Encode 'message.signature' to String (Base64)
