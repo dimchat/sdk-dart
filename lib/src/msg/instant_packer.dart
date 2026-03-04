@@ -91,17 +91,17 @@ class InstantMessagePacker {
     //
     //  3. Encode 'message.data' to String (Base64)
     //
-    Object? encodedData;
+    TransportableData encodedData;
     if (BaseMessage.isBroadcast(iMsg)) {
       // broadcast message content will not be encrypted (just encoded to JsON),
       // so no need to encode to Base64 here
-      encodedData = UTF8.decode(ciphertext);
+      encodedData = PlainData.createWithBytes(ciphertext);
     } else {
       // message content had been encrypted by a symmetric key,
       // so the data should be encoded here (with algorithm 'base64' as default).
-      encodedData = TransportableData.encode(ciphertext);
+      encodedData = Base64Data.createWithBytes(ciphertext);
     }
-    if (encodedData == null) {
+    if (encodedData.isEmpty) {
       assert(false, 'failed to encode content data: $ciphertext');
       return null;
     }

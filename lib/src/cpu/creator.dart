@@ -36,7 +36,6 @@ import '../twins.dart';
 import 'base.dart';
 import 'commands.dart';
 import 'contents.dart';
-// import 'customized.dart';
 
 
 /// Base ContentProcessor Creator
@@ -47,30 +46,19 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
   ContentProcessor? createContentProcessor(String msgType) {
     switch (msgType) {
 
-      // // application customized
-      // case ContentType.APPLICATION:
-      // case 'application':
-      // case ContentType.CUSTOMIZED:
-      // case 'customized':
-      //   return CustomizedContentProcessor(facebook!, messenger!);
-
       // forward content
       case ContentType.FORWARD:
-      case 'forward':
         return ForwardContentProcessor(facebook!, messenger!);
 
       // array content
       case ContentType.ARRAY:
-      case 'array':
         return ArrayContentProcessor(facebook!, messenger!);
 
       // default commands
       case ContentType.COMMAND:
-      case 'command':
         return BaseCommandProcessor(facebook!, messenger!);
 
       case ContentType.ANY:
-      case '*':
         // must return a default processor for type==0
         return BaseContentProcessor(facebook!, messenger!);
 

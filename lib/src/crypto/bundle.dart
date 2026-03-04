@@ -30,6 +30,7 @@
  */
 import 'dart:typed_data';
 
+import 'package:dimp/crypto.dart';
 import 'package:dimp/protocol.dart';
 
 
@@ -100,7 +101,7 @@ abstract interface class EncryptedBundle {
       //  2. decode data
       //
       ted = TransportableData.parse(base64);
-      data = ted?.data;
+      data = ted?.bytes;
       if (data == null) {
         assert(false, 'key data error: $item -> $base64');
         continue;
@@ -173,7 +174,7 @@ class UserEncryptedBundle implements EncryptedBundle {
     Object base64;
     _map.forEach((terminal, data) {
       // encode data
-      base64 = TransportableData.encode(data);
+      base64 = Base64.encode(data);
       if (terminal.isEmpty || terminal == '*') {
         target = identifier;
       } else {

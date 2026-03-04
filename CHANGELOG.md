@@ -1,3 +1,7 @@
+## 2.3.0
+
+- Remove customized content processor.
+
 ## 2.2.1
 
 - EncryptedBundle.

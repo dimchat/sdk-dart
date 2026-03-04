@@ -127,8 +127,8 @@ class SecureMessagePacker {
     //
     //  4. Decode 'message.data' to encrypted content data
     //
-    Uint8List ciphertext = sMsg.data;
-    if (ciphertext.isEmpty) {
+    Uint8List? ciphertext = sMsg.data.bytes;
+    if (ciphertext == null || ciphertext.isEmpty) {
       assert(false, 'failed to decode message data: '
           '${sMsg.sender} => $receiver, ${sMsg.group}');
       return null;
@@ -200,8 +200,8 @@ class SecureMessagePacker {
     //
     //  0. decode message data
     //
-    Uint8List ciphertext = sMsg.data;
-    if (ciphertext.isEmpty) {
+    Uint8List? ciphertext = sMsg.data.bytes;
+    if (ciphertext == null || ciphertext.isEmpty) {
       assert(false, 'failed to decode message data: '
           '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
       return null;
@@ -221,10 +221,12 @@ class SecureMessagePacker {
     //
     //  2. Encode 'message.signature' to String (Base64)
     //
-    Object base64 = TransportableData.encode(signature);
-    // assert((base64 as String).isNotEmpty, 'failed to encode signature: '
-    //     '${signature.length} byte(s) '
-    //     '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
+    TransportableData base64 = Base64Data.createWithBytes(signature);
+    if (base64.isEmpty) {
+      assert(false, 'failed to encode signature: ${signature.length} byte(s) '
+          '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
+      return null;
+    }
 
     // OK, pack message
     Map info = sMsg.copyMap();

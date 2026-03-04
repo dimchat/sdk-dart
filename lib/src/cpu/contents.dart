@@ -48,13 +48,7 @@ class ForwardContentProcessor extends BaseContentProcessor {
     List<ReliableMessage> results;
     for (ReliableMessage item in secrets) {
       results = await transceiver.processReliableMessage(item);
-      /*if (results.isEmpty) {
-        res = ForwardContent.create(secrets: []);
-      } else */if (results.length == 1) {
-        res = ForwardContent.create(forward: results.first);
-      } else {
-        res = ForwardContent.create(secrets: results);
-      }
+      res = ForwardContent.create(secrets: results);
       responses.add(res);
     }
     return responses;
