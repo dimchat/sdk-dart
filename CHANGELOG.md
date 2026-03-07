@@ -1,3 +1,7 @@
+## 2.3.1
+
+- Message data serialization.
+
 ## 2.3.0
 
 - Remove customized content processor.

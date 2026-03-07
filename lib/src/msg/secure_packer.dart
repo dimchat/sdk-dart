@@ -230,7 +230,7 @@ class SecureMessagePacker {
 
     // OK, pack message
     Map info = sMsg.copyMap();
-    info['signature'] = base64;
+    info['signature'] = base64.serialize();
     return ReliableMessage.parse(info)!;
   }
 

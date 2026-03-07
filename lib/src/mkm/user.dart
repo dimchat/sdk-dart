@@ -30,6 +30,7 @@
  */
 import 'dart:typed_data';
 
+import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
 
 import '../crypto/agent.dart';

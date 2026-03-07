@@ -116,7 +116,7 @@ class InstantMessagePacker {
 
     // replace 'content' with encrypted 'data'
     info.remove('content');
-    info['data'] = encodedData;
+    info['data'] = encodedData.serialize();
 
     // check serialized key data,
     // if key data is null here, build the secure message directly.
