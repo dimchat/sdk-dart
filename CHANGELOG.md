@@ -1,3 +1,7 @@
+## 2.3.2
+
+- VisaAgent extension.
+
 ## 2.3.1
 
 - Message data serialization.

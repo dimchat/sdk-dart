@@ -30,6 +30,7 @@
  */
 import 'dart:typed_data';
 
+import 'package:dimp/ext.dart';
 import 'package:dimp/protocol.dart';
 
 import 'bundle.dart';
@@ -197,11 +198,14 @@ class DefaultVisaAgent implements VisaAgent {
 }
 
 
-class SharedVisaAgent {
-  factory SharedVisaAgent() => _instance;
-  static final SharedVisaAgent _instance = SharedVisaAgent._internal();
-  SharedVisaAgent._internal();
+/// VisaAgent Extensions
+/// ~~~~~~~~~~~~~~~~~~~~
 
-  VisaAgent agent = DefaultVisaAgent();
+VisaAgent _agent = DefaultVisaAgent();
+
+extension VisaAgentExtension on AccountExtensions {
+
+  VisaAgent get visaAgent => _agent;
+  set visaAgent(VisaAgent agent) => _agent = agent;
 
 }

@@ -31,6 +31,7 @@
 import 'dart:typed_data';
 
 import 'package:dimp/crypto.dart';
+import 'package:dimp/ext.dart';
 import 'package:dimp/mkm.dart';
 
 import '../crypto/agent.dart';
@@ -171,14 +172,14 @@ class BaseUser extends BaseEntity implements User {
   Future<Set<String>> get terminals async {
     List<Document> docs = await documents;
     assert(docs.isNotEmpty, 'failed to get documents: $identifier');
-    VisaAgent visaAgent = SharedVisaAgent().agent;
-    return visaAgent.getTerminals(docs);
+    var agent = sharedAccountExtensions.visaAgent;
+    return agent.getTerminals(docs);
   }
 
   @override
   Future<bool> verify(Uint8List data, Uint8List signature) async {
-    VisaAgent visaAgent = SharedVisaAgent().agent;
-    List<VerifyKey> keys = visaAgent.getVerifyKeys(await meta, await documents);
+    var agent = sharedAccountExtensions.visaAgent;
+    List<VerifyKey> keys = agent.getVerifyKeys(await meta, await documents);
     assert(keys.isNotEmpty, 'failed to get verify keys: $identifier');
     for (VerifyKey pubKey in keys) {
       if (pubKey.verify(data, signature)) {
@@ -195,8 +196,8 @@ class BaseUser extends BaseEntity implements User {
   Future<EncryptedBundle> encryptBundle(Uint8List plaintext) async {
     // NOTICE: meta.key will never changed, so use visa.key to encrypt message
     //         is a better way
-    VisaAgent visaAgent = SharedVisaAgent().agent;
-    return visaAgent.encryptedBundle(plaintext, await meta, await documents);
+    var agent = sharedAccountExtensions.visaAgent;
+    return agent.encryptedBundle(plaintext, await meta, await documents);
   }
 
   //
