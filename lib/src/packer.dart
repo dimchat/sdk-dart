@@ -28,9 +28,12 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimp/crypto.dart';
+import 'package:dimp/dkd.dart';
+import 'package:dimp/mkm.dart';
 
 import 'core/packer.dart';
+import 'mkm/user.dart';
 import 'msg/instant_delegate.dart';
 import 'msg/reliable_delegate.dart';
 import 'msg/secure_delegate.dart';
@@ -165,15 +168,15 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
     //       or you are a member of the group when this is a group message,
     //       so that you will have a private key (decrypt key) to decrypt it.
     ID receiver = sMsg.receiver;
-    ID? me = await facebook?.selectLocalUser(receiver);
-    if (me == null) {
+    User? user = await selectLocalUser(receiver);
+    if (user == null) {
       // not for you?
       throw Exception('receiver error: $receiver, from ${sMsg.sender}, ${sMsg.group}');
     }
     assert(sMsg.data.isNotEmpty, 'message data empty: '
         '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
     // decrypt 'data' to 'content'
-    return await securePacker.decryptMessage(sMsg, me);
+    return await securePacker.decryptMessage(sMsg, user.identifier);
 
     // TODO: check top-secret message
     //       (do it by application)

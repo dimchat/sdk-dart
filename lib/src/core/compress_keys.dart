@@ -30,6 +30,15 @@
  */
 
 
+/// Interface for bidirectional short key mapping (long string keys ↔ single-char keys).
+///
+/// Core function: Replace system-defined long string keys with pre-defined single-character
+/// short keys (and vice versa) to reduce the size of JSON-serialized data.
+///
+/// Key features:
+/// - Bi-directional conversion (compress → extract)
+/// - Preserves data structure, only replaces key names
+/// - Maintains compatibility with core message components
 abstract interface class Shortener {
   /** Short Keys
 
@@ -78,8 +87,20 @@ abstract interface class Shortener {
 }
 
 
+/// Concrete implementation of [Shortener] for message/content/key short key mapping.
+///
+/// Implements fixed key pair conversion with in-place Map modification,
+/// including special handling for "K" (supports both "key" and "keys").
 class MessageShortener implements Shortener {
 
+  /// Moves value from source key to target key (removes source key).
+  ///
+  /// Throws assertion error if target key already exists (key conflict).
+  ///
+  /// Parameters:
+  /// - [from] : Source key to move from
+  /// - [to]   : Target key to move to
+  /// - [info] : Map to modify (in-place)
   // protected
   void moveKey(String from, String to, Map info) {
     var value = info[from];
@@ -90,6 +111,13 @@ class MessageShortener implements Shortener {
     }
   }
 
+  /// Batch shortens keys using a list of (shortKey, longKey) pairs.
+  ///
+  /// List format: [shortKey1, longKey1, shortKey2, longKey2, ...]
+  ///
+  /// Parameters:
+  /// - [keys] : List of key pairs (short → long)
+  /// - [info] : Map to modify (in-place)
   // protected
   void shortenKeys(List<String> keys, Map info) {
     int i = 1;
@@ -99,6 +127,13 @@ class MessageShortener implements Shortener {
     }
   }
 
+  /// Batch restores keys using a list of (shortKey, longKey) pairs.
+  ///
+  /// Reverse of [shortenKeys], list format: [shortKey1, longKey1, ...]
+  ///
+  /// Parameters:
+  /// - [keys] : List of key pairs (short → long)
+  /// - [info] : Map to modify (in-place)
   // protected
   void restoreKeys(List<String> keys, Map info) {
     int i = 1;
@@ -108,15 +143,16 @@ class MessageShortener implements Shortener {
     }
   }
 
-  ///
-  ///  Compress Content
-  ///
+  // -------------------------------------------------------------------------
+  //  Content Key Mapping
+  // -------------------------------------------------------------------------
+
   List<String> contentShortKeys = [
     "T", "type",
     "N", "sn",
     "W", "time",        // When
     "G", "group",
-    "C", "command",
+    "C", "command",     // Command name
   ];
 
   @override
@@ -131,9 +167,10 @@ class MessageShortener implements Shortener {
     return content;
   }
 
-  ///
-  ///  Compress SymmetricKey
-  ///
+  // -------------------------------------------------------------------------
+  //  Symmetric Key Mapping
+  // -------------------------------------------------------------------------
+
   List<String> cryptoShortKeys = [
     "A", "algorithm",
     "D", "data",
@@ -152,9 +189,10 @@ class MessageShortener implements Shortener {
     return key;
   }
 
-  ///
-  ///  Compress ReliableMessage
-  ///
+  // -------------------------------------------------------------------------
+  //  ReliableMessage Key Mapping
+  // -------------------------------------------------------------------------
+
   List<String> messageShortKeys = [
     "F", "sender",      // From
     "R", "receiver",    // Rcpt to

@@ -35,29 +35,102 @@ import 'package:dimp/crypto.dart';
 import 'compress_keys.dart';
 
 
+// -----------------------------------------------------------------------------
+//  Compressor (Short Key + JSON + UTF8 Encoding)
+// -----------------------------------------------------------------------------
+
+/// Interface for message data compression (short key mapping + JSON serialization + UTF8 encoding).
+///
+/// Core workflow:
+/// 1. Shorten keys via [Shortener]
+/// 2. Serialize to JSON string
+/// 3. Encode to UTF8 binary bytes
+///
+/// Extraction workflow (reverse):
+/// 1. Decode UTF8 bytes to JSON string
+/// 2. Deserialize to Map
+/// 3. Restore long keys via [Shortener]
 abstract interface class Compressor {
 
+  // -------------------------------------------------------------------------
+  //  Content Compression/Extraction
+  // -------------------------------------------------------------------------
+
+  /// Compresses content map to UTF8 binary bytes (short keys + JSON + UTF8).
+  ///
+  /// Parameters:
+  /// - [content] : Original content map with long keys
+  /// - [key]     : Symmetric key map (reserved parameter, not used in implementation)
+  ///
+  /// Returns: UTF8 encoded binary bytes of compressed content
   Uint8List compressContent(Map content, Map key);
+
+  /// Extracts content map from UTF8 binary bytes (UTF8 → JSON → long keys).
+  ///
+  /// Parameters:
+  /// - [data] : UTF8 encoded binary bytes of compressed content
+  /// - [key]  : Symmetric key map (reserved parameter, not used in implementation)
+  ///
+  /// Returns: Restored content map with long keys (null if decoding/deserialization fails)
   Map? extractContent(Uint8List data, Map key);
 
+  // -------------------------------------------------------------------------
+  //  Symmetric Key Compression/Extraction
+  // -------------------------------------------------------------------------
+
+  /// Compresses symmetric key map to UTF8 binary bytes (short keys + JSON + UTF8).
+  ///
+  /// Parameters:
+  /// - [key] : Original symmetric key map with long keys
+  ///
+  /// Returns: UTF8 encoded binary bytes of compressed symmetric key
   Uint8List compressSymmetricKey(Map key);
+
+  /// Extracts symmetric key map from UTF8 binary bytes (UTF8 → JSON → long keys).
+  ///
+  /// Parameters:
+  /// - [data] : UTF8 encoded binary bytes of compressed symmetric key
+  ///
+  /// Returns: Restored symmetric key map with long keys (null if decoding/deserialization fails)
   Map? extractSymmetricKey(Uint8List data);
 
+  // -------------------------------------------------------------------------
+  //  ReliableMessage Compression/Extraction
+  // -------------------------------------------------------------------------
+
+  /// Compresses ReliableMessage map to UTF8 binary bytes (short keys + JSON + UTF8).
+  ///
+  /// Parameters:
+  /// - [msg] : Original ReliableMessage map with long keys
+  ///
+  /// Returns: UTF8 encoded binary bytes of compressed message
   Uint8List compressReliableMessage(Map msg);
+
+  /// Extracts ReliableMessage map from UTF8 binary bytes (UTF8 → JSON → long keys).
+  ///
+  /// Parameters:
+  /// - [data] : UTF8 encoded binary bytes of compressed message
+  ///
+  /// Returns: Restored message map with long keys (null if decoding/deserialization fails)
   Map? extractReliableMessage(Uint8List data);
 
 }
 
 
+/// Concrete implementation of [Compressor] (Shortener + JSON + UTF8).
+///
+/// Uses [MessageShortener] for key mapping, JSON for serialization,
+/// and UTF8 for binary encoding/decoding.
 class MessageCompressor implements Compressor {
   MessageCompressor(this.shortener);
 
+  /// Short key mapper used for key conversion.
   // protected
   final Shortener shortener;
 
-  ///
-  ///  Compress Content
-  ///
+  // -------------------------------------------------------------------------
+  //  Content Compression/Extraction
+  // -------------------------------------------------------------------------
 
   @override
   Uint8List compressContent(Map content, Map key) {
@@ -80,9 +153,9 @@ class MessageCompressor implements Compressor {
     return info;
   }
 
-  ///
-  ///  Compress SymmetricKey
-  ///
+  // -------------------------------------------------------------------------
+  //  Symmetric Key Compression/Extraction
+  // -------------------------------------------------------------------------
 
   @override
   Uint8List compressSymmetricKey(Map key) {
@@ -105,9 +178,9 @@ class MessageCompressor implements Compressor {
     return key;
   }
 
-  ///
-  ///  Compress ReliableMessage
-  ///
+  // -------------------------------------------------------------------------
+  //  ReliableMessage Compression/Extraction
+  // -------------------------------------------------------------------------
 
   @override
   Uint8List compressReliableMessage(Map msg) {

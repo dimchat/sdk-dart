@@ -28,7 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimp/mkm.dart';
 
 import 'core/barrack.dart';
 import 'mkm/entity.dart';
@@ -36,68 +36,104 @@ import 'mkm/group.dart';
 import 'mkm/user.dart';
 
 
+// -----------------------------------------------------------------------------
+//  Facebook (Unified Entity Management)
+// -----------------------------------------------------------------------------
+
+/// Unified manager for user/group entity operations (combines caching + data access).
+///
+/// Implements core entity management workflows:
+/// 1. Selects the correct local user for message decryption
+/// 2. Retrieves/creates user/group entities (combines Barrack cache + lazy creation)
+/// 3. Integrates with Archivist for persistent data access
+///
+/// Implements: [EntityDelegate], [UserDataSource], [GroupDataSource]
 abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSource {
 
+  /// Returns the entity cache manager (Barrack) - internal use only.
+  ///
+  /// Null if the barrack is not initialized/ready for use.
   // protected
   Barrack? get barrack;
 
+  /// Returns the persistent data access layer (Archivist) - internal use only.
+  ///
+  /// Null if the archivist is not initialized/ready for use.
+  // protected
   Archivist? get archivist;
 
-  ///  Select local user for receiver
+  /// Selects a local user for decrypting messages to a user/broadcast receiver.
   ///
-  /// @param receiver - user/group ID
-  /// @return local user
-  Future<ID?> selectLocalUser(ID receiver) async {
+  /// Core logic:
+  ///   0. Validates receiver type (only user/broadcast allowed)
+  ///   1. If receiver is broadcast → returns first local user (any user can decrypt)
+  ///   2. If receiver is user → returns matching local user (personal message target)
+  ///   3. Returns null if no matching local user is found
+  ///
+  /// Parameters:
+  /// - [receiver] : Target receiver ID (must be user or broadcast type)
+  ///
+  /// Returns: Local user ID for decryption (null if no match)
+  ///
+  /// Throws: Assertion error if receiver is invalid (group) or local users are empty
+  Future<ID?> selectUser(ID receiver) async {
+    assert(receiver.isUser || receiver.isBroadcast, 'user ID error: $receiver');
     assert(archivist != null, 'archivist not ready');
-    List<ID>? users = await archivist?.getLocalUsers();
-    //
-    //  1.
-    //
-    if (users == null || users.isEmpty) {
+    List<ID>? allUsers = await archivist?.getLocalUsers();
+    if (allUsers == null || allUsers.isEmpty) {
       assert(false, 'local users should not be empty');
       return null;
     } else if (receiver.isBroadcast) {
-      // broadcast message can decrypt by anyone,
-      // so just return current user
-      return users.first;
+      // broadcast message can be decrypted by anyone, so
+      // just return current user here
+      return allUsers.first;
     }
-    //
-    //  2.
-    //
-    if (receiver.isUser) {
-      // personal message
-      for (ID item in users) {
-        if (receiver == item) {
-          // DISCUSS: set this item to be current user?
-          return item;
-        }
+    // personal message
+    for (ID item in allUsers) {
+      if (receiver == item) {
+        // DISCUSS: set this item to be current user?
+        return item;
       }
-    } else if (receiver.isGroup) {
-      // group message (recipient not designated)
-      //
-      // the messenger will check group info before decrypting message,
-      // so we can trust that the group's meta & members MUST exist here.
-      List<ID> members = await getMembers(receiver);
-      if (members.isEmpty) {
-        assert(false, 'members not found: $receiver');
-        return null;
-      }
-      for (ID item in users) {
-        if (members.contains(item)) {
-          // DISCUSS: set this item to be current user?
-          return item;
-        }
-      }
-    } else {
-      assert(false, 'receiver error: $receiver');
     }
-    // not me?
+    // not for me?
     return null;
   }
 
-  //
-  //  Entity Delegate
-  //
+  /// Selects a local user who is a member of a specific group (for group message decryption).
+  ///
+  /// Core logic:
+  ///   0. Validates group member list is non-empty
+  ///   1. Finds the first local user that exists in the group member list
+  ///   2. Returns null if no local user is a group member
+  ///
+  /// Parameters:
+  /// - [members] : List of group member IDs (must be non-empty)
+  ///
+  /// Returns: Local user ID who is a group member (null if no match)
+  ///
+  /// Throws: Assertion error if members are empty or local users are empty
+  Future<ID?> selectMember(List<ID> members) async {
+    assert(members.isNotEmpty, 'group members not found');
+    assert(archivist != null, 'archivist not ready');
+    List<ID>? allUsers = await archivist?.getLocalUsers();
+    if (allUsers == null || allUsers.isEmpty) {
+      assert(false, 'local users should not be empty');
+      return null;
+    }
+    // group message (recipient not designated)
+    for (ID item in allUsers) {
+      if (members.contains(item)) {
+        // DISCUSS: set this item to be current user?
+        return item;
+      }
+    }
+    // not for me?
+    return null;
+  }
+
+  // -------------------------------------------------------------------------
+  //  Entity Delegate Implementation (User Management)
+  // -------------------------------------------------------------------------
 
   @override
   Future<User?> getUser(ID identifier) async {
@@ -118,6 +154,10 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     }
     return user;
   }
+
+  // -------------------------------------------------------------------------
+  //  Entity Delegate Implementation (Group Management)
+  // -------------------------------------------------------------------------
 
   @override
   Future<Group?> getGroup(ID identifier) async {

@@ -30,10 +30,12 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/dkd.dart';
+import 'package:dimp/mkm.dart';
 
-import 'dkd/proc.dart';
 import 'core/processor.dart';
+import 'mkm/user.dart';
+import 'dkd/proc.dart';
 
 import 'facebook.dart';
 import 'messenger.dart';
@@ -163,8 +165,8 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
     // 2. select a local user to build message
     ID sender = iMsg.sender;
     ID receiver = iMsg.receiver;
-    ID? me = await facebook?.selectLocalUser(receiver);
-    if (me == null) {
+    User? user = await selectLocalUser(receiver);
+    if (user == null) {
       assert(false, 'receiver error: $receiver');
       return [];
     }
@@ -173,7 +175,7 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
     Envelope env;
     for (Content res in responses) {
       // assert(res.isNotEmpty, 'should not happen');
-      env = Envelope.create(sender: me, receiver: sender);
+      env = Envelope.create(sender: user.identifier, receiver: sender);
       iMsg = InstantMessage.create(env, res);
       // assert(iMsg.isNotEmpty, 'should not happen');
       messages.add(iMsg);

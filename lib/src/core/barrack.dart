@@ -34,59 +34,114 @@ import '../mkm/group.dart';
 import '../mkm/user.dart';
 
 
-///  Entity Factory
-///  ~~~~~~~~~~~~~~
-///  Entity pool to manage User/Group instances
+/// Entity pool for managing and caching User/Group instances (account entity manager).
+///
+/// Core responsibilities:
+/// 1. In-memory caching of User/Group entities to avoid repeated creation
+/// 2. Lazy creation of User/Group entities when required metadata is available
+/// 3. Fast lookup of entities by ID (identifier)
+///
+/// Key design: Acts as a "barracks" (entity pool) to centralize entity management,
+/// ensuring only one instance exists per ID and reducing redundant data loading.
 abstract interface class Barrack {
 
+  /// Caches a User entity in memory (overwrites existing entry for the same ID).
+  ///
+  /// Parameters:
+  /// - [user] : User entity to cache (must have a valid ID)
   void cacheUser(User user);
 
+  /// Caches a Group entity in memory (overwrites existing entry for the same ID).
+  ///
+  /// Parameters:
+  /// - [group] : Group entity to cache (must have a valid ID)
   void cacheGroup(Group group);
 
-  User? getUser(ID identifier);
-
-  Group? getGroup(ID identifier);
-
-  ///  Create user when visa.key exists
+  /// Retrieves a cached User entity by ID.
   ///
-  /// @param identifier - user ID
-  /// @return user, null on not ready
-  User? createUser(ID identifier);
-
-  ///  Create group when members exist
+  /// Parameters:
+  /// - [uid] : Unique ID of the target user
   ///
-  /// @param identifier - group ID
-  /// @return group, null on not ready
-  Group? createGroup(ID identifier);
+  /// Returns: Cached User instance (null if not found in cache)
+  User? getUser(ID uid);
+
+  /// Retrieves a cached Group entity by ID.
+  ///
+  /// Parameters:
+  /// - [gid] : Unique ID of the target group
+  ///
+  /// Returns: Cached Group instance (null if not found in cache)
+  Group? getGroup(ID gid);
+
+  /// Creates a User entity if the required visa key metadata exists.
+  ///
+  /// Lazy creation rule: Only creates a User when the user's visa.key (public key)
+  /// is available (entity is "ready" for use). Does not cache the created user automatically.
+  ///
+  /// Parameters:
+  /// - [uid] : Unique ID of the user to create
+  ///
+  /// Returns: New User instance (null if visa.key is missing/entity not ready)
+  User? createUser(ID uid);
+
+  /// Creates a Group entity if the required member list exists.
+  ///
+  /// Lazy creation rule: Only creates a Group when the group's member list is available
+  /// (entity is "ready" for use). Does not cache the created group automatically.
+  ///
+  /// Parameters:
+  /// - [gid]: Unique ID of the group to create
+  ///
+  /// Returns: New Group instance (null if members are missing/entity not ready)
+  Group? createGroup(ID gid);
 
 }
 
 
-///  Database Access
-///  ~~~~~~~~~~~~~~~
+// -----------------------------------------------------------------------------
+//  Archivist (Persistent Data Access)
+// -----------------------------------------------------------------------------
+
+/// Persistent data access interface for entity metadata and documents.
+///
+/// Core responsibilities:
+/// 1. Saves entity metadata and documents to persistent storage (database)
+/// 2. Retrieves local user IDs (critical for message decryption)
+/// 3. Enforces pre-verification rule: All save operations require prior validation
 abstract interface class Archivist {
 
-  ///  Save meta for entity ID (must verify first)
+  /// Saves entity metadata to persistent storage (must verify metadata first).
   ///
-  /// @param meta       - entity meta
-  /// @param identifier - entity ID
-  /// @return true on success
-  Future<bool> saveMeta(Meta meta, ID identifier);
-
-  ///  Save entity document with ID (must verify first)
+  /// Precondition: Metadata must be validated (authenticity/integrity) before saving.
   ///
-  /// @param doc        - entity document
-  /// @param identifier - entity ID
-  /// @return true on success
-  Future<bool> saveDocument(Document doc, ID identifier);
-
-  //
-  //  Local Users
-  //
-
-  ///  Get all local users (for decrypting received message)
+  /// Parameters:
+  /// - [meta] : Validated metadata of the entity (user/group)
+  /// - [did]  : Unique ID of the entity to associate with the metadata
   ///
-  /// @return users with private key
+  /// Returns: True if metadata is saved successfully, false otherwise
+  Future<bool> saveMeta(Meta meta, ID did);
+
+  /// Saves an entity document to persistent storage (must verify document first).
+  ///
+  /// Precondition: Document must be validated (authenticity/integrity) before saving.
+  ///
+  /// Parameters:
+  /// - [doc] : Validated document data of the entity (user/group)
+  /// - [did] : Unique ID of the entity to associate with the document
+  ///
+  /// Returns: True if document is saved successfully, false otherwise
+  Future<bool> saveDocument(Document doc, ID did);
+
+  // -------------------------------------------------------------------------
+  //  Local User Management (Critical for Message Decryption)
+  // -------------------------------------------------------------------------
+
+  /// Retrieves all local user IDs (used for decrypting received messages).
+  ///
+  /// Local users are accounts logged into the current device with private keys,
+  /// required to decrypt incoming personal/group messages targeted to the device.
+  ///
+  /// Returns: List of local user IDs (non-empty in normal operation)
   Future<List<ID>> getLocalUsers();
 
 }
