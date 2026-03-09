@@ -36,6 +36,12 @@ import '../crypto/bundle.dart';
 import 'instant_delegate.dart';
 
 
+/// Packer class for encrypting InstantMessage to SecureMessage.
+///
+/// Implements the full encryption pipeline for instant messages, including:
+/// 1. Content serialization/encryption (symmetric key)
+/// 2. Key encryption (asymmetric, receiver's public key)
+/// 3. Format conversion to SecureMessage structure
 class InstantMessagePacker {
   InstantMessagePacker(InstantMessageDelegate messenger)
       : _messenger = WeakReference(messenger);
@@ -57,13 +63,17 @@ class InstantMessagePacker {
    *                      +----------+
    */
 
-  /// 1. Encrypt message, replace 'content' field with encrypted 'data'
-  /// 2. Encrypt group message, replace 'content' field with encrypted 'data'
+  /// Encrypts an InstantMessage to a SecureMessage (supports personal/group messages).
   ///
-  /// @param iMsg     - plain message
-  /// @param password - symmetric key
-  /// @param members  - group members for group message
-  /// @return SecureMessage object, null on visa not found
+  /// Replaces the plaintext 'content' field with encrypted 'data', and encrypts the
+  /// symmetric key for target recipients (personal: single user, group: multiple members).
+  ///
+  /// Parameters:
+  /// - [iMsg]     : Plaintext instant message to encrypt
+  /// - [password] : Symmetric key for content encryption
+  /// - [members]  : Optional group member IDs (required for group messages)
+  ///
+  /// Returns: Encrypted SecureMessage (null if encryption fails/Visa not found)
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg, SymmetricKey password, {List<ID>? members}) async {
     // TODO: check attachment for File/Image/Audio/Video message content
     //      (do it by application)
@@ -171,6 +181,16 @@ class InstantMessagePacker {
     return SecureMessage.parse(info);
   }
 
+  /// Encodes encrypted key bundles to a message-compatible map (internal use).
+  ///
+  /// Converts terminal-specific EncryptedBundle objects to a unified map format
+  /// for inclusion in SecureMessage's 'keys' field.
+  ///
+  /// Parameters:
+  /// - [bundleMap] : Map of receiver IDs to their encrypted key bundles
+  /// - [iMsg]      : Parent instant message (context)
+  ///
+  /// Returns: Encoded key map (ID+terminal → base64 data, null if encoding fails)
   // protected
   Future<Map<String, Object>?> encodeKeys(Map<ID, EncryptedBundle> bundleMap, InstantMessage iMsg) async {
     InstantMessageDelegate? transceiver = delegate;

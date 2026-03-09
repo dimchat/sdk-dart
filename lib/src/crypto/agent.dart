@@ -36,27 +36,56 @@ import 'package:dimp/protocol.dart';
 import 'bundle.dart';
 
 
+// -----------------------------------------------------------------------------
+//  Visa Agent (Visa-based Encryption/Verification)
+// -----------------------------------------------------------------------------
+
+/// Agent interface for Visa-based cryptographic operations.
+///
+/// Provides core functionality for working with user Visa documents:
+/// - Encrypting data for multiple user terminals using Visa/Meta public keys
+/// - Extracting verification keys from Meta/Visa documents
+/// - Collecting terminal identifiers from Visa documents
+///
+/// Acts as a helper to abstract complex Visa-based encryption logic from User entity.
 abstract interface class VisaAgent {
 
-  ///  Encrypt plaintext to ciphertexts with all visa keys
+  /// Encrypts plaintext data using all available Visa/Meta public keys.
   ///
-  /// @param plaintext - key data
-  /// @param meta      - meta for public key
-  /// @param documents - visa documents for public keys
-  /// @return encrypted data with terminals
+  /// Creates an [EncryptedBundle] with terminal-specific encrypted data, using:
+  /// 1. Visa public keys for terminal-specific encryption
+  /// 2. Meta public key as fallback for wildcard (*) encryption
+  ///
+  /// Parameters:
+  /// - [plaintext] : Raw data to encrypt (usually a symmetric message key)
+  /// - [meta]      : User's core Meta (contains fallback public key)
+  /// - [documents] : List of user Visa documents (contains terminal-specific public keys)
+  ///
+  /// Returns: EncryptedBundle with terminal-specific encrypted data
   EncryptedBundle encryptedBundle(Uint8List plaintext, Meta meta, List<Document> documents);
 
-  ///  Get all verify keys from documents and meta
+  /// Extracts all verification keys from Meta and Visa documents.
   ///
-  /// @param meta      - meta for public key
-  /// @param documents - visa documents for public keys
-  /// @return verify keys
+  /// Collects public verification keys from:
+  /// 1. User's Meta (core identity key)
+  /// 2. All Visa documents (terminal-specific keys)
+  ///
+  /// Parameters:
+  /// - [meta]      : User's core Meta
+  /// - [documents] : List of user Visa documents
+  ///
+  /// Returns: List of VerifyKey instances for signature verification
   List<VerifyKey> getVerifyKeys(Meta meta, List<Document> documents);
 
-  ///  Get all terminals from documents
+  /// Extracts all terminal identifiers from user Visa documents.
   ///
-  /// @param documents - visa documents
-  /// @return terminals
+  /// Collects unique terminal strings (e.g., "mobile", "desktop") from Visa documents,
+  /// representing all devices the user is logged into.
+  ///
+  /// Parameters:
+  /// - [documents] : List of user Visa documents
+  ///
+  /// Returns: Set of unique terminal identifiers (empty set if none)
   Set<String> getTerminals(List<Document> documents);
 
 }

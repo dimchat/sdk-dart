@@ -39,111 +39,167 @@ import '../crypto/bundle.dart';
 import 'entity.dart';
 
 
-///  User account for communication
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-///  This class is for creating user account
+// -----------------------------------------------------------------------------
+//  User Entity (with Visa-based Crypto)
+// -----------------------------------------------------------------------------
+
+/// User account interface for secure communication (with Visa terminal support).
 ///
-///  functions:
-///      (User)
-///      1. verify(data, signature) - verify (encrypted content) data and signature
-///      2. encrypt(data)           - encrypt (symmetric key) data
-///      (LocalUser)
-///      3. sign(data)    - calculate signature of (encrypted content) data
-///      4. decrypt(data) - decrypt (symmetric key) data
+/// Extends [Entity] with user-specific cryptographic operations, contact management,
+/// and Visa-based terminal encryption.
+///
+/// Supports core secure communication functions:
+///   1. Verification : Verify message signatures using Meta/Visa public keys
+///   2. Encryption   : Encrypt data for specific user terminals (via EncryptedBundle)
+///   3. Signing      : Generate message signatures (local user only)
+///   4. Decryption   : Decrypt terminal-specific data (local user only)
 abstract interface class User implements Entity {
 
-  ///  Get all contacts of the user
+  /// List of contact IDs associated with the user (async).
   ///
-  /// @return contact list
+  /// Represents the user's address book/contacts list in the communication system.
+  ///
+  /// Returns: List of user contact IDs (empty list if none)
   Future<List<ID>> get contacts;
 
-  ///  Get visa.terminal
+  /// Set of terminal identifiers associated with the user's Visa documents (async).
   ///
-  /// @return terminal list
+  /// Terminals represent different devices/sessions the user is logged into (e.g., "mobile", "desktop").
+  /// Retrieved via [VisaAgent.getTerminals] from the user's Visa documents.
+  ///
+  /// Returns: Set of unique terminal identifiers (empty set if none)
   Future<Set<String>> get terminals;
 
-  ///  Verify data and signature with user's public keys
+  /// Verifies data and its signature using the user's Meta/Visa public keys (async).
   ///
-  /// @param data - message data
-  /// @param signature - message signature
-  /// @return true on correct
+  /// Uses verification keys from [VisaAgent.getVerifyKeys] to validate message authenticity.
+  ///
+  /// Parameters:
+  /// - [data]      : Raw message data to verify
+  /// - [signature] : Digital signature of the data
+  ///
+  /// Returns: True if the signature is valid, false otherwise
   Future<bool> verify(Uint8List data, Uint8List signature);
 
-  ///  Encrypt data, try visa.key first, if not found, use meta.key
+  /// Encrypts plaintext data for the user's terminals (async).
   ///
-  /// @param plaintext - message data
-  /// @return encrypted data with targets (ID terminals)
+  /// Uses [VisaAgent.encryptedBundle] to create terminal-specific encrypted data:
+  /// 1. Tries Visa public keys first (terminal-specific encryption)
+  /// 2. Falls back to Meta public key (wildcard/* encryption)
+  ///
+  /// Parameters:
+  /// - [plaintext] : Raw data to encrypt (usually a symmetric message key)
+  ///
+  /// Returns: EncryptedBundle with terminal-specific encrypted data
   Future<EncryptedBundle> encryptBundle(Uint8List plaintext);
 
-  //
-  //  Interfaces for Local User
-  //
+  // -------------------------------------------------------------------------
+  //  Local User Only Interfaces (Private Key Operations)
+  // -------------------------------------------------------------------------
 
-  ///  Sign data with user's private key
+  /// Signs data with the user's private key (async, local user only).
   ///
-  /// @param data - message data
-  /// @return signature
+  /// Generates a digital signature for the data using the private key paired with
+  /// the user's Visa/Meta public key (non-repudiation).
+  ///
+  /// Parameters:
+  /// - [data] : Raw message data to sign
+  ///
+  /// Returns: Digital signature of the data
   Future<Uint8List> sign(Uint8List data);
 
-  ///  Decrypt data with user's private key(s)
+  /// Decrypts a terminal-specific EncryptedBundle (async, local user only).
   ///
-  /// @param bundle - encrypted data with targets (ID terminals)
-  /// @return plain text
+  /// Uses private keys from [UserDataSource.getPrivateKeysForDecryption] to decrypt
+  /// the bundle, extracting the original plaintext data for the user's terminals.
+  ///
+  /// Parameters:
+  /// - [bundle] : Encrypted data bundle with terminal-specific data
+  ///
+  /// Returns: Decrypted plaintext (null if decryption fails)
   Future<Uint8List?> decryptBundle(EncryptedBundle bundle);
 
-  //
-  //  Interfaces for Visa
-  //
+  // -------------------------------------------------------------------------
+  //  Visa Document Management
+  // -------------------------------------------------------------------------
+
+  /// Signs a Visa document with the user's Meta private key (async).
+  ///
+  /// Uses [UserDataSource.getPrivateKeyForVisaSignature] to sign the Visa,
+  /// verifying the document's authenticity (only Meta key is used for Visa signing).
+  ///
+  /// Parameters:
+  /// - [doc] : Visa document to sign
+  ///
+  /// Returns: Signed Visa document (null if signing fails)
   Future<Visa?> signVisa(Visa doc);
+
+  /// Verifies the signature of a Visa document (async).
+  ///
+  /// Uses the user's Meta public key (only) to verify the Visa signature,
+  /// ensuring the document was signed by the user's Meta private key.
+  ///
+  /// Parameters:
+  /// - [doc] : Visa document to verify
+  ///
+  /// Returns: True if the Visa signature is valid, false otherwise
   Future<bool> verifyVisa(Visa doc);
 }
 
-///  This interface is for getting information for user
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+/// Data source interface for user-specific data and cryptographic keys.
 ///
-///  (Encryption/decryption)
-///  1. public key for encryption
-///     if visa.key not exists, means it is the same key with meta.key
-///  2. private keys for decryption
-///     the private keys paired with [visa.key, meta.key]
+/// Extends [EntityDataSource] with user-specific key management, defining the contract
+/// for fetching private keys (local user only) and contact information.
 ///
-///  (Signature/Verification)
-///  3. private key for signature
-///     the private key paired with visa.key or meta.key
-///  4. public keys for verification
-///     [visa.key, meta.key]
-///
-///  (Visa Document)
-///  5. private key for visa signature
-///     the private key paired with meta.key
-///  6. public key for visa verification
-///     meta.key only
+/// Core cryptographic responsibilities (Visa/Meta key pairs):
+/// 1. Encryption        : Use Visa public key (terminal-specific) or Meta key (fallback)
+/// 2. Decryption        : Use private keys paired with Visa/Meta public keys
+/// 3. Signing           : Use private key paired with Visa/Meta public key
+/// 4. Verification      : Use Visa/Meta public keys
+/// 5. Visa Signing      : Use private key paired with Meta public key (only)
+/// 6. Visa Verification : Use Meta public key (only)
 abstract interface class UserDataSource implements EntityDataSource {
 
-  ///  Get contacts list
+  /// Retrieves the contact list for a user (async).
   ///
-  /// @param user - user ID
-  /// @return contacts list (ID)
+  /// Parameters:
+  /// - [user] : Unique ID of the target user
+  ///
+  /// Returns: List of contact IDs (empty list if the user has no contacts)
   Future<List<ID>> getContacts(ID user);
 
-  ///  Get user's private keys for decryption
-  ///  (which paired with [visa.key, meta.key])
+  /// Retrieves private keys for decryption (async, local user only).
   ///
-  /// @param user - user ID
-  /// @return private keys
+  /// Returns private keys paired with the user's Visa/Meta public keys, used to
+  /// decrypt terminal-specific [EncryptedBundle] data.
+  ///
+  /// Parameters:
+  /// - [user] : Unique ID of the target user
+  ///
+  /// Returns: List of decryption keys (empty list if no keys are available)
   Future<List<DecryptKey>> getPrivateKeysForDecryption(ID user);
 
-  ///  Get user's private key for signature
-  ///  (which paired with visa.key or meta.key)
+  /// Retrieves the private key for message signing (async, local user only).
   ///
-  /// @param user - user ID
-  /// @return private key
+  /// Returns the private key paired with the user's Visa/Meta public key, used to
+  /// generate digital signatures for messages.
+  ///
+  /// Parameters:
+  /// - [user] : Unique ID of the target user
+  ///
+  /// Returns: Signing key (null if no key is available)
   Future<SignKey?> getPrivateKeyForSignature(ID user);
 
-  ///  Get user's private key for signing visa
+  /// Retrieves the private key for Visa signing (async, local user only).
   ///
-  /// @param user - user ID
-  /// @return private key
+  /// Returns the private key paired with the user's Meta public key (only), used to
+  /// sign the user's Visa documents (identity verification).
+  ///
+  /// Parameters:
+  /// - [user] : Unique ID of the target user
+  ///
+  /// Returns: Signing key for Visa documents (null if no key is available)
   Future<SignKey?> getPrivateKeyForVisaSignature(ID user);
 }
 

@@ -36,6 +36,11 @@ import '../crypto/bundle.dart';
 import 'secure_delegate.dart';
 
 
+/// Packer class for decrypting SecureMessage and signing to ReliableMessage.
+///
+/// Implements two core workflows:
+/// 1. Decryption: SecureMessage → InstantMessage (reverse of encryption)
+/// 2. Signing: SecureMessage → ReliableMessage (add sender signature)
 class SecureMessagePacker {
   SecureMessagePacker(SecureMessageDelegate messenger)
       : _messenger = WeakReference(messenger);
@@ -57,6 +62,15 @@ class SecureMessagePacker {
    *    +----------+
    */
 
+  /// Decodes the encrypted key map from a SecureMessage (internal use).
+  ///
+  /// Extracts the 'key/keys' field and converts it to an EncryptedBundle for decryption.
+  ///
+  /// Parameters:
+  /// - [sMsg]     : Encrypted secure message
+  /// - [receiver] : Actual target receiver (local user ID)
+  ///
+  /// Returns: Decoded EncryptedBundle (null if no key found/broadcast message)
   // protected
   Future<EncryptedBundle?> decodeKey(SecureMessage sMsg, ID receiver) async {
     Map? msgKeys = sMsg.encryptedKeys;
@@ -77,11 +91,16 @@ class SecureMessagePacker {
     return await transceiver?.decodeKey(msgKeys, receiver, sMsg);
   }
 
-  ///  Decrypt message, replace encrypted 'data' with 'content' field
+  /// Decrypts a SecureMessage back to an InstantMessage (for local user).
   ///
-  /// @param sMsg     - encrypted message
-  /// @param receiver - actual receiver (local user)
-  /// @return InstantMessage object
+  /// Replaces the encrypted 'data' field with plaintext 'content' by decrypting the
+  /// symmetric key (with receiver's private key) and then decrypting the content.
+  ///
+  /// Parameters:
+  /// - [sMsg]     : Encrypted secure message to decrypt
+  /// - [receiver] : Actual target receiver (local user ID, must be a user)
+  ///
+  /// Returns: Decrypted InstantMessage (throws Exception if decryption fails)
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg, ID receiver) async {
     assert(receiver.isUser, 'receiver error: $receiver');
     SecureMessageDelegate? transceiver = delegate;
@@ -189,10 +208,15 @@ class SecureMessagePacker {
    *                      +----------+
    */
 
-  ///  Sign message.data, add 'signature' field
+  /// Signs a SecureMessage to create a ReliableMessage (adds sender signature).
   ///
-  /// @param sMsg - encrypted message
-  /// @return ReliableMessage object
+  /// Generates a digital signature for the encrypted 'data' field using the sender's
+  /// private key, and adds it as the 'signature' field in ReliableMessage.
+  ///
+  /// Parameters:
+  /// - [sMsg] : Encrypted secure message to sign
+  ///
+  /// Returns: Signed ReliableMessage (null if signing/encoding fails)
   Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
     SecureMessageDelegate? transceiver = delegate;
     assert(transceiver != null, 'secure message delegate not found');

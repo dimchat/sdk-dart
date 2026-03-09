@@ -35,12 +35,15 @@ import 'package:dimp/dimp.dart';
 import '../crypto/bundle.dart';
 
 
-///  Instant Message Delegate
-///  ~~~~~~~~~~~~~~~~~~~~~~~~
+/// Delegate interface for encrypting InstantMessage to SecureMessage.
+///
+/// Handles the full encryption pipeline for instant messages, including:
+/// 1. Serialization/encryption of message content (with symmetric key)
+/// 2. Encryption of symmetric key (with receiver's public key)
 abstract interface class InstantMessageDelegate {
 
   /*
-   *  Encrypt the Instant Message to Secure Message
+   *  Encryption workflow: InstantMessage → SecureMessage
    *
    *    +----------+      +----------+
    *    | sender   |      | sender   |
@@ -50,60 +53,93 @@ abstract interface class InstantMessageDelegate {
    *    | content  |      | data     |  1. data = encrypt(content, PW)
    *    +----------+      | key/keys |  2. key  = encrypt(PW, receiver.PK)
    *                      +----------+
+   *
+   *  PW: Symmetric key (password) for content encryption
+   *  receiver.PK: Receiver's public key (Visa/Meta) for key encryption
    */
 
-  //
-  //  Encrypt Content
-  //
+  // -------------------------------------------------------------------------
+  //  Content Encryption Pipeline (Steps 1-3)
+  // -------------------------------------------------------------------------
 
-  ///  1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
+  /// Serializes message content to raw bytes (Step 1).
   ///
-  /// @param content  - message.content
-  /// @param password - symmetric key (includes data compression algorithm)
-  /// @param iMsg     - instant message object
-  /// @return serialized content data
+  /// Converts structured Content object to binary format (JSON/Protobuf/etc.),
+  /// using compression algorithm specified in the symmetric key.
+  ///
+  /// Parameters:
+  /// - [content]  : Structured message content to serialize
+  /// - [password] : Symmetric key (includes compression algorithm metadata)
+  /// - [iMsg]     : Parent instant message object (context)
+  ///
+  /// Returns: Serialized binary data of the content
   Future<Uint8List> serializeContent(Content content, SymmetricKey password, InstantMessage iMsg);
 
-  ///  2. Encrypt content data to 'message.data' with symmetric key
+  /// Encrypts serialized content data with symmetric key (Step 2).
   ///
-  /// @param data     - serialized data of message.content
-  /// @param password - symmetric key
-  /// @param iMsg     - instant message object
-  /// @return encrypted message content data
+  /// Uses the symmetric key to encrypt the serialized content data,
+  /// producing the final 'data' field for SecureMessage.
+  ///
+  /// Parameters:
+  /// - [data]     : Serialized binary data of the message content
+  /// - [password] : Symmetric key for encryption
+  /// - [iMsg]     : Parent instant message object (context)
+  ///
+  /// Returns: Encrypted binary data of the content
   Future<Uint8List> encryptContent(Uint8List data, SymmetricKey password, InstantMessage iMsg);
 
-  // ///  3. Encode 'message.data' to String (Base64)
+  // /// Encodes encrypted content data to Base64 string (Step 3).
   // ///
-  // /// @param data - encrypted content data
-  // /// @param iMsg - instant message object
-  // /// @return String object
+  // /// Converts raw encrypted binary data to a Base64-encoded string for
+  // /// transmission/storage in the SecureMessage's 'data' field.
+  // ///
+  // /// Parameters:
+  // /// - [data] : Encrypted binary data of the content
+  // /// - [iMsg] : Parent instant message object (context)
+  // ///
+  // /// Returns: Base64-encoded string of the encrypted content data
   // Future<Object> encodeData(Uint8List data, InstantMessage iMsg);
 
-  //
-  //  Encrypt Key
-  //
+  // -------------------------------------------------------------------------
+  //  Key Encryption Pipeline (Steps 4-6)
+  // -------------------------------------------------------------------------
 
-  ///  4. Serialize message key to data (JsON / ProtoBuf / ...)
+  /// Serializes symmetric key to raw bytes (Step 4).
   ///
-  /// @param password - symmetric key
-  /// @param iMsg     - instant message object
-  /// @return serialized key data, null for reused (or broadcast message)
+  /// Converts the symmetric key to binary format for encryption. Returns null
+  /// if key is reused (e.g., broadcast messages) or not needed.
+  ///
+  /// Parameters:
+  /// - [password] : Symmetric key to serialize
+  /// - [iMsg]     : Parent instant message object (context)
+  ///
+  /// Returns: Serialized binary data of the key (null for reused/broadcast keys)
   Future<Uint8List?> serializeKey(SymmetricKey password, InstantMessage iMsg);
 
-  ///  5. Encrypt key data to 'message.key' with receiver's public key
+  /// Encrypts serialized key with receiver's public key (Step 5).
   ///
-  /// @param key      - serialized data of symmetric key
-  /// @param receiver - actual receiver (user, or group member)
-  /// @param iMsg     - instant message object
-  /// @return encrypted symmetric key data, null on visa not found
+  /// Uses the receiver's public key (from Visa/Meta) to encrypt the symmetric key,
+  /// producing terminal-specific encrypted data (EncryptedBundle).
+  ///
+  /// Parameters:
+  /// - [key]      : Serialized binary data of the symmetric key
+  /// - [receiver] : Actual target receiver (user/group member ID)
+  /// - [iMsg]     : Parent instant message object (context)
+  ///
+  /// Returns: Encrypted key bundle (null if receiver's Visa is not found)
   Future<EncryptedBundle?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg);
 
-  ///  6. Encode 'message.key' to String (Base64)
+  /// Encodes encrypted key bundle to message-compatible map (Step 6).
   ///
-  /// @param key      - encrypted symmetric key data and targets (ID terminals)
-  /// @param receiver - actual receiver (user, or group member)
-  /// @param iMsg     - instant message object
-  /// @return encoded key data and targets (ID + terminals)
+  /// Converts the EncryptedBundle to a map format (ID+terminal → base64 data)
+  /// suitable for inclusion in SecureMessage's 'key/keys' field.
+  ///
+  /// Parameters:
+  /// - [bundle]   : Encrypted key bundle with terminal-specific data
+  /// - [receiver] : Actual target receiver (user/group member ID)
+  /// - [iMsg]     : Parent instant message object (context)
+  ///
+  /// Returns: Encoded map (ID+terminal → base64-encoded encrypted key data)
   Future<Map<String, Object>> encodeKey(EncryptedBundle bundle, ID receiver, InstantMessage iMsg);
 
 }

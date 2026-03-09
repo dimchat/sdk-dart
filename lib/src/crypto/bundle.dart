@@ -34,49 +34,79 @@ import 'package:dimp/crypto.dart';
 import 'package:dimp/protocol.dart';
 
 
-/// User Encrypted Key Data with Terminals
-/// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/// Encrypted data bundle for user-specific key encryption across terminals.
+///
+/// Represents a collection of encrypted symmetric keys (or other sensitive data)
+/// mapped to user terminals (devices/sessions). Enables device-specific encryption
+/// so that only the target user's specific terminals can decrypt the data.
+///
+/// Key features:
+/// - Maps terminal identifiers to encrypted byte data
+/// - Supports encoding/decoding to/from message key format
+/// - Handles wildcard terminal (*) for device-agnostic encryption
 abstract interface class EncryptedBundle {
 
+  /// Converts the bundle to a raw map (terminal → encrypted bytes).
+  ///
+  /// Returns: Map with terminal strings as keys and encrypted Uint8List data
   Map<String, Uint8List> toMap();
 
+  /// Checks if the bundle contains no encrypted data for any terminal.
+  ///
+  /// @return True if empty, false otherwise
   bool get isEmpty;
   bool get isNotEmpty;
 
-  ///  Get encrypted key data for terminal
+  /// Retrieves encrypted key data for a specific terminal (index operator).
   ///
-  /// @param terminal - ID terminal
-  /// @return encrypted key data
+  /// Parameters:
+  /// - [terminal] : Target terminal identifier (e.g., "mobile", "desktop", "*" for wildcard)
+  ///
+  /// Returns: Encrypted byte data for the terminal (null if not found)
   Uint8List? operator [](String terminal);
 
-  ///  Put encrypted key data for terminal
+  /// Stores encrypted key data for a specific terminal (index assignment operator).
   ///
-  /// @param terminal - ID terminal
-  /// @param data     - encrypted key data
+  /// Parameters:
+  /// - [terminal] : Target terminal identifier
+  /// - [value]    : Encrypted byte data to store (null removes the entry)
   void operator []=(String terminal, Uint8List? value);
 
-  ///  Remove encrypted key data for terminal
+  /// Removes encrypted data for a specific terminal from the bundle.
   ///
-  /// @param terminal - ID terminal
-  /// @return removed data
+  /// Parameters:
+  /// - [terminal] : Target terminal identifier to remove
+  ///
+  /// Returns: Removed encrypted byte data (null if terminal not found)
   Uint8List? remove(String terminal);
 
-  ///  Encode key data
+  /// Encodes the bundle into a message-compatible map for transmission.
   ///
-  /// @param did - user ID
-  /// @return encoded key data with targets (ID + terminals)
+  /// Formats the encrypted data with user ID + terminal identifiers as keys,
+  /// suitable for inclusion in message "keys" field.
+  ///
+  /// Parameters:
+  /// - [did] : User ID associated with this encrypted bundle
+  ///
+  /// Returns: Encoded map (ID/terminal → base64-encoded encrypted data)
   Map<String, Object> encode(ID did);
 
-  ///  Decode key data from 'message.keys'
+  /// Decodes an encrypted bundle from a message's "keys" field (static factory).
   ///
-  /// @param keys      - encoded key data with targets (ID + terminals)
-  /// @param did       - receiver ID
-  /// @param terminals - visa terminals
-  /// @return decrypted key data with targets (ID terminals)
+  /// Extracts and parses terminal-specific encrypted data for a target user,
+  /// converting base64-encoded data back to raw bytes. Handles wildcard (*)
+  /// terminals and validates data integrity.
+  ///
+  /// Parameters:
+  /// - [keys]      : Encoded key map from message (ID+terminal → base64 data)
+  /// - [did]       : Target user ID to decode data for
+  /// - [terminals] : List of terminals to extract data for
+  ///
+  /// Returns: Decoded EncryptedBundle with terminal-specific encrypted data
   static EncryptedBundle decode(Map keys, ID did, Iterable<String> terminals) {
     EncryptedBundle bundle = UserEncryptedBundle();
     //
-    //  0. ID string without terminal
+    //  0. ID string without terminal (base identifier)
     //
     String identifier = Identifier.concat(name: did.name, address: did.address);
     String target;
@@ -86,7 +116,9 @@ abstract interface class EncryptedBundle {
     for (String item in terminals) {
       target = item.isEmpty ? '*' : item;
       //
-      //  1. get encoded data with target (ID + terminal)
+      //  1. Get encoded data for target (ID + terminal)
+      //    - Wildcard (*) uses base ID without terminal suffix
+      //    - Specific terminals use "ID/terminal" format
       //
       if (target == '*') {
         base64 = keys[identifier];
@@ -94,11 +126,11 @@ abstract interface class EncryptedBundle {
         base64 = keys['$identifier/$target'];
       }
       if (base64 == null) {
-        // key data not found
+        // Key data not found for this terminal - skip
         continue;
       }
       //
-      //  2. decode data
+      //  2. Decode base64 data to raw bytes
       //
       ted = TransportableData.parse(base64);
       data = ted?.bytes;
@@ -107,7 +139,7 @@ abstract interface class EncryptedBundle {
         continue;
       }
       //
-      //  3. put data for target (ID terminal)
+      //  3. Store decoded data for the terminal
       //
       bundle[target] = data;
     }
