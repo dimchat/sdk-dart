@@ -31,51 +31,72 @@
 import 'package:dimp/dkd.dart';
 
 
-///  Message Packer
-///  ~~~~~~~~~~~~~~
+// -----------------------------------------------------------------------------
+//  Message Packer (Encryption/Signature/Serialization)
+// -----------------------------------------------------------------------------
+
+/// Message packing/unpacking interface (encryption → signature → serialization).
+///
+/// Core workflow (packing):
+/// `InstantMessage` (plain) → `SecureMessage` (encrypted) → `ReliableMessage` (signed) → `Uint8List` (binary)
+///
+/// Core workflow (unpacking):
+/// `Uint8List` (binary) → `ReliableMessage` (signed) → `SecureMessage` (encrypted) → `InstantMessage` (plain)
 abstract interface class Packer {
 
   //
   //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
   //
 
-  ///  Encrypt message content
+  /// Encrypts the content of a plain instant message to create a secure message.
   ///
-  /// @param iMsg - plain message
-  /// @return encrypted message
+  /// Parameters:
+  /// - [iMsg] : Plain instant message to encrypt (contains unencrypted content)
+  ///
+  /// Returns: Encrypted secure message (null if encryption fails)
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg);
 
-  ///  Sign content data
+  /// Signs the encrypted data of a secure message to create a reliable message.
   ///
-  /// @param sMsg - encrypted message
-  /// @return network message
+  /// Parameters:
+  /// - [sMsg] : Encrypted secure message to sign (contains encrypted data)
+  ///
+  /// Returns: Signed reliable message (null if signing fails)
   Future<ReliableMessage?> signMessage(SecureMessage sMsg);
 
-  // ///  Serialize network message
+  // /// Serializes a signed reliable message to binary data (network transport format).
   // ///
-  // /// @param rMsg - network message
-  // /// @return data package
+  // /// Parameters:
+  // /// - [rMsg] : Signed reliable message to serialize
+  // ///
+  // /// Returns: Binary data package (null if serialization fails)
   // Future<Uint8List?> serializeMessage(ReliableMessage rMsg);
 
   //
   //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
   //
 
-  // ///  Deserialize network message
+  // /// Deserializes binary data back to a reliable message (reverse of serialize).
   // ///
-  // /// @param data - data package
-  // /// @return network message
+  // /// Parameters:
+  // /// - [data] : Binary data package to deserialize
+  // ///
+  // /// Returns: Deserialized reliable message (null if deserialization fails)
   // Future<ReliableMessage?> deserializeMessage(Uint8List data);
 
-  ///  Verify encrypted content data
+  /// Verifies the signature of a reliable message to retrieve the secure message.
   ///
-  /// @param rMsg - network message
-  /// @return encrypted message
+  /// Parameters:
+  /// - [rMsg] : Reliable message to verify (checks signature validity)
+  ///
+  /// Returns: Verified secure message (null if verification fails)
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg);
 
-  ///  Decrypt message content
+  /// Decrypts the data of a secure message to retrieve the plain instant message.
   ///
-  /// @param sMsg - encrypted message
-  /// @return plain message
+  /// Parameters:
+  /// - [sMsg] : Encrypted secure message to decrypt
+  ///
+  /// Returns: Decrypted plain instant message (null if decryption fails)
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg);
 }

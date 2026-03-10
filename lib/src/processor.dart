@@ -42,22 +42,34 @@ import 'messenger.dart';
 import 'twins.dart';
 
 
+/// Concrete implementation of [Processor] with twin dependencies (Facebook + Messenger).
+///
+/// Implements the full message processing pipeline, delegating content processing
+/// to a [ContentProcessorFactory] for different content types.
 abstract class MessageProcessor extends TwinsHelper implements Processor {
   MessageProcessor(Facebook facebook, Messenger messenger)
       : super(facebook, messenger) {
     factory = createFactory(facebook, messenger);
   }
 
-  /// CPU factory
+  /// Factory for creating content processors (internal use only).
+  /// CPU = Content Processor Unit
   // private
   late final ContentProcessorFactory factory;
 
+  /// Creates a [ContentProcessorFactory] instance (must be overridden by subclasses).
+  ///
+  /// Parameters:
+  /// - [facebook]  : Entity management service
+  /// - [messenger] : Messaging service
+  ///
+  /// Returns: New [ContentProcessorFactory] instance
   // protected
   ContentProcessorFactory createFactory(Facebook facebook, Messenger messenger);
 
-  //
-  //  Processing Message
-  //
+  // -------------------------------------------------------------------------
+  //  Message Processing Pipeline
+  // -------------------------------------------------------------------------
 
   @override
   Future<List<Uint8List>> processPackage(Uint8List data) async {

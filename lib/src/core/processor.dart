@@ -33,40 +33,58 @@ import 'dart:typed_data';
 import 'package:dimp/dkd.dart';
 
 
-///  Message Processor
-///  ~~~~~~~~~~~~~~~~~
+// -----------------------------------------------------------------------------
+//  Message Processor (Processing Pipeline)
+// -----------------------------------------------------------------------------
+
+/// Message processing interface (handles received messages and generates responses).
+///
+/// Processes messages through a layered pipeline:
+/// Binary package → ReliableMessage → SecureMessage → InstantMessage → Content
+///
+/// Generates response messages by reversing the pipeline.
 abstract interface class Processor {
 
-  ///  Process data package
+  /// Processes a binary data package to generate response packages.
   ///
-  /// @param data - data to be processed
-  /// @return responses
+  /// Parameters:
+  /// - [data] : Binary data package to process (received from network)
+  ///
+  /// Returns: List of binary response packages (empty if no response needed)
   Future<List<Uint8List>> processPackage(Uint8List data);
 
-  ///  Process network message
+  /// Processes a reliable message to generate response reliable messages.
   ///
-  /// @param rMsg - message to be processed
-  /// @return response messages
+  /// Parameters:
+  /// - [rMsg] : Reliable message to process (after deserialization)
+  ///
+  /// Returns: List of reliable response messages (empty if no response needed)
   Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg);
 
-  ///  Process encrypted message
+  /// Processes a secure message to generate response secure messages.
   ///
-  /// @param sMsg - message to be processed
-  /// @param rMsg - message received
-  /// @return response messages
+  /// Parameters:
+  /// - [sMsg] : Secure message to process (after verification)
+  /// - [rMsg] : Original reliable message (for context)
+  ///
+  /// Returns: List of secure response messages (empty if no response needed)
   Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg);
 
-  ///  Process plain message
+  /// Processes a plain instant message to generate response instant messages.
   ///
-  /// @param iMsg - message to be processed
-  /// @param rMsg - message received
-  /// @return response messages
+  /// Parameters:
+  /// - [iMsg] : Instant message to process (after decryption)
+  /// - [rMsg] : Original reliable message (for context)
+  ///
+  /// Returns: List of instant response messages (empty if no response needed)
   Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg);
 
-  ///  Process message content
+  /// Processes message content to generate response content items.
   ///
-  /// @param content - content to be processed
-  /// @param rMsg - message received
-  /// @return response contents
+  /// Parameters:
+  /// - [content] : Message content to process (extracted from instant message)
+  /// - [rMsg]    : Original reliable message (for context)
+  ///
+  /// Returns: List of response content items (empty if no response needed)
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg);
 }

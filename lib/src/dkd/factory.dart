@@ -33,15 +33,23 @@ import 'package:dimp/dkd.dart';
 import 'proc.dart';
 
 
-/// General ContentProcessor Factory
-/// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// -----------------------------------------------------------------------------
+// GeneralContentProcessorFactory (Concrete CPU Factory)
+// -----------------------------------------------------------------------------
+
+/// General implementation of [ContentProcessorFactory] with caching support.
+///
+/// Maintains caches for content processors and command processors to reuse instances,
+/// delegating creation to a [ContentProcessorCreator] when cache misses occur.
 class GeneralContentProcessorFactory implements ContentProcessorFactory {
   GeneralContentProcessorFactory(this.creator);
 
   // protected
   final ContentProcessorCreator creator;
 
+  /// Cache of content processors (key: content type).
   final Map<String, ContentProcessor> _contentProcessors = {};
+  /// Cache of command processors (key: command name).
   final Map<String, ContentProcessor> _commandProcessors = {};
 
   @override
@@ -78,6 +86,15 @@ class GeneralContentProcessorFactory implements ContentProcessorFactory {
     return cpu;
   }
 
+  /// Retrieves a command processor from cache (or creates it).
+  ///
+  /// Private helper method - internal use only.
+  ///
+  /// Parameters:
+  /// - [msgType] : Content type identifier (typically "command")
+  /// - [cmd]     : Command name (e.g., "meta", "documents", "group", ...)
+  ///
+  /// Returns: Command processor instance (null if unsupported)
   // private
   ContentProcessor? getCommandProcessor(String msgType, String cmd) {
     ContentProcessor? cpu = _commandProcessors[cmd];

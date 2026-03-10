@@ -43,37 +43,51 @@ import '../msg/secure_delegate.dart';
 import 'compressor.dart';
 
 
-///  Message Transformer
-///  ~~~~~~~~~~~~~~~~~~~
+// -----------------------------------------------------------------------------
+//  Message Transformer (Message Format Conversion)
+// -----------------------------------------------------------------------------
+
+/// Message format transformer (converts between plain/encrypted/signed formats).
 ///
-///  Converting message format between PlainMessage and NetworkMessage
+/// Implements low-level serialization/deserialization, encryption/decryption,
+/// and signature/verification logic for different message types.
+///
+/// Implements: [InstantMessageDelegate], [SecureMessageDelegate], [ReliableMessageDelegate]
 abstract class Transformer implements InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate {
 
+  /// Entity management service (user/group operations) - internal use only.
   // protected
   EntityDelegate get facebook;
 
+  /// Data compression service (short key + JSON + UTF8) - internal use only.
   // protected
   Compressor get compressor;
 
-  ///  Serialize network message
+  /// Serializes a reliable message to binary data (uses compressor).
   ///
-  /// @param rMsg - network message
-  /// @return data package
+  /// Parameters:
+  /// - [rMsg] : Reliable message to serialize
+  ///
+  /// Returns: Binary data package (null if serialization fails)
   Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
     Map info = rMsg.toMap();
     return compressor.compressReliableMessage(info);
   }
 
-  ///  Deserialize network message
+  /// Deserializes binary data back to a reliable message (uses compressor).
   ///
-  /// @param data - data package
-  /// @return network message
+  /// Parameters:
+  /// - [data] : Binary data package to deserialize
+  ///
+  /// Returns: Deserialized reliable message (null if deserialization fails)
   Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
     Object? info = compressor.extractReliableMessage(data);
     return ReliableMessage.parse(info);
   }
 
-  //-------- InstantMessageDelegate
+  // -------------------------------------------------------------------------
+  //  InstantMessageDelegate Implementation
+  // -------------------------------------------------------------------------
 
   @override
   Future<Uint8List> serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) async {
@@ -129,7 +143,9 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
     // TODO: check for wildcard
   }
 
-  //-------- SecureMessageDelegate
+  // -------------------------------------------------------------------------
+  //  SecureMessageDelegate Implementation
+  // -------------------------------------------------------------------------
 
   @override
   Future<EncryptedBundle?> decodeKey(Map keys, ID receiver, SecureMessage sMsg) async {
@@ -227,7 +243,9 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
   //   return TransportableData.encode(signature);
   // }
 
-  //-------- ReliableMessageDelegate
+  // -------------------------------------------------------------------------
+  //  ReliableMessageDelegate Implementation
+  // -------------------------------------------------------------------------
 
   // @override
   // Future<Uint8List?> decodeSignature(Object signature, ReliableMessage rMsg) async {

@@ -34,8 +34,24 @@ import '../dkd/proc.dart';
 import '../twins.dart';
 
 
-/// CPU - Content Processing Unit
+// -----------------------------------------------------------------------------
+//  BaseContentProcessor (Default CPU Implementation)
+// -----------------------------------------------------------------------------
+
+/// Base implementation of [ContentProcessor] with common response utilities.
+///
+/// Provides default handling for unsupported content types (returns "not supported" receipt)
+/// and utility methods for creating receipt responses. Serves as the parent class
+/// for all concrete content processors.
+///
+/// Extends [TwinsHelper] to access Facebook (entity management) and Messenger services.
 class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
+
+  /// Creates a [BaseContentProcessor] with required twin dependencies.
+  ///
+  /// Parameters:
+  /// - [facebook]  : Entity management service (user/group operations)
+  /// - [messenger] : Messaging service (packing/processing)
   BaseContentProcessor(super.facebook, super.messenger);
 
   @override
@@ -49,10 +65,21 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
     });
   }
 
-  //
-  //  Convenient responding
-  //
+  // -------------------------------------------------------------------------
+  //  Response Utility Methods
+  // -------------------------------------------------------------------------
 
+  /// Creates a list containing a single receipt command response.
+  ///
+  /// Convenience method for consistent response formatting across processors.
+  ///
+  /// Parameters:
+  /// - [text]     : Human-readable response text
+  /// - [envelope] : Original message envelope (for sender/receiver context)
+  /// - [content]  : Original message content (optional, for additional context)
+  /// - [extra]    : Extra key-value data to include in the receipt (optional)
+  ///
+  /// Returns: List with one [ReceiptCommand] instance
   // protected
   List<ReceiptCommand> respondReceipt(String text, {
     required Envelope envelope, Content? content, Map<String, Object>? extra
@@ -60,13 +87,18 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
     createReceipt(text, envelope: envelope, content: content, extra: extra)
   ];
 
-  ///  receipt command with text, original envelope, serial number & group
+  /// Creates a receipt command with standardized formatting.
   ///
-  /// @param text     - respond message
-  /// @param envelope - original message envelope
-  /// @param content  - original message content
-  /// @param extra    - extra info
-  /// @return receipt command
+  /// Includes original message context (envelope, serial number, group ID)
+  /// and optional extra data. Static method for use without instantiation.
+  ///
+  /// Parameters:
+  /// - [text]     : Human-readable response text
+  /// - [envelope] : Original message envelope (provides sender/receiver/serial number)
+  /// - [content]  : Original message content (optional, for group ID or other context)
+  /// - [extra]    : Extra key-value data to add to the receipt (optional)
+  ///
+  /// Returns: Formatted [ReceiptCommand] instance
   static ReceiptCommand createReceipt(String text, {
     required Envelope envelope, Content? content, Map<String, Object>? extra
   }) {
@@ -82,8 +114,21 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
 }
 
 
-/// CPU - Command Processing Unit
+// -----------------------------------------------------------------------------
+//  BaseCommandProcessor (Default Command CPU)
+// -----------------------------------------------------------------------------
+
+/// Base implementation of [ContentProcessor] for command content.
+///
+/// Specializes [BaseContentProcessor] for command handling, providing default
+/// "command not supported" responses for unsupported commands.
 class BaseCommandProcessor extends BaseContentProcessor {
+
+  /// Creates a [BaseCommandProcessor] with required twin dependencies.
+  ///
+  /// Parameters:
+  /// - [facebook]  : Entity management service (user/group operations)
+  /// - [messenger] : Messaging service (packing/processing)
   BaseCommandProcessor(super.facebook, super.messenger);
 
   @override

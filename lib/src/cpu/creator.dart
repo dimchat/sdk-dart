@@ -38,8 +38,22 @@ import 'commands.dart';
 import 'contents.dart';
 
 
-/// Base ContentProcessor Creator
+// -----------------------------------------------------------------------------
+//  BaseContentProcessorCreator (Concrete CPU Creator)
+// -----------------------------------------------------------------------------
+
+/// Base implementation of [ContentProcessorCreator] for standard content/command types.
+///
+/// Creates concrete processors for common content types (forward, array, ...) and
+/// standard commands (meta, documents, ...), falling back to base processors for
+/// unsupported types/commands.
 class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessorCreator {
+
+  /// Creates a [BaseContentProcessorCreator] with required twin dependencies.
+  ///
+  /// Parameters:
+  /// - [facebook]  : Entity management service (user/group operations)
+  /// - [messenger] : Messaging service (packing/processing)
   BaseContentProcessorCreator(super.facebook, super.messenger);
 
   @override

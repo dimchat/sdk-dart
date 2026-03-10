@@ -36,8 +36,28 @@ import 'facebook.dart';
 import 'messenger.dart';
 
 
+/// Base helper class that provides unified access to Facebook and Messenger dependencies.
+///
+/// "Twins" refers to the paired core services:
+/// - **Facebook**: Entity management (user/group metadata, local user selection)
+/// - **Messenger**: Messaging core (packing/unpacking, encryption/decryption, key management)
+///
+/// Key design features:
+/// 1. Uses **WeakReference** to hold dependencies, preventing memory leaks (avoids circular references)
+/// 2. Provides a unified entry point for local user selection (critical for message decryption)
+/// 3. Serves as the parent class for all core messaging components (Packer/Processor/ContentProcessor)
+///
+/// All subclasses inherit access to Facebook/Messenger and the local user selection logic,
+/// ensuring consistent dependency management across the messaging system.
 abstract class TwinsHelper {
 
+  /// Creates a [TwinsHelper] with references to the core Facebook and Messenger services.
+  ///
+  /// Parameters:
+  /// - [facebook]  : Entity management service (user/group operations)
+  /// - [messenger] : Core messaging service (packing/processing/key management)
+  ///
+  /// Note: Uses WeakReference to store dependencies to avoid memory leaks.
   TwinsHelper(Facebook facebook, Messenger messenger)
       : _facebook = WeakReference(facebook),
         _messenger = WeakReference(messenger);
@@ -45,28 +65,38 @@ abstract class TwinsHelper {
   final WeakReference<Facebook> _facebook;
   final WeakReference<Messenger> _messenger;
 
+  /// Retrieves the Facebook service instance (nullable - may be GC'd).
+  ///
+  /// Returns: Facebook instance (null if garbage collected or not initialized)
   Facebook? get facebook => _facebook.target;
+
+  /// Retrieves the Messenger service instance (nullable - may be GC'd).
+  ///
+  /// Returns: Messenger instance (null if garbage collected or not initialized)
   Messenger? get messenger => _messenger.target;
 
   /// Selects the local User entity for decrypting messages to a target receiver (unified entry).
   ///
   /// Orchestration logic (receiver type routing):
-  /// 1. Broadcast receiver → use [Facebook.selectUser] (any local user)
-  /// 2. User receiver → use [Facebook.selectUser] (matching local user)
+  /// 1. Broadcast receiver → use [Facebook.selectUser] (any local user can decrypt)
+  /// 2. User receiver → use [Facebook.selectUser] (matching local user for personal message)
   /// 3. Group receiver →
-  ///    a. Get group members via Facebook
-  ///    b. Use [Facebook.selectMember] (local user in member list)
+  ///    a. Get group members via Facebook (guaranteed to exist per precondition)
+  ///    b. Use [Facebook.selectMember] (find local user in group member list)
   /// 4. Convert selected user ID to full User entity (via [Facebook.getUser])
   ///
   /// Precondition: Group member list is guaranteed to exist
   ///
   /// Parameters:
-  /// - [receiver] : Target receiver ID (broadcast/user/group)
+  /// - [receiver] : Target receiver ID (supports broadcast/user/group types)
   ///
-  /// Returns: Local User entity for decryption (null if no matching user found)
+  /// Returns: Local User entity for decryption (null if no matching local user found)
   ///
-  /// Throws: Assertion error if Facebook is unavailable, receiver is invalid, or group members are empty
-  // protected
+  /// Throws: Assertion error if:
+  /// - Facebook service is unavailable (null)
+  /// - Receiver type is invalid (not broadcast/user/group)
+  /// - Group member list is empty/missing (violates precondition)
+  // protected - intended for use by subclasses only
   Future<User?> selectLocalUser(ID receiver) async {
     assert(facebook != null, 'facebook not ready');
     ID? me;

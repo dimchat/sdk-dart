@@ -46,6 +46,10 @@ import 'messenger.dart';
 import 'twins.dart';
 
 
+/// Concrete implementation of [Packer] with twin dependencies (Facebook + Messenger).
+///
+/// Handles message encryption/decryption with directional symmetric keys,
+/// supports both personal and group message encryption logic.
 abstract class MessagePacker extends TwinsHelper implements Packer {
   MessagePacker(Facebook facebook, Messenger messenger)
       : super(facebook, messenger) {
@@ -59,7 +63,7 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
   late final SecureMessagePacker   securePacker;
   late final ReliableMessagePacker reliablePacker;
 
-  // protected: create message packers
+  // protected: create message packers (can be overridden by subclasses)
   InstantMessagePacker createInstantMessagePacker(InstantMessageDelegate delegate) =>
       InstantMessagePacker(delegate);
   SecureMessagePacker createSecureMessagePacker(SecureMessageDelegate delegate) =>
@@ -67,9 +71,9 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
   ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate delegate) =>
       ReliableMessagePacker(delegate);
 
-  //
-  //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
-  //
+  // -------------------------------------------------------------------------
+  //  Packing Workflow (Instant → Secure → Reliable → Binary)
+  // -------------------------------------------------------------------------
 
   @override
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async {
@@ -145,9 +149,9 @@ abstract class MessagePacker extends TwinsHelper implements Packer {
   // Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async =>
   //     compressor.compressReliableMessage(rMsg.toMap());
 
-  //
-  //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
-  //
+  // -------------------------------------------------------------------------
+  //  Unpacking Workflow (Binary → Reliable → Secure → Instant)
+  // -------------------------------------------------------------------------
 
   // @override
   // Future<ReliableMessage?> deserializeMessage(Uint8List data) async {

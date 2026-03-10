@@ -31,50 +31,91 @@
 import 'package:dimp/dkd.dart';
 
 
-///  CPU: Content Processing Unit
-///  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// -----------------------------------------------------------------------------
+//  ContentProcessor (CPU: Content Processing Unit)
+// -----------------------------------------------------------------------------
+
+/// Content processing unit (CPU) - core interface for handling message content.
+///
+/// Defines the standard interface for processing different types of message content
+/// (e.g., text, commands, files, ...) and generating response content.
+///
+/// Each implementation handles a specific content type or command, following the
+/// single responsibility principle.
 abstract interface class ContentProcessor {
 
-  ///  Process message content
+  /// Processes incoming message content and generates response contents.
   ///
-  /// @param content - content received
-  /// @param rMsg    - reliable message
-  /// @return {Content} response to sender
+  /// Parameters:
+  /// - [content] : Incoming message content to process (e.g., text, command, file, ...)
+  /// - [rMsg]    : Original reliable message (provides context: sender, receiver, envelope)
+  ///
+  /// Returns: List of response content items (empty list if no response is needed)
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg);
 
 }
 
 
-///  CPU Creator
-///  ~~~~~~~~~~~
+// -----------------------------------------------------------------------------
+//  ContentProcessorCreator (CPU Creator)
+// -----------------------------------------------------------------------------
+
+/// Creator interface for instantiating content/command processors.
+///
+/// Implements the Factory Method pattern to create specific [ContentProcessor]
+/// instances based on content type or command name, decoupling creation logic
+/// from usage logic.
 abstract interface class ContentProcessorCreator {
 
-  ///  Create content processor with type
+  /// Creates a content processor for a specific content type.
   ///
-  /// @param msgType - content type
-  /// @return ContentProcessor
+  /// Parameters:
+  /// - [msgType] : Content type identifier (e.g., "text", "command", "file", ...)
+  ///
+  /// Returns: Specific [ContentProcessor] instance (null if type is unsupported)
   ContentProcessor? createContentProcessor(String msgType);
 
-  ///  Create command processor with name
+  /// Creates a command processor for a specific content type and command name.
   ///
-  /// @param msgType - content type
-  /// @param cmdName - command name
-  /// @return CommandProcessor
+  /// Parameters:
+  /// - [msgType] : Content type identifier (typically "command" for command content)
+  /// - [cmdName] : Command name (e.g., "meta", "documents", "group", ...)
+  ///
+  /// Returns: Specific command processor instance (null if command is unsupported)
   ContentProcessor? createCommandProcessor(String msgType, String cmdName);
 
 }
 
 
-///  CPU Factory
-///  ~~~~~~~~~~~
+// -----------------------------------------------------------------------------
+//  ContentProcessorFactory (CPU Factory)
+// -----------------------------------------------------------------------------
+
+/// Factory interface for retrieving cached content/command processors.
+///
+/// Manages a cache of [ContentProcessor] instances to avoid repeated creation,
+/// and provides unified access to processors for different content types/commands.
 abstract interface class ContentProcessorFactory {
 
-  ///  Get content/command processor
+  /// Retrieves the appropriate processor for a given content instance.
   ///
-  /// @param content - Content/Command
-  /// @return ContentProcessor
+  /// For command content:
+  /// 1. First tries to get a processor for the specific command name
+  /// 2. Falls back to group command processor (if applicable)
+  /// 3. Finally uses the default content processor for the content type
+  ///
+  /// Parameters:
+  /// - [content] : Content instance to get processor for (can be regular content or command)
+  ///
+  /// Returns: Matching [ContentProcessor] instance (null if no processor found)
   ContentProcessor? getContentProcessor(Content content);
 
+  /// Retrieves a content processor for a specific content type.
+  ///
+  /// Parameters:
+  /// - [msgType] : Content type identifier (e.g., "text", "command", "file", ...)
+  ///
+  /// Returns: [ContentProcessor] instance for the type (null if type is unsupported)
   ContentProcessor? getContentProcessorForType(String msgType);
 
 }

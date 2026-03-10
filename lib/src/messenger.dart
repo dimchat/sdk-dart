@@ -38,18 +38,35 @@ import 'core/processor.dart';
 import 'core/transformer.dart';
 
 
+// -----------------------------------------------------------------------------
+//  Messenger (Unified Messaging Service)
+// -----------------------------------------------------------------------------
+
+/// Unified messaging service (combines packing, processing, and key management).
+///
+/// Acts as a facade for all messaging operations:
+/// 1. Delegates packing/unpacking to a [Packer] implementation
+/// 2. Delegates message processing to a [Processor] implementation
+/// 3. Manages directional symmetric keys via [CipherKeyDelegate]
+///
+/// Implements: [Transformer], [Packer], [Processor]
 abstract class Messenger extends Transformer implements Packer, Processor {
 
+  /// Key management delegate (directional symmetric keys) - internal use only.
   // protected
   CipherKeyDelegate? get cipherKeyDelegate;
 
+  /// Message packer implementation (delegated packing/unpacking) - internal use only.
   // protected
   Packer? get packer;
 
+  /// Message processor implementation (delegated processing) - internal use only.
   // protected
   Processor? get processor;
 
-  //-------- SecureMessageDelegate
+  // -------------------------------------------------------------------------
+  //  SecureMessageDelegate Overrides (Key Caching)
+  // -------------------------------------------------------------------------
 
   @override
   Future<SymmetricKey?> deserializeKey(Uint8List? key, SecureMessage sMsg) async {
@@ -66,16 +83,33 @@ abstract class Messenger extends Transformer implements Packer, Processor {
     return password;
   }
 
-  //
-  //  Interfaces for Cipher Key
-  //
+  // -------------------------------------------------------------------------
+  //  Cipher Key Management (Directional Symmetric Keys)
+  // -------------------------------------------------------------------------
 
+  /// Retrieves the encryption key for an instant message (generates if missing).
+  ///
+  /// Uses directional key scoping (sender → target) via [CipherKeyDelegate].
+  ///
+  /// Parameters:
+  /// - [iMsg] : Instant message to get encryption key for
+  ///
+  /// Returns: Directional symmetric encryption key (null if unavailable)
   Future<SymmetricKey?> getEncryptKey(InstantMessage iMsg) async {
     ID sender = iMsg.sender;
     ID target = CipherKeyDelegate.getDestinationForMessage(iMsg);
     var db = cipherKeyDelegate;
     return await db?.getCipherKey(sender: sender, receiver: target, generate: true);
   }
+
+  /// Retrieves the decryption key for a secure message (does not generate).
+  ///
+  /// Uses directional key scoping (sender → target) via [CipherKeyDelegate].
+  ///
+  /// Parameters:
+  /// - [sMsg] : Secure message to get decryption key for
+  ///
+  /// Returns: Directional symmetric decryption key (null if unavailable)
   Future<SymmetricKey?> getDecryptKey(SecureMessage sMsg) async {
     ID sender = sMsg.sender;
     ID target = CipherKeyDelegate.getDestinationForMessage(sMsg);
@@ -83,6 +117,13 @@ abstract class Messenger extends Transformer implements Packer, Processor {
     return await db?.getCipherKey(sender: sender, receiver: target, generate: false);
   }
 
+  /// Caches a decryption key for future use (directional scoping).
+  ///
+  /// Parameters:
+  /// - [key]  : Symmetric key to cache
+  /// - [sMsg] : Secure message (for direction context)
+  ///
+  /// Returns: Future that completes when caching is done (no return value)
   Future<void> cacheDecryptKey(SymmetricKey key, SecureMessage sMsg) async {
     ID sender = sMsg.sender;
     ID target = CipherKeyDelegate.getDestinationForMessage(sMsg);
@@ -90,9 +131,9 @@ abstract class Messenger extends Transformer implements Packer, Processor {
     return await db?.cacheCipherKey(sender: sender, receiver: target, key: key);
   }
 
-  //
-  //  Interfaces for Packing Message
-  //
+  // -------------------------------------------------------------------------
+  //  Packer Interface Delegation
+  // -------------------------------------------------------------------------
 
   @override
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg) async =>
@@ -118,9 +159,9 @@ abstract class Messenger extends Transformer implements Packer, Processor {
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg) async =>
       await packer?.decryptMessage(sMsg);
 
-  //
-  //  Interfaces for Processing Message
-  //
+  // -------------------------------------------------------------------------
+  //  Processor Interface Delegation
+  // -------------------------------------------------------------------------
 
   @override
   Future<List<Uint8List>> processPackage(Uint8List data) async =>
