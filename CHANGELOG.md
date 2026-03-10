@@ -1,6 +1,6 @@
 ## 2.3.2
 
-- VisaAgent extension.
+- Message Transformer.
 
 ## 2.3.1
 

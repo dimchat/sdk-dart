@@ -43,11 +43,11 @@ import '../msg/secure_delegate.dart';
 import 'compressor.dart';
 
 
-///  Message Transceiver
+///  Message Transformer
 ///  ~~~~~~~~~~~~~~~~~~~
 ///
 ///  Converting message format between PlainMessage and NetworkMessage
-abstract class Transceiver implements InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate {
+abstract class Transformer implements InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate {
 
   // protected
   EntityDelegate get facebook;

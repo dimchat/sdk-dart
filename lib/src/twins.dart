@@ -39,14 +39,14 @@ import 'messenger.dart';
 abstract class TwinsHelper {
 
   TwinsHelper(Facebook facebook, Messenger messenger)
-      : _barrack = WeakReference(facebook),
-        _transceiver = WeakReference(messenger);
+      : _facebook = WeakReference(facebook),
+        _messenger = WeakReference(messenger);
 
-  final WeakReference<Facebook> _barrack;
-  final WeakReference<Messenger> _transceiver;
+  final WeakReference<Facebook> _facebook;
+  final WeakReference<Messenger> _messenger;
 
-  Facebook? get facebook => _barrack.target;
-  Messenger? get messenger => _transceiver.target;
+  Facebook? get facebook => _facebook.target;
+  Messenger? get messenger => _messenger.target;
 
   /// Selects the local User entity for decrypting messages to a target receiver (unified entry).
   ///

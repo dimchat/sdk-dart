@@ -35,10 +35,10 @@ import 'package:dimp/dimp.dart';
 import 'core/delegate.dart';
 import 'core/packer.dart';
 import 'core/processor.dart';
-import 'core/transceiver.dart';
+import 'core/transformer.dart';
 
 
-abstract class Messenger extends Transceiver implements Packer, Processor {
+abstract class Messenger extends Transformer implements Packer, Processor {
 
   // protected
   CipherKeyDelegate? get cipherKeyDelegate;

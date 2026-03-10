@@ -77,13 +77,13 @@ class InstantMessagePacker {
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg, SymmetricKey password, {List<ID>? members}) async {
     // TODO: check attachment for File/Image/Audio/Video message content
     //      (do it by application)
-    InstantMessageDelegate? transceiver = delegate;
-    assert(transceiver != null, 'instant message delegate not found');
+    InstantMessageDelegate? transformer = delegate;
+    assert(transformer != null, 'instant message delegate not found');
 
     //
     //  1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
     //
-    Uint8List? body = await transceiver?.serializeContent(iMsg.content, password, iMsg);
+    Uint8List? body = await transformer?.serializeContent(iMsg.content, password, iMsg);
     if (body == null || body.isEmpty) {
       assert(false, 'failed to serialize content: ${iMsg.content}');
       return null;
@@ -92,7 +92,7 @@ class InstantMessagePacker {
     //
     //  2. Encrypt content data to 'message.data' with symmetric key
     //
-    Uint8List? ciphertext = await transceiver?.encryptContent(body, password, iMsg);
+    Uint8List? ciphertext = await transformer?.encryptContent(body, password, iMsg);
     if (ciphertext == null || ciphertext.isEmpty) {
       assert(false, 'failed to encrypt content with key: $password');
       return null;
@@ -119,7 +119,7 @@ class InstantMessagePacker {
     //
     //  4. Serialize message key to data (JsON / ProtoBuf / ...)
     //
-    Uint8List? pwd = await transceiver?.serializeKey(password, iMsg);
+    Uint8List? pwd = await transformer?.serializeKey(password, iMsg);
     // NOTICE:
     //    if the key is reused, iMsg must be updated with key digest.
     Map info = iMsg.copyMap();
@@ -155,7 +155,7 @@ class InstantMessagePacker {
       //
       //  5. Encrypt key data to 'message.keys' with member's public key
       //
-      bundle = await transceiver?.encryptKey(pwd, receiver, iMsg);
+      bundle = await transformer?.encryptKey(pwd, receiver, iMsg);
       if (bundle == null || bundle.isEmpty) {
         // public key for member not found
         // TODO: suspend this message for waiting member's visa
@@ -193,8 +193,8 @@ class InstantMessagePacker {
   /// Returns: Encoded key map (ID+terminal → base64 data, null if encoding fails)
   // protected
   Future<Map<String, Object>?> encodeKeys(Map<ID, EncryptedBundle> bundleMap, InstantMessage iMsg) async {
-    InstantMessageDelegate? transceiver = delegate;
-    assert(transceiver != null, 'instant message delegate not found');
+    InstantMessageDelegate? transformer = delegate;
+    assert(transformer != null, 'instant message delegate not found');
     Map<String, Object> msgKeys = {};
     ID receiver;
     EncryptedBundle bundle;
@@ -202,7 +202,7 @@ class InstantMessagePacker {
     for (MapEntry<ID, EncryptedBundle> entry in bundleMap.entries) {
       receiver = entry.key;
       bundle = entry.value;
-      encodedKeys = await transceiver?.encodeKey(bundle, receiver, iMsg);
+      encodedKeys = await transformer?.encodeKey(bundle, receiver, iMsg);
       if (encodedKeys == null || encodedKeys.isEmpty) {
         assert(false, 'failed to encode key data: $receiver');
         continue;

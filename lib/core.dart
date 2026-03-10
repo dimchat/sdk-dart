@@ -9,7 +9,7 @@ export 'src/core/compress_keys.dart';
 export 'src/core/compressor.dart';
 export 'src/core/packer.dart';
 export 'src/core/processor.dart';
-export 'src/core/transceiver.dart';  // require 'mkm/*'
+export 'src/core/transformer.dart';  // require 'mkm/*'
 
 export 'src/facebook.dart';   // require 'archivist.dart', 'core/*', 'mkm/*'
 export 'src/messenger.dart';  // require 'core/*'

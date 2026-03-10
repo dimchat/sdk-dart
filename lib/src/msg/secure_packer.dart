@@ -86,9 +86,9 @@ class SecureMessagePacker {
         receiver.toString(): base64,
       };
     }
-    SecureMessageDelegate? transceiver = delegate;
-    assert(transceiver != null, 'secure message delegate not found');
-    return await transceiver?.decodeKey(msgKeys, receiver, sMsg);
+    SecureMessageDelegate? transformer = delegate;
+    assert(transformer != null, 'secure message delegate not found');
+    return await transformer?.decodeKey(msgKeys, receiver, sMsg);
   }
 
   /// Decrypts a SecureMessage back to an InstantMessage (for local user).
@@ -103,8 +103,8 @@ class SecureMessagePacker {
   /// Returns: Decrypted InstantMessage (throws Exception if decryption fails)
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg, ID receiver) async {
     assert(receiver.isUser, 'receiver error: $receiver');
-    SecureMessageDelegate? transceiver = delegate;
-    assert(transceiver != null, 'secure message delegate not found');
+    SecureMessageDelegate? transformer = delegate;
+    assert(transformer != null, 'secure message delegate not found');
 
     Uint8List? pwd;  // serialized symmetric key data
 
@@ -120,7 +120,7 @@ class SecureMessagePacker {
       //
       //  2. Decrypt 'message.key' with receiver's private key
       //
-      pwd = await transceiver?.decryptKey(bundle, receiver, sMsg);
+      pwd = await transformer?.decryptKey(bundle, receiver, sMsg);
       if (pwd == null || pwd.isEmpty) {
         // A: my visa updated but the sender doesn't got the new one;
         // B: key data error.
@@ -134,7 +134,7 @@ class SecureMessagePacker {
     //  3. Deserialize message key from data (JsON / ProtoBuf / ...)
     //     (if key is empty, means it should be reused, get it from key cache)
     //
-    SymmetricKey? password = await transceiver?.deserializeKey(pwd, sMsg);
+    SymmetricKey? password = await transformer?.deserializeKey(pwd, sMsg);
     if (password == null) {
       // A: key data is empty, and cipher key not found from local storage;
       // B: key data error.
@@ -156,7 +156,7 @@ class SecureMessagePacker {
     //
     //  5. Decrypt 'message.data' with symmetric key
     //
-    Uint8List? body = await transceiver?.decryptContent(ciphertext, password, sMsg);
+    Uint8List? body = await transformer?.decryptContent(ciphertext, password, sMsg);
     if (body == null || body.isEmpty) {
       // A: password is a reused key loaded from local storage, but it's expired;
       // B: key error.
@@ -171,7 +171,7 @@ class SecureMessagePacker {
     //
     //  6. Deserialize message content from data (JsON / ProtoBuf / ...)
     //
-    Content? content = await transceiver?.deserializeContent(body, password, sMsg);
+    Content? content = await transformer?.deserializeContent(body, password, sMsg);
     if (content == null) {
       assert(false, 'failed to deserialize content: ${body.length} byte(s) '
           '${sMsg.sender} => $receiver, ${sMsg.group}');
@@ -218,8 +218,8 @@ class SecureMessagePacker {
   ///
   /// Returns: Signed ReliableMessage (null if signing/encoding fails)
   Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
-    SecureMessageDelegate? transceiver = delegate;
-    assert(transceiver != null, 'secure message delegate not found');
+    SecureMessageDelegate? transformer = delegate;
+    assert(transformer != null, 'secure message delegate not found');
 
     //
     //  0. decode message data
@@ -234,7 +234,7 @@ class SecureMessagePacker {
     //
     //  1. Sign 'message.data' with sender's private key
     //
-    Uint8List? signature = await transceiver?.signData(ciphertext, sMsg);
+    Uint8List? signature = await transformer?.signData(ciphertext, sMsg);
     if (signature == null || signature.isEmpty) {
       assert(false, 'failed to sign message: '
           '${ciphertext.length} byte(s) '
