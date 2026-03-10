@@ -36,6 +36,7 @@ import 'package:dimp/mkm.dart';
 
 import '../crypto/agent.dart';
 import '../crypto/bundle.dart';
+import '../crypto/ext.dart';
 import 'entity.dart';
 
 
@@ -302,7 +303,8 @@ class BaseUser extends BaseEntity implements User {
 
   @override
   Future<Visa?> signVisa(Visa doc) async {
-    ID? did = ID.parse(doc['did']);
+    var helper = sharedAccountExtensions.helper;
+    ID? did = helper?.getDocumentID(doc.toMap());
     assert(did == null || did.address == identifier.address, 'visa ID not match: $did, $identifier');
     // NOTICE: only sign visa with the private key paired with your meta.key
     SignKey? sKey = await privateKeyForVisaSignature;
@@ -321,7 +323,8 @@ class BaseUser extends BaseEntity implements User {
   Future<bool> verifyVisa(Visa doc) async {
     // NOTICE: only verify visa with meta.key
     //         (if meta not exists, user won't be created)
-    ID? did = ID.parse(doc['did']);
+    var helper = sharedAccountExtensions.helper;
+    ID? did = helper?.getDocumentID(doc.toMap());
     assert(did == null || did.address == identifier.address, 'visa ID not match: $did, $identifier');
     // if meta not exists, user won't be created
     VerifyKey pKey = (await meta).publicKey;

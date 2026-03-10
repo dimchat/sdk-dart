@@ -30,8 +30,10 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/crypto.dart';
-import 'package:dimp/protocol.dart';
+import 'package:dimp/ext.dart';
+import 'package:dimp/mkm.dart';
+
+import 'ext.dart';
 
 
 /// Encrypted data bundle for user-specific key encryption across terminals.
@@ -104,47 +106,8 @@ abstract interface class EncryptedBundle {
   ///
   /// Returns: Decoded EncryptedBundle with terminal-specific encrypted data
   static EncryptedBundle decode(Map keys, ID did, Iterable<String> terminals) {
-    EncryptedBundle bundle = UserEncryptedBundle();
-    //
-    //  0. ID string without terminal (base identifier)
-    //
-    String identifier = Identifier.concat(name: did.name, address: did.address);
-    String target;
-    Object? base64;
-    TransportableData? ted;
-    Uint8List? data;
-    for (String item in terminals) {
-      target = item.isEmpty ? '*' : item;
-      //
-      //  1. Get encoded data for target (ID + terminal)
-      //    - Wildcard (*) uses base ID without terminal suffix
-      //    - Specific terminals use "ID/terminal" format
-      //
-      if (target == '*') {
-        base64 = keys[identifier];
-      } else {
-        base64 = keys['$identifier/$target'];
-      }
-      if (base64 == null) {
-        // Key data not found for this terminal - skip
-        continue;
-      }
-      //
-      //  2. Decode base64 data to raw bytes
-      //
-      ted = TransportableData.parse(base64);
-      data = ted?.bytes;
-      if (data == null) {
-        assert(false, 'key data error: $item -> $base64');
-        continue;
-      }
-      //
-      //  3. Store decoded data for the terminal
-      //
-      bundle[target] = data;
-    }
-    // OK
-    return bundle;
+    var helper = sharedAccountExtensions.bundleHelper;
+    return helper.decodeBundle(keys, did, terminals);
   }
 
 }
@@ -199,24 +162,8 @@ class UserEncryptedBundle implements EncryptedBundle {
 
   @override
   Map<String, Object> encode(ID did) {
-    assert(did.terminal == null, 'ID should not contain terminal here: $did');
-    String identifier = Identifier.concat(name: did.name, address: did.address);
-    Map<String, Object> bundle = {};
-    String target;
-    Object base64;
-    _map.forEach((terminal, data) {
-      // encode data
-      base64 = Base64.encode(data);
-      if (terminal.isEmpty || terminal == '*') {
-        target = identifier;
-      } else {
-        target = '$identifier/$terminal';
-      }
-      // insert to 'message.keys' with ID + terminal
-      bundle[target] = base64;
-    });
-    // OK
-    return bundle;
+    var helper = sharedAccountExtensions.bundleHelper;
+    return helper.encodeBundle(this, did);
   }
 
 }

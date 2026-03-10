@@ -28,7 +28,9 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimp/dkd.dart';
+import 'package:dimp/ext.dart';
+import 'package:dimp/mkm.dart';
 
 import '../core/barrack.dart';
 
@@ -325,7 +327,8 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
       return false;
     }
     // check document ID
-    ID? docID = ID.parse(doc['did']);
+    var helper = sharedAccountExtensions.helper;
+    ID? docID = helper?.getDocumentID(doc.toMap());
     if (docID != null) {
       Address inside = docID.address;
       Address outside = identifier.address;

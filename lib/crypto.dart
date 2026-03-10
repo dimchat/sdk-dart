@@ -10,3 +10,4 @@ export 'package:dimp/crypto.dart';
 //
 export 'src/crypto/bundle.dart';
 export 'src/crypto/agent.dart';
+export 'src/crypto/ext.dart';

@@ -199,7 +199,8 @@ class DefaultVisaAgent implements VisaAgent {
     String? terminal = doc.getString('terminal');
     if (terminal == null) {
       // get from document ID
-      ID? did = ID.parse(doc['did']);
+      var helper = sharedAccountExtensions.helper;
+      ID? did = helper?.getDocumentID(doc.toMap());
       if (did != null) {
         terminal = did.terminal;
       } else {
@@ -223,18 +224,5 @@ class DefaultVisaAgent implements VisaAgent {
     }
     return devices;
   }
-
-}
-
-
-/// VisaAgent Extensions
-/// ~~~~~~~~~~~~~~~~~~~~
-
-VisaAgent _agent = DefaultVisaAgent();
-
-extension VisaAgentExtension on AccountExtensions {
-
-  VisaAgent get visaAgent => _agent;
-  set visaAgent(VisaAgent agent) => _agent = agent;
 
 }
