@@ -30,16 +30,15 @@
  */
 import 'package:dimp/crypto.dart';
 import 'package:dimp/dkd.dart';
+import 'package:dimp/ext.dart';
 import 'package:dimp/mkm.dart';
 
 import 'core/packer.dart';
 import 'mkm/user.dart';
-import 'msg/instant_delegate.dart';
-import 'msg/reliable_delegate.dart';
-import 'msg/secure_delegate.dart';
 import 'msg/instant_packer.dart';
 import 'msg/reliable_packer.dart';
 import 'msg/secure_packer.dart';
+import 'msg/helpers.dart';
 
 import 'facebook.dart';
 import 'messenger.dart';
@@ -53,23 +52,16 @@ import 'twins.dart';
 abstract class MessagePacker extends TwinsHelper implements Packer {
   MessagePacker(Facebook facebook, Messenger messenger)
       : super(facebook, messenger) {
-    instantPacker  = createInstantMessagePacker(messenger);
-    securePacker   = createSecureMessagePacker(messenger);
-    reliablePacker = createReliableMessagePacker(messenger);
+    var factory = sharedMessageExtensions.packerFactory;
+    instantPacker  = factory.createInstantMessagePacker(messenger);
+    securePacker   = factory.createSecureMessagePacker(messenger);
+    reliablePacker = factory.createReliableMessagePacker(messenger);
   }
 
   // protected
   late final InstantMessagePacker  instantPacker;
   late final SecureMessagePacker   securePacker;
   late final ReliableMessagePacker reliablePacker;
-
-  // protected: create message packers (can be overridden by subclasses)
-  InstantMessagePacker createInstantMessagePacker(InstantMessageDelegate delegate) =>
-      InstantMessagePacker(delegate);
-  SecureMessagePacker createSecureMessagePacker(SecureMessageDelegate delegate) =>
-      SecureMessagePacker(delegate);
-  ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate delegate) =>
-      ReliableMessagePacker(delegate);
 
   // -------------------------------------------------------------------------
   //  Packing Workflow (Instant → Secure → Reliable → Binary)
