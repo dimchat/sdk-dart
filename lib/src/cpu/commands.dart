@@ -47,47 +47,50 @@ class MetaCommandProcessor extends BaseCommandProcessor {
     assert(content is MetaCommand, 'meta command error: $content');
     MetaCommand command = content as MetaCommand;
     Meta? meta = command.meta;
-    ID identifier = command.identifier;
+    ID did = command.identifier;
     if (meta == null) {
       // query meta for ID
-      return await _getMeta(identifier, content: command, envelope: rMsg.envelope);
+      return await _getMeta(did, content: command, envelope: rMsg.envelope);
     }
     // received a meta for ID
-    return await _putMeta(meta, identifier: identifier, content: command, envelope: rMsg.envelope);
+    return await _putMeta(meta, did, content: command, envelope: rMsg.envelope);
   }
 
-  Future<List<Content>> _getMeta(ID identifier, {
+  Future<List<Content>> _getMeta(ID did, {
     required MetaCommand content, required Envelope envelope
   }) async {
-    Meta? meta = await facebook?.getMeta(identifier);
+    Meta? meta = await facebook?.getMeta(did);
     if (meta == null) {
       String text = 'Meta not found.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Meta not found: \${did}.',
         'replacements': {
-          'did': identifier.toString(),
+          'did': did.toString(),
         },
       });
     }
     // meta got
-    return await respondMeta(identifier, meta, receiver: envelope.sender);
+    return await respondMeta(meta, did, receiver: envelope.sender);
   }
 
   // protected
-  Future<List<Content>> respondMeta(ID identifier, Meta meta, {required ID receiver}) async {
-    assert(receiver != identifier, 'cycled response: $identifier');
+  Future<List<Content>> respondMeta(Meta meta, ID did, {required ID receiver}) async {
+    if (receiver == did) {
+      assert(false, 'cycled response: $did');
+      return [];
+    }
     // TODO: check response expired
     return [
-      MetaCommand.response(identifier, meta)
+      MetaCommand.response(did, meta)
     ];
   }
 
-  Future<List<Content>> _putMeta(Meta meta, {
-    required ID identifier, required MetaCommand content, required Envelope envelope
+  Future<List<Content>> _putMeta(Meta meta, ID did, {
+    required MetaCommand content, required Envelope envelope
   }) async {
     List<Content>? errors;
     // 1. try to save meta
-    errors = await saveMeta(meta, identifier: identifier, content: content, envelope: envelope);
+    errors = await saveMeta(meta, did, content: content, envelope: envelope);
     if (errors != null) {
       // failed
       return errors;
@@ -97,35 +100,35 @@ class MetaCommandProcessor extends BaseCommandProcessor {
     return respondReceipt(text, content: content, envelope: envelope, extra: {
       'template': 'Meta received: \${did}.',
       'replacements': {
-        'did': identifier.toString(),
+        'did': did.toString(),
       },
     });
   }
 
   // protected
-  Future<List<Content>?> saveMeta(Meta meta, {
-    required ID identifier, required MetaCommand content, required Envelope envelope
+  Future<List<Content>?> saveMeta(Meta meta, ID did, {
+    required MetaCommand content, required Envelope envelope
   }) async {
     bool? ok;
     // check meta
-    ok = checkMeta(meta, identifier: identifier);
+    ok = checkMeta(meta, did);
     if (ok != true) {
       String text = 'Meta not valid.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Meta not valid: \${did}.',
         'replacements': {
-          'did': identifier.toString(),
+          'did': did.toString(),
         },
       });
     }
-    ok = await archivist?.saveMeta(meta, identifier);
+    ok = await archivist?.saveMeta(meta, did);
     if (ok != true) {
       // DB error?
       String text = 'Meta not accepted.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Meta not accepted: \${did}.',
         'replacements': {
-          'did': identifier.toString(),
+          'did': did.toString(),
         },
       });
     }
@@ -134,11 +137,11 @@ class MetaCommandProcessor extends BaseCommandProcessor {
   }
 
   // protected
-  bool checkMeta(Meta meta, {required ID identifier}) {
+  bool checkMeta(Meta meta, ID did) {
     if (!meta.isValid) {
       return false;
     }
-    Address old = identifier.address;
+    Address old = did.address;
     Address gen = Address.generate(meta, old.network);
     return old == gen;
   }
@@ -153,26 +156,26 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     assert(content is DocumentCommand, 'document command error: $content');
     DocumentCommand command = content as DocumentCommand;
-    ID identifier = command.identifier;
+    ID did = command.identifier;
     List<Document>? documents = command.documents;
     if (documents == null) {
       // query entity documents for ID
-      return await _getDocuments(identifier, content: command, envelope: rMsg.envelope);
+      return await _getDocuments(did, content: command, envelope: rMsg.envelope);
     }
     // received new documents
-    return await _putDocuments(documents, identifier: identifier, content: content, envelope: rMsg.envelope);
+    return await _putDocuments(documents, did, content: content, envelope: rMsg.envelope);
   }
 
-  Future<List<Content>> _getDocuments(ID identifier, {
+  Future<List<Content>> _getDocuments(ID did, {
     required DocumentCommand content, required Envelope envelope
   }) async {
-    List<Document>? documents = await facebook?.getDocuments(identifier);
+    List<Document>? documents = await facebook?.getDocuments(did);
     if (documents == null || documents.isEmpty) {
       String text = 'Document not found.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Document not found: \${did}.',
         'replacements': {
-          'did': identifier.toString(),
+          'did': did.toString(),
         },
       });
     }
@@ -191,23 +194,26 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
         return respondReceipt(text, content: content, envelope: envelope, extra: {
           'template': 'Document not updated: \${did}, last time: \${time}.',
           'replacements': {
-            'did': identifier.toString(),
+            'did': did.toString(),
             'time': lastTime.millisecondsSinceEpoch / 1000.0,
           },
         });
       }
     }
     // documents got
-    return await respondDocuments(identifier, documents, receiver: envelope.sender);
+    return await respondDocuments(documents, did, receiver: envelope.sender);
   }
 
   // protected
-  Future<List<Content>> respondDocuments(ID identifier, List<Document> docs, {required ID receiver}) async {
-    assert(receiver != identifier, 'cycled response: $identifier');
+  Future<List<Content>> respondDocuments(List<Document> docs, ID did, {required ID receiver}) async {
+    if (receiver == did) {
+      assert(false, 'cycled response: $did');
+      return [];
+    }
     // TODO: check response expired
-    Meta? meta = await facebook?.getMeta(identifier);
+    Meta? meta = await facebook?.getMeta(did);
     return [
-      DocumentCommand.response(identifier, meta, docs)
+      DocumentCommand.response(did, meta, docs)
     ];
   }
 
@@ -239,26 +245,26 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     return lastDoc;
   }
 
-  Future<List<Content>> _putDocuments(List<Document> documents, {
-    required ID identifier, required DocumentCommand content, required Envelope envelope
+  Future<List<Content>> _putDocuments(List<Document> documents, ID did, {
+    required DocumentCommand content, required Envelope envelope
   }) async {
     List<Content>? errors;
     Meta? meta = content.meta;
     // 0. check meta
     if (meta == null) {
-      meta = await facebook?.getMeta(identifier);
+      meta = await facebook?.getMeta(did);
       if (meta == null) {
         String text = 'Meta not found.';
         return respondReceipt(text, content: content, envelope: envelope, extra: {
           'template': 'Meta not found: \${did}.',
           'replacements': {
-            'did': identifier.toString(),
+            'did': did.toString(),
           },
         });
       }
     } else {
       // 1. try to save meta
-      errors = await saveMeta(meta, identifier: identifier, content: content, envelope: envelope);
+      errors = await saveMeta(meta, did, content: content, envelope: envelope);
       if (errors != null) {
         // failed
         return errors;
@@ -267,7 +273,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     // 2. try to save document
     errors = [];
     for (var doc in documents) {
-      var array = await saveDocument(doc, meta: meta, identifier: identifier, content: content, envelope: envelope);
+      var array = await saveDocument(doc, meta, did, content: content, envelope: envelope);
       if (array != null) {
         errors.addAll(array);
       }
@@ -281,37 +287,36 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     return respondReceipt(text, content: content, envelope: envelope, extra: {
       'template': 'Document received: \${did}.',
       'replacements': {
-        'did': identifier.toString(),
+        'did': did.toString(),
       },
     });
   }
 
   // protected
-  Future<List<Content>?> saveDocument(Document doc, {
-    required Meta meta, required ID identifier,
+  Future<List<Content>?> saveDocument(Document doc, Meta meta, ID did, {
     required DocumentCommand content, required Envelope envelope
   }) async {
     bool? ok;
     // check document
-    ok = checkDocument(doc, meta: meta, identifier: identifier);
+    ok = checkDocument(doc, meta, did);
     if (ok != true) {
       // document error
       String text = 'Document not accepted.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Document not accepted: \${did}.',
         'replacements': {
-          'did': identifier.toString(),
+          'did': did.toString(),
         },
       });
     }
-    ok = await archivist?.saveDocument(doc, identifier);
+    ok = await archivist?.saveDocument(doc, did);
     if (ok != true) {
       // document expired
       String text = 'Document not changed.';
       return respondReceipt(text, content: content, envelope: envelope, extra: {
         'template': 'Document not changed: \${did}.',
         'replacements': {
-          'did': identifier.toString(),
+          'did': did.toString(),
         },
       });
     }
@@ -320,9 +325,9 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
   }
 
   // protected
-  bool checkDocument(Document doc, {required Meta meta, required ID identifier}) {
+  bool checkDocument(Document doc, Meta meta, ID did) {
     // check meta with ID
-    if (!checkMeta(meta, identifier: identifier)) {
+    if (!checkMeta(meta, did)) {
       // meta error
       return false;
     }
@@ -331,9 +336,9 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     ID? docID = helper?.getDocumentID(doc.toMap());
     if (docID != null) {
       Address inside = docID.address;
-      Address outside = identifier.address;
+      Address outside = did.address;
       if (inside != outside) {
-        assert(false, 'ID not matched: $identifier, $doc');
+        assert(false, 'ID not matched: $did, $doc');
         return false;
       }
     } else {

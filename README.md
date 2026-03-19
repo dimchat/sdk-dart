@@ -163,7 +163,7 @@ class AppCustomizedFilter implements CustomizedContentFilter {
     }
     // if the application has too many modules, I suggest you to
     // use different handler to do the jobs for each module.
-    throw defaultHandler;
+    return defaultHandler;
   }
 
 }

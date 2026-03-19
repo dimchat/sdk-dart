@@ -1,3 +1,7 @@
+## 2.3.3
+
+- MessagePacker factory.
+
 ## 2.3.2
 
 - Message Transformer.

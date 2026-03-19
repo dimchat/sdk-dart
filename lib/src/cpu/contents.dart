@@ -28,7 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
-import 'package:dimp/dimp.dart';
+import 'package:dimp/protocol.dart';
 
 import '../messenger.dart';
 

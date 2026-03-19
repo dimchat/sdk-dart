@@ -167,7 +167,7 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
   @override
   Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) async {
     Messenger? transceiver = messenger;
-    assert(facebook != null && transceiver != null, 'twins not ready');
+    assert(transceiver != null, 'messenger not ready');
     // 1. process content
     List<Content>? responses = await transceiver?.processContent(iMsg.content, rMsg);
     if (responses == null || responses.isEmpty) {

@@ -30,7 +30,8 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/dimp.dart';
+import 'package:dimp/protocol.dart';
+import 'package:dimp/dkd.dart';
 
 import '../crypto/bundle.dart';
 import '../mkm/entity.dart';
