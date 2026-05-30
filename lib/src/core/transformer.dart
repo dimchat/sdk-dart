@@ -159,21 +159,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
     }
     // decode key bundle for all terminals
     Set<String> terminals = await user.terminals;
-    EncryptedBundle bundle = EncryptedBundle.decode(keys, receiver, terminals);
-    if (bundle.isEmpty) {
-      // check for wildcard
-      if (terminals.contains('*')) {
-        assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
-        return null;
-      }
-      // decode key bundle for '*'
-      bundle = EncryptedBundle.decode(keys, receiver, {'*'});
-      if (bundle.isEmpty) {
-        assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
-        return null;
-      }
-    }
-    return bundle;
+    return EncryptedBundle.decode(keys, receiver, terminals);
   }
 
   @override

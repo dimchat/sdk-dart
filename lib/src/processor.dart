@@ -185,6 +185,7 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
     // 3. pack messages
     List<InstantMessage> messages = [];
     Envelope env;
+    /*
     for (Content res in responses) {
       // assert(res.isNotEmpty, 'should not happen');
       env = Envelope.create(sender: user.identifier, receiver: sender);
@@ -192,6 +193,15 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
       // assert(iMsg.isNotEmpty, 'should not happen');
       messages.add(iMsg);
     }
+     */
+    /// pack all responses in one message
+    env = Envelope.create(sender: user.identifier, receiver: sender);
+    if (responses.length == 1) {
+      iMsg = InstantMessage.create(env, responses.first);
+    } else {
+      iMsg = InstantMessage.create(env, ArrayContent.create(responses));
+    }
+    messages.add(iMsg);
     return messages;
   }
 

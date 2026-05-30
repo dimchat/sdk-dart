@@ -44,11 +44,11 @@ import 'secure_delegate.dart';
 /// 2. Signing: SecureMessage → ReliableMessage (add sender signature)
 class SecureMessagePacker {
   SecureMessagePacker(SecureMessageDelegate messenger)
-      : _messenger = WeakReference(messenger);
+      : _transformer = WeakReference(messenger);
 
-  final WeakReference<SecureMessageDelegate> _messenger;
+  final WeakReference<SecureMessageDelegate> _transformer;
 
-  SecureMessageDelegate? get delegate => _messenger.target;
+  SecureMessageDelegate? get delegate => _transformer.target;
 
   /*
    *  Decrypt the Secure Message to Instant Message

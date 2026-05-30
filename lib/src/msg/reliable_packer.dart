@@ -41,11 +41,11 @@ import 'reliable_delegate.dart';
 /// a SecureMessage if the signature is authentic.
 class ReliableMessagePacker {
   ReliableMessagePacker(ReliableMessageDelegate messenger)
-      : _messenger = WeakReference(messenger);
+      : _transformer = WeakReference(messenger);
 
-  final WeakReference<ReliableMessageDelegate> _messenger;
+  final WeakReference<ReliableMessageDelegate> _transformer;
 
-  ReliableMessageDelegate? get delegate => _messenger.target;
+  ReliableMessageDelegate? get delegate => _transformer.target;
 
   /*
    *  Verify the Reliable Message to Secure Message

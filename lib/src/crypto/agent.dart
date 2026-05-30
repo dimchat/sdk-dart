@@ -62,7 +62,7 @@ abstract interface class VisaAgent {
   /// - [documents] : List of user Visa documents (contains terminal-specific public keys)
   ///
   /// Returns: EncryptedBundle with terminal-specific encrypted data
-  EncryptedBundle encryptedBundle(Uint8List plaintext, Meta meta, List<Document> documents);
+  EncryptedBundle encryptBundle(Uint8List plaintext, Meta meta, List<Document> documents);
 
   /// Extracts all verification keys from Meta and Visa documents.
   ///
@@ -94,7 +94,7 @@ abstract interface class VisaAgent {
 class DefaultVisaAgent implements VisaAgent {
 
   @override
-  EncryptedBundle encryptedBundle(Uint8List plaintext, Meta meta, List<Document> documents) {
+  EncryptedBundle encryptBundle(Uint8List plaintext, Meta meta, List<Document> documents) {
     // NOTICE: meta.key will never changed, so use visa.key to encrypt message
     //         is a better way
     EncryptedBundle bundle = UserEncryptedBundle();

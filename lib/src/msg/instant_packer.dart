@@ -46,11 +46,11 @@ import 'instant_delegate.dart';
 /// 3. Format conversion to SecureMessage structure
 class InstantMessagePacker {
   InstantMessagePacker(InstantMessageDelegate messenger)
-      : _messenger = WeakReference(messenger);
+      : _transformer = WeakReference(messenger);
 
-  final WeakReference<InstantMessageDelegate> _messenger;
+  final WeakReference<InstantMessageDelegate> _transformer;
 
-  InstantMessageDelegate? get delegate => _messenger.target;
+  InstantMessageDelegate? get delegate => _transformer.target;
 
   /*
    *  Encrypt the Instant Message to Secure Message
@@ -170,11 +170,11 @@ class InstantMessagePacker {
     //  6. Encode message key to String (Base64)
     //
     Map<String, Object>? msgKeys = await encodeKeys(bundleMap, iMsg);
-    if (msgKeys == null || msgKeys.isEmpty) {
-      // public key for member(s) not found
-      // TODO: suspend this message for waiting member's visa
-      return null;
-    }
+    // if (msgKeys == null || msgKeys.isEmpty) {
+    //   // public key for member(s) not found
+    //   // TODO: suspend this message for waiting member's visa
+    //   return null;
+    // }
 
     // insert as 'keys'
     info['keys'] = msgKeys;

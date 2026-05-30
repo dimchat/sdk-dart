@@ -84,7 +84,7 @@ abstract interface class User implements Entity {
 
   /// Encrypts plaintext data for the user's terminals (async).
   ///
-  /// Uses [VisaAgent.encryptedBundle] to create terminal-specific encrypted data:
+  /// Uses [VisaAgent.encryptBundle] to create terminal-specific encrypted data:
   /// 1. Tries Visa public keys first (terminal-specific encryption)
   /// 2. Falls back to Meta public key (wildcard/* encryption)
   ///
@@ -254,7 +254,7 @@ class BaseUser extends BaseEntity implements User {
     // NOTICE: meta.key will never changed, so use visa.key to encrypt message
     //         is a better way
     var agent = sharedAccountExtensions.visaAgent;
-    return agent.encryptedBundle(plaintext, await meta, await documents);
+    return agent.encryptBundle(plaintext, await meta, await documents);
   }
 
   //
@@ -342,10 +342,10 @@ class BaseUser extends BaseEntity implements User {
       assert(false, 'user data source not set yet');
       return null;
     }
-    if (terminal.isEmpty || terminal == '*') {
-      return await facebook.getPrivateKeysForDecryption(identifier);
+    ID uid = identifier;
+    if (terminal.isNotEmpty && terminal != '*') {
+      uid = ID.create(name: uid.name, address: uid.address, terminal: terminal);
     }
-    ID uid = ID.create(name: identifier.name, address: identifier.address, terminal: terminal);
     return await facebook.getPrivateKeysForDecryption(uid);
 }
 
