@@ -75,7 +75,7 @@ class MetaCommandProcessor extends BaseCommandProcessor {
 
   // protected
   Future<List<Content>> respondMeta(Meta meta, ID did, {required ID receiver}) async {
-    if (receiver == did) {
+    if (receiver.isSameAs(did)) {
       assert(false, 'cycled response: $did');
       return [];
     }
@@ -206,7 +206,7 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
 
   // protected
   Future<List<Content>> respondDocuments(List<Document> docs, ID did, {required ID receiver}) async {
-    if (receiver == did) {
+    if (receiver.isSameAs(did)) {
       assert(false, 'cycled response: $did');
       return [];
     }
@@ -334,15 +334,11 @@ class DocumentCommandProcessor extends MetaCommandProcessor {
     // check document ID
     var helper = sharedAccountExtensions.helper;
     ID? docID = helper?.getDocumentID(doc.toMap());
-    if (docID != null) {
-      Address inside = docID.address;
-      Address outside = did.address;
-      if (inside != outside) {
-        assert(false, 'ID not matched: $did, $doc');
-        return false;
-      }
-    } else {
+    if (docID == null) {
       assert(false, 'document ID not found: $doc');
+    } else if (!docID.isSameAs(did)) {
+      assert(false, 'ID not matched: $did, $doc');
+      return false;
     }
     // NOTICE: if this is a bulletin document for group,
     //             verify it with the group owner's meta.key

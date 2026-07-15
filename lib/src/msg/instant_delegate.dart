@@ -51,7 +51,7 @@ abstract interface class InstantMessageDelegate {
    *    | time     |  ->  | time     |
    *    |          |      |          |
    *    | content  |      | data     |  1. data = encrypt(content, PW)
-   *    +----------+      | key/keys |  2. key  = encrypt(PW, receiver.PK)
+   *    +----------+      | keys     |  2. key  = encrypt(PW, receiver.PK)
    *                      +----------+
    *
    *  PW: Symmetric key (password) for content encryption
@@ -132,7 +132,7 @@ abstract interface class InstantMessageDelegate {
   /// Encodes encrypted key bundle to message-compatible map (Step 6).
   ///
   /// Converts the EncryptedBundle to a map format (ID+terminal → base64 data)
-  /// suitable for inclusion in SecureMessage's 'key/keys' field.
+  /// suitable for inclusion in SecureMessage's 'keys' field.
   ///
   /// Parameters:
   /// - [bundle]   : Encrypted key bundle with terminal-specific data
@@ -140,6 +140,6 @@ abstract interface class InstantMessageDelegate {
   /// - [iMsg]     : Parent instant message object (context)
   ///
   /// Returns: Encoded map (ID+terminal → base64-encoded encrypted key data)
-  Future<Map<String, Object>> encodeKey(EncryptedBundle bundle, ID receiver, InstantMessage iMsg);
+  Future<Map<String, Object>> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg);
 
 }

@@ -51,7 +51,7 @@ abstract interface class SecureMessageDelegate {
    *    | time     |  ->  | time     |
    *    |          |      |          |  1. PW      = decrypt(key, receiver.SK)
    *    | data     |      | content  |  2. content = decrypt(data, PW)
-   *    | key/keys |      +----------+
+   *    | keys     |      +----------+
    *    +----------+
    *
    *  PW: Symmetric key (password) for content encryption
@@ -64,7 +64,7 @@ abstract interface class SecureMessageDelegate {
 
   /// Decodes encrypted key map to EncryptedBundle (Step 1).
   ///
-  /// Converts the SecureMessage's 'key/keys' map back to an EncryptedBundle
+  /// Converts the SecureMessage's 'keys' map back to an EncryptedBundle
   /// containing terminal-specific encrypted key data.
   ///
   /// Parameters:
@@ -73,7 +73,7 @@ abstract interface class SecureMessageDelegate {
   /// - [sMsg]     : Parent secure message object (context)
   ///
   /// Returns: Decoded encrypted key bundle (null if decoding fails)
-  Future<EncryptedBundle?> decodeKey(Map keys, ID receiver, SecureMessage sMsg);
+  Future<EncryptedBundle?> decodeKeys(Map keys, ID receiver, SecureMessage sMsg);
 
   /// Decrypts encrypted key bundle with receiver's private key (Step 2).
   ///
@@ -145,15 +145,15 @@ abstract interface class SecureMessageDelegate {
   /*
    *  Signing workflow: SecureMessage → ReliableMessage
    *
-   *    +----------+      +----------+
-   *    | sender   |      | sender   |
-   *    | receiver |      | receiver |
-   *    | time     |  ->  | time     |
-   *    |          |      |          |
-   *    | data     |      | data     |
-   *    | key/keys |      | key/keys |
-   *    +----------+      | signature|  1. signature = sign(data, sender.SK)
-   *                      +----------+
+   *    +----------+      +-----------+
+   *    | sender   |      | sender    |
+   *    | receiver |      | receiver  |
+   *    | time     |  ->  | time      |
+   *    |          |      |           |
+   *    | data     |      | data      |
+   *    | keys     |      | keys      |
+   *    +----------+      | signature |  1. signature = sign(data, sender.SK)
+   *                      +-----------+
    *
    *  sender.SK: Sender's private key (for signing)
    */

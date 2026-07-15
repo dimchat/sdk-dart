@@ -61,7 +61,7 @@ class InstantMessagePacker {
    *    | time     |  ->  | time     |
    *    |          |      |          |
    *    | content  |      | data     |  1. data = encrypt(content, PW)
-   *    +----------+      | key/keys |  2. key  = encrypt(PW, receiver.PK)
+   *    +----------+      | keys     |  2. key  = encrypt(PW, receiver.PK)
    *                      +----------+
    */
 
@@ -204,7 +204,7 @@ class InstantMessagePacker {
     for (MapEntry<ID, EncryptedBundle> entry in bundleMap.entries) {
       receiver = entry.key;
       bundle = entry.value;
-      encodedKeys = await transformer?.encodeKey(bundle, receiver, iMsg);
+      encodedKeys = await transformer?.encodeKeys(bundle, receiver, iMsg);
       if (encodedKeys == null || encodedKeys.isEmpty) {
         assert(false, 'failed to encode key data: $receiver');
         continue;

@@ -59,13 +59,13 @@ class SecureMessagePacker {
    *    | time     |  ->  | time     |
    *    |          |      |          |  1. PW      = decrypt(key, receiver.SK)
    *    | data     |      | content  |  2. content = decrypt(data, PW)
-   *    | key/keys |      +----------+
+   *    | keys     |      +----------+
    *    +----------+
    */
 
   /// Decodes the encrypted key map from a SecureMessage (internal use).
   ///
-  /// Extracts the 'key/keys' field and converts it to an EncryptedBundle for decryption.
+  /// Extracts the 'keys' field and converts it to an EncryptedBundle for decryption.
   ///
   /// Parameters:
   /// - [sMsg]     : Encrypted secure message
@@ -73,23 +73,16 @@ class SecureMessagePacker {
   ///
   /// Returns: Decoded EncryptedBundle (null if no key found/broadcast message)
   // protected
-  Future<EncryptedBundle?> decodeKey(SecureMessage sMsg, ID receiver) async {
+  Future<EncryptedBundle?> decodeKeys(SecureMessage sMsg, ID receiver) async {
     Map? msgKeys = sMsg.encryptedKeys;
     if (msgKeys == null) {
-      // get from 'key'
-      var base64 = sMsg['key'];
-      if (base64 == null) {
-        // broadcast message?
-        // reused key?
-        return null;
-      }
-      msgKeys = {
-        receiver.toString(): base64,
-      };
+      // broadcast message?
+      // reused key?
+      return null;
     }
     SecureMessageDelegate? transformer = delegate;
     assert(transformer != null, 'secure message delegate not found');
-    return await transformer?.decodeKey(msgKeys, receiver, sMsg);
+    return await transformer?.decodeKeys(msgKeys, receiver, sMsg);
   }
 
   /// Decrypts a SecureMessage back to an InstantMessage (for local user).
@@ -110,22 +103,22 @@ class SecureMessagePacker {
     Uint8List? pwd;  // serialized symmetric key data
 
     //
-    //  1. Decode 'message.key' to encrypted symmetric key data
+    //  1. Decode 'message.keys' to encrypted symmetric key data
     //
-    EncryptedBundle? bundle = await decodeKey(sMsg, receiver);
+    EncryptedBundle? bundle = await decodeKeys(sMsg, receiver);
     if (bundle == null || bundle.isEmpty) {
       // broadcast message?
       // reused key?
       pwd = null;
     } else {
       //
-      //  2. Decrypt 'message.key' with receiver's private key
+      //  2. Decrypt 'message.keys' with receiver's private key
       //
       pwd = await transformer?.decryptKey(bundle, receiver, sMsg);
       if (pwd == null || pwd.isEmpty) {
         // A: my visa updated but the sender doesn't got the new one;
         // B: key data error.
-        throw Exception('failed to decrypt message key: $bundle '
+        throw Exception('failed to decrypt message keys: $bundle '
             '${sMsg.sender} => $receiver, ${sMsg.group}');
         // TODO: check whether my visa key is changed, push new visa to this contact
       }
@@ -188,7 +181,6 @@ class SecureMessagePacker {
 
     // OK, pack message
     Map info = sMsg.copyMap();
-    info.remove('key');
     info.remove('keys');
     info.remove('data');
     info['content'] = content.toMap();
@@ -198,15 +190,15 @@ class SecureMessagePacker {
   /*
    *  Sign the Secure Message to Reliable Message
    *
-   *    +----------+      +----------+
-   *    | sender   |      | sender   |
-   *    | receiver |      | receiver |
-   *    | time     |  ->  | time     |
-   *    |          |      |          |
-   *    | data     |      | data     |
-   *    | key/keys |      | key/keys |
-   *    +----------+      | signature|  1. signature = sign(data, sender.SK)
-   *                      +----------+
+   *    +----------+      +-----------+
+   *    | sender   |      | sender    |
+   *    | receiver |      | receiver  |
+   *    | time     |  ->  | time      |
+   *    |          |      |           |
+   *    | data     |      | data      |
+   *    | keys     |      | keys      |
+   *    +----------+      | signature |  1. signature = sign(data, sender.SK)
+   *                      +-----------+
    */
 
   /// Signs a SecureMessage to create a ReliableMessage (adds sender signature).

@@ -305,15 +305,15 @@ class BaseUser extends BaseEntity implements User {
   Future<Visa?> signVisa(Visa doc) async {
     var helper = sharedAccountExtensions.helper;
     ID? did = helper?.getDocumentID(doc.toMap());
-    assert(did == null || did.address == identifier.address, 'visa ID not match: $did, $identifier');
+    assert(did == null || did.isSameAs(identifier), 'visa ID not match: $did, $identifier');
     // NOTICE: only sign visa with the private key paired with your meta.key
     SignKey? sKey = await privateKeyForVisaSignature;
     if (sKey == null) {
-      assert(false, 'failed to get sign key for visa: $did');
+      assert(false, 'failed to get sign key for visa: $identifier');
       return null;
     }
     if (doc.sign(sKey) == null) {
-      assert(false, 'failed to sign visa: $did, $doc');
+      assert(false, 'failed to sign visa: $identifier, $doc');
       return null;
     }
     return doc;
@@ -325,7 +325,7 @@ class BaseUser extends BaseEntity implements User {
     //         (if meta not exists, user won't be created)
     var helper = sharedAccountExtensions.helper;
     ID? did = helper?.getDocumentID(doc.toMap());
-    assert(did == null || did.address == identifier.address, 'visa ID not match: $did, $identifier');
+    assert(did == null || did.isSameAs(identifier), 'visa ID not match: $did, $identifier');
     // if meta not exists, user won't be created
     VerifyKey pKey = (await meta).publicKey;
     return doc.verify(pKey);
@@ -343,8 +343,10 @@ class BaseUser extends BaseEntity implements User {
       return null;
     }
     ID uid = identifier;
-    if (terminal.isNotEmpty && terminal != '*') {
-      uid = ID.create(name: uid.name, address: uid.address, terminal: terminal);
+    if (terminal == '*') {
+      uid = uid.withoutTerminal();
+    } else {
+      uid = uid.withTerminal(terminal);
     }
     return await facebook.getPrivateKeysForDecryption(uid);
 }

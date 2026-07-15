@@ -90,7 +90,7 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     }
     // personal message
     for (ID item in allUsers) {
-      if (receiver == item) {
+      if (receiver.isSameAs(item)) {
         // DISCUSS: set this item to be current user?
         return item;
       }
@@ -122,9 +122,11 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
     }
     // group message (recipient not designated)
     for (ID item in allUsers) {
-      if (members.contains(item)) {
-        // DISCUSS: set this item to be current user?
-        return item;
+      for (ID did in members) {
+        if (did.isSameAs(item)) {
+          // DISCUSS: set this item to be current user?
+          return item;
+        }
       }
     }
     // not for me?

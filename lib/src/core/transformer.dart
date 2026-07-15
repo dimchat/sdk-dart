@@ -136,7 +136,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
   }
 
   @override
-  Future<Map<String, Object>> encodeKey(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) async {
+  Future<Map<String, Object>> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) async {
     assert(!BaseMessage.isBroadcast(iMsg), 'broadcast message has no key: $iMsg');
     // message key had been encrypted by a public key,
     // so the data should be encode here (with algorithm 'base64' as default).
@@ -149,7 +149,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
   // -------------------------------------------------------------------------
 
   @override
-  Future<EncryptedBundle?> decodeKey(Map keys, ID receiver, SecureMessage sMsg) async {
+  Future<EncryptedBundle?> decodeKeys(Map keys, ID receiver, SecureMessage sMsg) async {
     assert(!BaseMessage.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
     assert(receiver.isUser, 'receiver error: $receiver');
     User? user = await facebook.getUser(receiver);

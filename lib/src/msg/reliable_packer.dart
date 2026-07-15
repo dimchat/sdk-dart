@@ -50,15 +50,15 @@ class ReliableMessagePacker {
   /*
    *  Verify the Reliable Message to Secure Message
    *
-   *    +----------+      +----------+
-   *    | sender   |      | sender   |
-   *    | receiver |      | receiver |
-   *    | time     |  ->  | time     |
-   *    |          |      |          |
-   *    | data     |      | data     |  1. verify(data, signature, sender.PK)
-   *    | key/keys |      | key/keys |
-   *    | signature|      +----------+
-   *    +----------+
+   *    +-----------+      +----------+
+   *    | sender    |      | sender   |
+   *    | receiver  |      | receiver |
+   *    | time      |  ->  | time     |
+   *    |           |      |          |
+   *    | data      |      | data     |  1. verify(data, signature, sender.PK)
+   *    | keys      |      | keys     |
+   *    | signature |      +----------+
+   *    +-----------+
    */
 
   /// Verifies a ReliableMessage's signature and converts it to a SecureMessage.

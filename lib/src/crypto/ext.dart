@@ -82,7 +82,7 @@ class DefaultBundleHelper implements EncryptedBundleHelper {
   @override
   Map<String, Object> encodeBundle(EncryptedBundle bundle, ID did) {
     assert(did.terminal == null, 'ID should not contain terminal here: $did');
-    String identifier = Identifier.concat(name: did.name, address: did.address);
+    String identifier = did.withoutTerminal().toString();
     Map<String, Object> encodedKeys = {};
     String target;
     Object base64;
@@ -108,7 +108,7 @@ class DefaultBundleHelper implements EncryptedBundleHelper {
     //
     //  0. ID string without terminal (base identifier)
     //
-    String identifier = Identifier.concat(name: did.name, address: did.address);
+    String identifier = did.withoutTerminal().toString();
     String target;
     Object? base64;
     TransportableData? ted;

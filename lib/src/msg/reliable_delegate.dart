@@ -48,7 +48,7 @@ abstract interface class ReliableMessageDelegate/* implements SecureMessageDeleg
    *    | time     |  ->  | time     |
    *    |          |      |          |
    *    | data     |      | data     |  1. verify(data, signature, sender.PK)
-   *    | key/keys |      | key/keys |
+   *    | keys     |      | keys     |
    *    | signature|      +----------+
    *    +----------+
    *

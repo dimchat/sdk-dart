@@ -51,7 +51,7 @@ abstract interface class Shortener {
     "F"   |   "sender"                                       |   (From)
     "G"   |   "group"        "group"                         |
     "I"   |                                 "iv"             |
-    "K"   |   "key", "keys"                                  |
+    "K"   |   "keys"                                         |
     "M"   |   "meta"                                         |
     "N"   |                  "sn"                            |   (Number)
     "P"   |   "visa"                                         |   (Profile)
@@ -90,7 +90,7 @@ abstract interface class Shortener {
 /// Concrete implementation of [Shortener] for message/content/key short key mapping.
 ///
 /// Implements fixed key pair conversion with in-place Map modification,
-/// including special handling for "K" (supports both "key" and "keys").
+/// including special handling for "K" (short for "keys").
 class MessageShortener implements Shortener {
 
   /// Moves value from source key to target key (removes source key).
@@ -200,7 +200,7 @@ class MessageShortener implements Shortener {
     "T", "type",
     "G", "group",
     //------------------
-    "K", "key",         // or "keys"
+    "K", "keys",
     "D", "data",
     "V", "signature",   // Verification
     //------------------
@@ -210,27 +210,12 @@ class MessageShortener implements Shortener {
 
   @override
   Map compressReliableMessage(Map msg) {
-    moveKey("keys", "K", msg);
     shortenKeys(messageShortKeys, msg);
     return msg;
   }
 
   @override
   Map extractReliableMessage(Map msg) {
-    var keys = msg["K"];
-    if (keys == null) {
-      // assert(msg["data"] != null, "message data should not empty: $msg");
-    } else if (keys is Map) {
-      assert(msg["keys"] == null, "message keys duplicated: $msg");
-      msg.remove("K");
-      msg["keys"] = keys;
-    } else if (keys is String) {
-      assert(msg["key"] == null, "message key duplicated: $msg");
-      msg.remove("K");
-      msg["key"] = keys;
-    } else {
-      assert(false, "message key error: $msg");
-    }
     restoreKeys(messageShortKeys, msg);
     return msg;
   }

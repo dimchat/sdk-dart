@@ -1,3 +1,7 @@
+## 2.3.4
+
+- Message keys.
+
 ## 2.3.3
 
 - MessagePacker factory.
