@@ -272,7 +272,7 @@ class BaseUser extends BaseEntity implements User {
   Future<Uint8List?> decryptBundle(EncryptedBundle bundle) async {
     // NOTICE: if you provide a public key in visa for encryption,
     //         here you should return the private key paired with visa.key
-    Map<String, Uint8List> map = bundle.toMap();
+    MutableMapping<String, Uint8List> map = bundle.toMap();
     assert(map.isNotEmpty, 'key data empty: $bundle');
     String terminal;
     Uint8List ciphertext;

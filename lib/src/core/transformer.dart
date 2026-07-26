@@ -30,6 +30,7 @@
  */
 import 'dart:typed_data';
 
+import 'package:dimp/crypto.dart';
 import 'package:dimp/protocol.dart';
 import 'package:dimp/dkd.dart';
 
@@ -71,7 +72,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
   ///
   /// Returns: Binary data package (null if serialization fails)
   Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
-    Map info = rMsg.toMap();
+    MutableMapping info = rMsg.toMap();
     return compressor.compressReliableMessage(info);
   }
 
@@ -149,7 +150,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
   // -------------------------------------------------------------------------
 
   @override
-  Future<EncryptedBundle?> decodeKeys(Map keys, ID receiver, SecureMessage sMsg) async {
+  Future<EncryptedBundle?> decodeKeys(Mapping keys, ID receiver, SecureMessage sMsg) async {
     assert(!BaseMessage.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
     assert(receiver.isUser, 'receiver error: $receiver');
     User? user = await facebook.getUser(receiver);

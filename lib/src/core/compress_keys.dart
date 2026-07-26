@@ -28,6 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
+import 'package:dimp/crypto.dart';
 
 
 /// Interface for bidirectional short key mapping (long string keys ↔ single-char keys).
@@ -69,20 +70,20 @@ abstract interface class Shortener {
   ///
   ///  Compress Content
   ///
-  Map compressContent(Map content);
-  Map extractContent(Map content);
+  MutableMapping compressContent(MutableMapping content);
+  MutableMapping extractContent(MutableMapping content);
 
   ///
   ///  Compress SymmetricKey
   ///
-  Map compressSymmetricKey(Map key);
-  Map extractSymmetricKey(Map key);
+  MutableMapping compressSymmetricKey(MutableMapping key);
+  MutableMapping extractSymmetricKey(MutableMapping key);
 
   ///
   ///  Compress ReliableMessage
   ///
-  Map compressReliableMessage(Map msg);
-  Map extractReliableMessage(Map msg);
+  MutableMapping compressReliableMessage(MutableMapping msg);
+  MutableMapping extractReliableMessage(MutableMapping msg);
 
 }
 
@@ -102,7 +103,7 @@ class MessageShortener implements Shortener {
   /// - [to]   : Target key to move to
   /// - [info] : Map to modify (in-place)
   // protected
-  void moveKey(String from, String to, Map info) {
+  void moveKey(String from, String to, MutableMapping info) {
     var value = info[from];
     if (value != null) {
       assert(info[to] == null, 'keys conflicted: "$from" -> "$to", $info');
@@ -119,7 +120,7 @@ class MessageShortener implements Shortener {
   /// - [keys] : List of key pairs (short → long)
   /// - [info] : Map to modify (in-place)
   // protected
-  void shortenKeys(List<String> keys, Map info) {
+  void shortenKeys(List<String> keys, MutableMapping info) {
     int i = 1;
     while (i < keys.length) {
       moveKey(keys[i], keys[i - 1], info);
@@ -135,7 +136,7 @@ class MessageShortener implements Shortener {
   /// - [keys] : List of key pairs (short → long)
   /// - [info] : Map to modify (in-place)
   // protected
-  void restoreKeys(List<String> keys, Map info) {
+  void restoreKeys(List<String> keys, MutableMapping info) {
     int i = 1;
     while (i < keys.length) {
       moveKey(keys[i - 1], keys[i], info);
@@ -156,13 +157,13 @@ class MessageShortener implements Shortener {
   ];
 
   @override
-  Map compressContent(Map content) {
+  MutableMapping compressContent(MutableMapping content) {
     shortenKeys(contentShortKeys, content);
     return content;
   }
 
   @override
-  Map extractContent(Map content) {
+  MutableMapping extractContent(MutableMapping content) {
     restoreKeys(contentShortKeys, content);
     return content;
   }
@@ -178,13 +179,13 @@ class MessageShortener implements Shortener {
   ];
 
   @override
-  Map compressSymmetricKey(Map key) {
+  MutableMapping compressSymmetricKey(MutableMapping key) {
     shortenKeys(cryptoShortKeys, key);
     return key;
   }
 
   @override
-  Map extractSymmetricKey(Map key) {
+  MutableMapping extractSymmetricKey(MutableMapping key) {
     restoreKeys(cryptoShortKeys, key);
     return key;
   }
@@ -209,13 +210,13 @@ class MessageShortener implements Shortener {
   ];
 
   @override
-  Map compressReliableMessage(Map msg) {
+  MutableMapping compressReliableMessage(MutableMapping msg) {
     shortenKeys(messageShortKeys, msg);
     return msg;
   }
 
   @override
-  Map extractReliableMessage(Map msg) {
+  MutableMapping extractReliableMessage(MutableMapping msg) {
     restoreKeys(messageShortKeys, msg);
     return msg;
   }

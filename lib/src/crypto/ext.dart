@@ -73,7 +73,7 @@ abstract interface class EncryptedBundleHelper {
   /// @param did         - receiver ID
   /// @param terminals   - visa terminals
   /// @return encrypted key data with targets (ID terminals)
-  EncryptedBundle decodeBundle(Map keys, ID did, Iterable<String> terminals);
+  EncryptedBundle decodeBundle(Mapping keys, ID did, Iterable<String> terminals);
 
 }
 
@@ -103,7 +103,7 @@ class DefaultBundleHelper implements EncryptedBundleHelper {
   }
 
   @override
-  EncryptedBundle decodeBundle(Map keys, ID did, Iterable<String> terminals) {
+  EncryptedBundle decodeBundle(Mapping keys, ID did, Iterable<String> terminals) {
     EncryptedBundle bundle = UserEncryptedBundle();
     //
     //  0. ID string without terminal (base identifier)

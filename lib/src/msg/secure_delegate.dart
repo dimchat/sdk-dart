@@ -30,6 +30,7 @@
  */
 import 'dart:typed_data';
 
+import 'package:dimp/crypto.dart';
 import 'package:dimp/protocol.dart';
 
 import '../crypto/bundle.dart';
@@ -73,7 +74,7 @@ abstract interface class SecureMessageDelegate {
   /// - [sMsg]     : Parent secure message object (context)
   ///
   /// Returns: Decoded encrypted key bundle (null if decoding fails)
-  Future<EncryptedBundle?> decodeKeys(Map keys, ID receiver, SecureMessage sMsg);
+  Future<EncryptedBundle?> decodeKeys(Mapping keys, ID receiver, SecureMessage sMsg);
 
   /// Decrypts encrypted key bundle with receiver's private key (Step 2).
   ///

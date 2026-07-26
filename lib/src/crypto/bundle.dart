@@ -30,6 +30,7 @@
  */
 import 'dart:typed_data';
 
+import 'package:dimp/crypto.dart';
 import 'package:dimp/ext.dart';
 import 'package:dimp/mkm.dart';
 
@@ -51,7 +52,7 @@ abstract interface class EncryptedBundle {
   /// Converts the bundle to a raw map (terminal → encrypted bytes).
   ///
   /// Returns: Map with terminal strings as keys and encrypted Uint8List data
-  Map<String, Uint8List> toMap();
+  MutableMapping<String, Uint8List> toMap();
 
   /// Checks if the bundle contains no encrypted data for any terminal.
   ///
@@ -105,7 +106,7 @@ abstract interface class EncryptedBundle {
   /// - [terminals] : List of terminals to extract data for
   ///
   /// Returns: Decoded EncryptedBundle with terminal-specific encrypted data
-  static EncryptedBundle decode(Map keys, ID did, Iterable<String> terminals) {
+  static EncryptedBundle decode(Mapping keys, ID did, Iterable<String> terminals) {
     var helper = sharedAccountExtensions.bundleHelper;
     return helper.decodeBundle(keys, did, terminals);
   }
@@ -137,7 +138,7 @@ class UserEncryptedBundle implements EncryptedBundle {
   }
 
   @override
-  Map<String, Uint8List> toMap() => _map;
+  MutableMapping<String, Uint8List> toMap() => _map.asMutableMapping();
 
   @override
   bool get isEmpty => _map.isEmpty;
