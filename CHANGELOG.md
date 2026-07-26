@@ -1,3 +1,7 @@
+## 2.3.5
+
+- Compress keys.
+
 ## 2.3.4
 
 - Message keys.

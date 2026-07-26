@@ -70,20 +70,20 @@ abstract interface class Shortener {
   ///
   ///  Compress Content
   ///
-  MutableMapping compressContent(MutableMapping content);
-  MutableMapping extractContent(MutableMapping content);
+  Mapping compressContent(Mapping content);
+  Mapping extractContent(Mapping content);
 
   ///
   ///  Compress SymmetricKey
   ///
-  MutableMapping compressSymmetricKey(MutableMapping key);
-  MutableMapping extractSymmetricKey(MutableMapping key);
+  Mapping compressSymmetricKey(Mapping key);
+  Mapping extractSymmetricKey(Mapping key);
 
   ///
   ///  Compress ReliableMessage
   ///
-  MutableMapping compressReliableMessage(MutableMapping msg);
-  MutableMapping extractReliableMessage(MutableMapping msg);
+  Mapping compressReliableMessage(Mapping msg);
+  Mapping extractReliableMessage(Mapping msg);
 
 }
 
@@ -93,132 +93,115 @@ abstract interface class Shortener {
 /// Implements fixed key pair conversion with in-place Map modification,
 /// including special handling for "K" (short for "keys").
 class MessageShortener implements Shortener {
+  MessageShortener() {
 
-  /// Moves value from source key to target key (removes source key).
-  ///
-  /// Throws assertion error if target key already exists (key conflict).
-  ///
-  /// Parameters:
-  /// - [from] : Source key to move from
-  /// - [to]   : Target key to move to
-  /// - [info] : Map to modify (in-place)
-  // protected
-  void moveKey(String from, String to, MutableMapping info) {
-    var value = info[from];
-    if (value != null) {
-      assert(info[to] == null, 'keys conflicted: "$from" -> "$to", $info');
-      info.remove(from);
-      info[to] = value;
-    }
-  }
+    // build for content
+    final (c2l, c2s) = _build([
+      "T", "type",
+      "N", "sn",
+      "W", "time",        // When
+      "G", "group",
+      "C", "command",     // Command name
+    ]);
+    contentShortToLong = c2l;
+    contentLongToShort = c2s;
 
-  /// Batch shortens keys using a list of (shortKey, longKey) pairs.
-  ///
-  /// List format: [shortKey1, longKey1, shortKey2, longKey2, ...]
-  ///
-  /// Parameters:
-  /// - [keys] : List of key pairs (short → long)
-  /// - [info] : Map to modify (in-place)
-  // protected
-  void shortenKeys(List<String> keys, MutableMapping info) {
-    int i = 1;
-    while (i < keys.length) {
-      moveKey(keys[i], keys[i - 1], info);
-      i += 2;
-    }
-  }
+    // build for symmetric key
+    final (k2l, k2s) = _build([
+      "A", "algorithm",
+      "D", "data",
+      "I", "iv",          // Initial Vector
+    ]);
+    cryptoShortToLong = k2l;
+    cryptoLongToShort = k2s;
 
-  /// Batch restores keys using a list of (shortKey, longKey) pairs.
-  ///
-  /// Reverse of [shortenKeys], list format: [shortKey1, longKey1, ...]
-  ///
-  /// Parameters:
-  /// - [keys] : List of key pairs (short → long)
-  /// - [info] : Map to modify (in-place)
-  // protected
-  void restoreKeys(List<String> keys, MutableMapping info) {
-    int i = 1;
-    while (i < keys.length) {
-      moveKey(keys[i - 1], keys[i], info);
-      i += 2;
-    }
+    // build for message
+    final (m2l, m2s) = _build([
+      "F", "sender",      // From
+      "R", "receiver",    // Rcpt to
+      "W", "time",        // When
+      "T", "type",
+      "G", "group",
+      //------------------
+      "K", "keys",
+      "D", "data",
+      "V", "signature",   // Verification
+      //------------------
+      "M", "meta",
+      "P", "visa",        // Profile
+    ]);
+    messageShortToLong = m2l;
+    messageLongToShort = m2s;
   }
 
   // -------------------------------------------------------------------------
   //  Content Key Mapping
   // -------------------------------------------------------------------------
 
-  List<String> contentShortKeys = [
-    "T", "type",
-    "N", "sn",
-    "W", "time",        // When
-    "G", "group",
-    "C", "command",     // Command name
-  ];
+  late Map<String, String> contentShortToLong;
+  late Map<String, String> contentLongToShort;
 
   @override
-  MutableMapping compressContent(MutableMapping content) {
-    shortenKeys(contentShortKeys, content);
-    return content;
-  }
+  Mapping compressContent(Mapping content) => _trans(content, contentLongToShort);
 
   @override
-  MutableMapping extractContent(MutableMapping content) {
-    restoreKeys(contentShortKeys, content);
-    return content;
-  }
+  Mapping extractContent(Mapping content) => _trans(content, contentShortToLong);
 
   // -------------------------------------------------------------------------
   //  Symmetric Key Mapping
   // -------------------------------------------------------------------------
 
-  List<String> cryptoShortKeys = [
-    "A", "algorithm",
-    "D", "data",
-    "I", "iv",          // Initial Vector
-  ];
+  late Map<String, String> cryptoShortToLong;
+  late Map<String, String> cryptoLongToShort;
 
   @override
-  MutableMapping compressSymmetricKey(MutableMapping key) {
-    shortenKeys(cryptoShortKeys, key);
-    return key;
-  }
+  Mapping compressSymmetricKey(Mapping key) => _trans(key, cryptoLongToShort);
 
   @override
-  MutableMapping extractSymmetricKey(MutableMapping key) {
-    restoreKeys(cryptoShortKeys, key);
-    return key;
-  }
+  Mapping extractSymmetricKey(Mapping key) => _trans(key, cryptoShortToLong);
 
   // -------------------------------------------------------------------------
   //  ReliableMessage Key Mapping
   // -------------------------------------------------------------------------
 
-  List<String> messageShortKeys = [
-    "F", "sender",      // From
-    "R", "receiver",    // Rcpt to
-    "W", "time",        // When
-    "T", "type",
-    "G", "group",
-    //------------------
-    "K", "keys",
-    "D", "data",
-    "V", "signature",   // Verification
-    //------------------
-    "M", "meta",
-    "P", "visa",        // Profile
-  ];
+  late Map<String, String> messageShortToLong;
+  late Map<String, String> messageLongToShort;
 
   @override
-  MutableMapping compressReliableMessage(MutableMapping msg) {
-    shortenKeys(messageShortKeys, msg);
-    return msg;
-  }
+  Mapping compressReliableMessage(Mapping msg) => _trans(msg, messageLongToShort);
 
   @override
-  MutableMapping extractReliableMessage(MutableMapping msg) {
-    restoreKeys(messageShortKeys, msg);
-    return msg;
-  }
+  Mapping extractReliableMessage(Mapping msg) => _trans(msg, messageShortToLong);
 
+}
+
+
+/// Build key table
+(Map<String, String> s2l, Map<String, String> l2s) _build(List<String> keys) {
+  Map<String, String> shortToLong = {};
+  Map<String, String> longToShort = {};
+  int i = 1;
+  String k1, k2;
+  while (i < keys.length) {
+    k1 = keys[i - 1];
+    k2 = keys[i];
+    assert(k1.length < k2.length, 'key pair error: $k1, $k2');
+    shortToLong[k1] = k2;
+    longToShort[k2] = k1;
+    i += 2;
+  }
+  return (shortToLong, longToShort);
+}
+
+
+/// Translate
+Mapping _trans(Mapping info, Map<String, String> dictionary) {
+  Map result = {};
+  String? target;
+  info.forEach((key, value) {
+    target = dictionary[key];
+    target ??= key;
+    result[target] = value;
+  });
+  return result.asMapping();
 }

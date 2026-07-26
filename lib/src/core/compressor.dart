@@ -63,7 +63,7 @@ abstract interface class Compressor {
   /// - [key]     : Symmetric key map (reserved parameter, not used in implementation)
   ///
   /// Returns: UTF8 encoded binary bytes of compressed content
-  Uint8List compressContent(MutableMapping content, Mapping key);
+  Uint8List compressContent(Mapping content, Mapping key);
 
   /// Extracts content map from UTF8 binary bytes (UTF8 → JSON → long keys).
   ///
@@ -72,7 +72,7 @@ abstract interface class Compressor {
   /// - [key]  : Symmetric key map (reserved parameter, not used in implementation)
   ///
   /// Returns: Restored content map with long keys (null if decoding/deserialization fails)
-  MutableMapping? extractContent(Uint8List data, Mapping key);
+  Mapping? extractContent(Uint8List data, Mapping key);
 
   // -------------------------------------------------------------------------
   //  Symmetric Key Compression/Extraction
@@ -84,7 +84,7 @@ abstract interface class Compressor {
   /// - [key] : Original symmetric key map with long keys
   ///
   /// Returns: UTF8 encoded binary bytes of compressed symmetric key
-  Uint8List compressSymmetricKey(MutableMapping key);
+  Uint8List compressSymmetricKey(Mapping key);
 
   /// Extracts symmetric key map from UTF8 binary bytes (UTF8 → JSON → long keys).
   ///
@@ -92,7 +92,7 @@ abstract interface class Compressor {
   /// - [data] : UTF8 encoded binary bytes of compressed symmetric key
   ///
   /// Returns: Restored symmetric key map with long keys (null if decoding/deserialization fails)
-  MutableMapping? extractSymmetricKey(Uint8List data);
+  Mapping? extractSymmetricKey(Uint8List data);
 
   // -------------------------------------------------------------------------
   //  ReliableMessage Compression/Extraction
@@ -104,7 +104,7 @@ abstract interface class Compressor {
   /// - [msg] : Original ReliableMessage map with long keys
   ///
   /// Returns: UTF8 encoded binary bytes of compressed message
-  Uint8List compressReliableMessage(MutableMapping msg);
+  Uint8List compressReliableMessage(Mapping msg);
 
   /// Extracts ReliableMessage map from UTF8 binary bytes (UTF8 → JSON → long keys).
   ///
@@ -112,7 +112,7 @@ abstract interface class Compressor {
   /// - [data] : UTF8 encoded binary bytes of compressed message
   ///
   /// Returns: Restored message map with long keys (null if decoding/deserialization fails)
-  MutableMapping? extractReliableMessage(Uint8List data);
+  Mapping? extractReliableMessage(Uint8List data);
 
 }
 
@@ -133,24 +133,25 @@ class MessageCompressor implements Compressor {
   // -------------------------------------------------------------------------
 
   @override
-  Uint8List compressContent(MutableMapping content, Mapping key) {
+  Uint8List compressContent(Mapping content, Mapping key) {
     content = shortener.compressContent(content);
     String json = JSONMap.encode(content);
     return UTF8.encode(json);
   }
 
   @override
-  MutableMapping? extractContent(Uint8List data, Mapping key) {
+  Mapping? extractContent(Uint8List data, Mapping key) {
     var json = UTF8.decode(data);
     if (json == null) {
       assert(false, 'content data error: ${data.length}');
       return null;
     }
     var info = JSONMap.decode(json);
-    if (info != null) {
-      return shortener.extractContent(info.asMutableMapping());
+    if (info == null) {
+      assert(false, 'failed to decode content: $json');
+      return null;
     }
-    return null;
+    return shortener.extractContent(info.asMapping());
   }
 
   // -------------------------------------------------------------------------
@@ -158,24 +159,25 @@ class MessageCompressor implements Compressor {
   // -------------------------------------------------------------------------
 
   @override
-  Uint8List compressSymmetricKey(MutableMapping key) {
+  Uint8List compressSymmetricKey(Mapping key) {
     key = shortener.compressSymmetricKey(key);
     String json = JSONMap.encode(key);
     return UTF8.encode(json);
   }
 
   @override
-  MutableMapping? extractSymmetricKey(Uint8List data) {
+  Mapping? extractSymmetricKey(Uint8List data) {
     var json = UTF8.decode(data);
     if (json == null) {
       assert(false, 'symmetric key error: ${data.length}');
       return null;
     }
     var key = JSONMap.decode(json);
-    if (key != null) {
-      return shortener.extractSymmetricKey(key.asMutableMapping());
+    if (key == null) {
+      assert(false, 'failed to decode symmetric key: $json');
+      return null;
     }
-    return null;
+    return shortener.extractSymmetricKey(key.asMapping());
   }
 
   // -------------------------------------------------------------------------
@@ -183,24 +185,25 @@ class MessageCompressor implements Compressor {
   // -------------------------------------------------------------------------
 
   @override
-  Uint8List compressReliableMessage(MutableMapping msg) {
+  Uint8List compressReliableMessage(Mapping msg) {
     msg = shortener.compressReliableMessage(msg);
     String json = JSONMap.encode(msg);
     return UTF8.encode(json);
   }
 
   @override
-  MutableMapping? extractReliableMessage(Uint8List data) {
+  Mapping? extractReliableMessage(Uint8List data) {
     var json = UTF8.decode(data);
     if (json == null) {
       assert(false, 'reliable message error: ${data.length}');
       return null;
     }
     var msg = JSONMap.decode(json);
-    if (msg != null) {
-      return shortener.extractReliableMessage(msg.asMutableMapping());
+    if (msg == null) {
+      assert(false, 'failed to decode message: $json');
+      return null;
     }
-    return null;
+    return shortener.extractReliableMessage(msg.asMapping());
   }
 
 }
