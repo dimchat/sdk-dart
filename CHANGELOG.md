@@ -1,3 +1,7 @@
+## 2.3.6
+
+- Type alias.
+
 ## 2.3.5
 
 - Compress keys.

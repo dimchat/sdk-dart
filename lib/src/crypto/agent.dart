@@ -116,7 +116,7 @@ class DefaultVisaAgent implements VisaAgent {
         terminal = '*';
       }
       if (bundle[terminal] != null) {
-        assert(false, 'duplicated visa key: $doc');
+        assert(false, 'duplicated visa key: "$terminal", bundle: $bundle, ${documents.length} document(s): $doc');
         continue;
       }
       ciphertext = pubKey.encrypt(plaintext);

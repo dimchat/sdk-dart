@@ -151,7 +151,7 @@ class MessageCompressor implements Compressor {
       assert(false, 'failed to decode content: $json');
       return null;
     }
-    return shortener.extractContent(info.asMapping());
+    return shortener.extractContent(info);
   }
 
   // -------------------------------------------------------------------------
@@ -177,7 +177,7 @@ class MessageCompressor implements Compressor {
       assert(false, 'failed to decode symmetric key: $json');
       return null;
     }
-    return shortener.extractSymmetricKey(key.asMapping());
+    return shortener.extractSymmetricKey(key);
   }
 
   // -------------------------------------------------------------------------
@@ -203,7 +203,7 @@ class MessageCompressor implements Compressor {
       assert(false, 'failed to decode message: $json');
       return null;
     }
-    return shortener.extractReliableMessage(msg.asMapping());
+    return shortener.extractReliableMessage(msg);
   }
 
 }

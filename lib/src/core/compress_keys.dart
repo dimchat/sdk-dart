@@ -41,31 +41,6 @@ import 'package:dimp/crypto.dart';
 /// - Preserves data structure, only replaces key names
 /// - Maintains compatibility with core message components
 abstract interface class Shortener {
-  /** Short Keys
-
-    ======+==================================================+==================
-          |   Message        Content        Symmetric Key    |    Description
-    ------+--------------------------------------------------+------------------
-    "A"   |                                 "algorithm"      |
-    "C"   |   "content"      "command"                       |
-    "D"   |   "data"                        "data"           |
-    "F"   |   "sender"                                       |   (From)
-    "G"   |   "group"        "group"                         |
-    "I"   |                                 "iv"             |
-    "K"   |   "keys"                                         |
-    "M"   |   "meta"                                         |
-    "N"   |                  "sn"                            |   (Number)
-    "P"   |   "visa"                                         |   (Profile)
-    "R"   |   "receiver"                                     |
-    "S"   |   ...                                            |
-    "T"   |   "type"         "type"                          |
-    "V"   |   "signature"                                    |   (Verification)
-    "W"   |   "time"         "time"                          |   (When)
-    ======+==================================================+==================
-
-    Note:
-        "S" - deprecated (ambiguous for "sender" and "signature")
-   */
 
   ///
   ///  Compress Content
@@ -88,6 +63,62 @@ abstract interface class Shortener {
 }
 
 
+/*  Short Keys
+
+    ======+==================================================+==================
+          |   Message        Content        Symmetric Key    |    Description
+    ------+--------------------------------------------------+------------------
+    "A"   |                                 "algorithm"      |
+    "C"   |   "content"      "command"                       |
+    "D"   |   "data"                        "data"           |
+    "F"   |   "sender"                                       |   (From)
+    "G"   |   "group"        "group"                         |
+    "I"   |                                 "iv"             |
+    "K"   |   "keys"                                         |
+    "M"   |   "meta"                                         |
+    "N"   |                  "sn"                            |   (Number)
+    "P"   |   "visa"                                         |   (Profile)
+    "R"   |   "receiver"                                     |
+    "S"   |   ...                                            |
+    "T"   |   "type"         "type"                          |
+    "V"   |   "signature"                                    |   (Verification)
+    "W"   |   "time"         "time"                          |   (When)
+    ======+==================================================+==================
+
+    Note:
+    "S" - deprecated (ambiguous for "sender" and "signature")
+ */
+
+final _messageKeyPairs = [
+  "F", "sender",      // From
+  "R", "receiver",    // Rcpt to
+  "W", "time",        // When
+  "T", "type",
+  "G", "group",
+  //------------------
+  "K", "keys",
+  "D", "data",
+  "V", "signature",   // Verification
+  //------------------
+  "M", "meta",
+  "P", "visa",        // Profile
+];
+
+final _contentKeyPairs = [
+  "T", "type",
+  "N", "sn",
+  "W", "time",        // When
+  "G", "group",
+  "C", "command",     // Command name
+];
+
+final _cryptoKeyPairs = [
+  "A", "algorithm",
+  "D", "data",
+  "I", "iv",          // Initial Vector
+];
+
+
 /// Concrete implementation of [Shortener] for message/content/key short key mapping.
 ///
 /// Implements fixed key pair conversion with in-place Map modification,
@@ -96,43 +127,32 @@ class MessageShortener implements Shortener {
   MessageShortener() {
 
     // build for content
-    final (c2l, c2s) = _build([
-      "T", "type",
-      "N", "sn",
-      "W", "time",        // When
-      "G", "group",
-      "C", "command",     // Command name
-    ]);
+    final (c2l, c2s) = buildContentKeyMaps();
     contentShortToLong = c2l;
     contentLongToShort = c2s;
 
     // build for symmetric key
-    final (k2l, k2s) = _build([
-      "A", "algorithm",
-      "D", "data",
-      "I", "iv",          // Initial Vector
-    ]);
+    final (k2l, k2s) = buildCryptoKeyMaps();
     cryptoShortToLong = k2l;
     cryptoLongToShort = k2s;
 
     // build for message
-    final (m2l, m2s) = _build([
-      "F", "sender",      // From
-      "R", "receiver",    // Rcpt to
-      "W", "time",        // When
-      "T", "type",
-      "G", "group",
-      //------------------
-      "K", "keys",
-      "D", "data",
-      "V", "signature",   // Verification
-      //------------------
-      "M", "meta",
-      "P", "visa",        // Profile
-    ]);
+    final (m2l, m2s) = buildMessageKeyMaps();
     messageShortToLong = m2l;
     messageLongToShort = m2s;
   }
+
+  // protected
+  (Map<String, String> s2l, Map<String, String> l2s) buildContentKeyMaps() =>
+      _build(_contentKeyPairs);
+
+  // protected
+  (Map<String, String> s2l, Map<String, String> l2s) buildCryptoKeyMaps() =>
+      _build(_cryptoKeyPairs);
+
+  // protected
+  (Map<String, String> s2l, Map<String, String> l2s) buildMessageKeyMaps() =>
+      _build(_messageKeyPairs);
 
   // -------------------------------------------------------------------------
   //  Content Key Mapping
@@ -197,11 +217,9 @@ class MessageShortener implements Shortener {
 /// Translate
 Mapping _trans(Mapping info, Map<String, String> dictionary) {
   Map result = {};
-  String? target;
   info.forEach((key, value) {
-    target = dictionary[key];
-    target ??= key;
-    result[target] = value;
+    var name = dictionary[key] ?? key;
+    result[name] = value;
   });
-  return result.asMapping();
+  return result;
 }

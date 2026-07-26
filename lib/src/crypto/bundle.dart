@@ -138,7 +138,7 @@ class UserEncryptedBundle implements EncryptedBundle {
   }
 
   @override
-  MutableMapping<String, Uint8List> toMap() => _map.asMutableMapping();
+  MutableMapping<String, Uint8List> toMap() => _map;
 
   @override
   bool get isEmpty => _map.isEmpty;
