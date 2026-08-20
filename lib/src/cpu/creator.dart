@@ -34,7 +34,6 @@ import '../dkd/proc.dart';
 import '../twins.dart';
 
 import 'base.dart';
-import 'commands.dart';
 import 'contents.dart';
 
 
@@ -47,7 +46,7 @@ import 'contents.dart';
 /// Creates concrete processors for common content types (forward, array, ...) and
 /// standard commands (meta, documents, ...), falling back to base processors for
 /// unsupported types/commands.
-class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessorCreator {
+abstract class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessorCreator {
 
   /// Creates a [BaseContentProcessorCreator] with required twin dependencies.
   ///
@@ -78,23 +77,6 @@ class BaseContentProcessorCreator extends TwinsHelper implements ContentProcesso
 
     }
     // assert(false, 'unsupported content: $msgType');
-    return null;
-  }
-
-  @override
-  ContentProcessor? createCommandProcessor(String msgType, String cmd) {
-    switch (cmd) {
-
-      // meta command
-      case Command.META:
-        return MetaCommandProcessor(facebook!, messenger!);
-
-      // document command
-      case Command.DOCUMENTS:
-        return DocumentCommandProcessor(facebook!, messenger!);
-
-    }
-    // assert(false, 'unsupported command: $cmd');
     return null;
   }
 

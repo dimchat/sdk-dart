@@ -42,15 +42,15 @@ abstract interface class ReliableMessageDelegate/* implements SecureMessageDeleg
   /*
    *  Verification workflow: ReliableMessage → SecureMessage
    *
-   *    +----------+      +----------+
-   *    | sender   |      | sender   |
-   *    | receiver |      | receiver |
-   *    | time     |  ->  | time     |
-   *    |          |      |          |
-   *    | data     |      | data     |  1. verify(data, signature, sender.PK)
-   *    | keys     |      | keys     |
-   *    | signature|      +----------+
-   *    +----------+
+   *    +-----------+      +----------+
+   *    | sender    |      | sender   |
+   *    | receiver  |      | receiver |
+   *    | time      |  ->  | time     |
+   *    |           |      |          |
+   *    | data      |      | data     |  1. verify(data, signature, sender.PK)
+   *    | keys      |      | keys     |
+   *    | signature |      +----------+
+   *    +-----------+
    *
    *  sender.PK: Sender's public key (Meta/Visa) for signature verification
    */

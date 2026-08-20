@@ -81,7 +81,7 @@ class DefaultBundleHelper implements EncryptedBundleHelper {
 
   @override
   Map<String, Object> encodeBundle(EncryptedBundle bundle, ID did) {
-    assert(did.terminal == null, 'ID should not contain terminal here: $did');
+    // assert(did.terminal == null, 'ID should not contain terminal here: $did');
     String identifier = did.withoutTerminal().toString();
     Map<String, Object> encodedKeys = {};
     String target;

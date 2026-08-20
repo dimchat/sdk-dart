@@ -62,12 +62,6 @@ class GeneralContentProcessorFactory implements ContentProcessorFactory {
       cpu = getCommandProcessor(msgType, cmd);
       if (cpu != null) {
         return cpu;
-      } else if (content is GroupCommand/* || content.containsKey('group')*/) {
-        // assert(name != 'group', 'command name error: $content');
-        cpu = getCommandProcessor(msgType, 'group');
-        if (cpu != null) {
-          return cpu;
-        }
       }
     }
     // content processor
@@ -95,7 +89,7 @@ class GeneralContentProcessorFactory implements ContentProcessorFactory {
   /// - [cmd]     : Command name (e.g., "meta", "documents", "group", ...)
   ///
   /// Returns: Command processor instance (null if unsupported)
-  // private
+  // protected
   ContentProcessor? getCommandProcessor(String msgType, String cmd) {
     ContentProcessor? cpu = _commandProcessors[cmd];
     if (cpu == null) {

@@ -28,6 +28,7 @@
  * SOFTWARE.
  * =============================================================================
  */
+import 'package:dimp/ext.dart';
 import 'package:dimp/protocol.dart';
 
 import '../dkd/proc.dart';
@@ -81,7 +82,7 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   ///
   /// Returns: List with one [ReceiptCommand] instance
   // protected
-  List<ReceiptCommand> respondReceipt(String text, {
+  List<Content> respondReceipt(String text, {
     required Envelope envelope, Content? content, Map<String, Object>? extra
   }) => [
     createReceipt(text, envelope: envelope, content: content, extra: extra)
@@ -99,11 +100,12 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   /// - [extra]    : Extra key-value data to add to the receipt (optional)
   ///
   /// Returns: Formatted [ReceiptCommand] instance
-  static ReceiptCommand createReceipt(String text, {
+  static Command createReceipt(String text, {
     required Envelope envelope, Content? content, Map<String, Object>? extra
   }) {
     // create base receipt command with text, original envelope, serial number & group ID
-    ReceiptCommand res = ReceiptCommand.create(text, envelope, content);
+    var helper = sharedMessageExtensions.cmdHelper;
+    Command res = helper!.createReceipt(text, envelope, content);
     // add extra key-values
     if (extra != null) {
       res.addAll(extra);
