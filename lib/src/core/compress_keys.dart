@@ -221,5 +221,5 @@ Mapping _trans(Mapping info, Map<String, String> dictionary) {
     var name = dictionary[key] ?? key;
     result[name] = value;
   });
-  return result;
+  return result.asMapping();
 }

@@ -82,7 +82,7 @@ class SecureMessagePacker {
     }
     SecureMessageDelegate? transformer = delegate;
     assert(transformer != null, 'secure message delegate not found');
-    return await transformer?.decodeKeys(msgKeys, receiver, sMsg);
+    return await transformer?.decodeKeys(msgKeys.asMapping(), receiver, sMsg);
   }
 
   /// Decrypts a SecureMessage back to an InstantMessage (for local user).

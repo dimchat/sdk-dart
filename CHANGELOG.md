@@ -1,3 +1,7 @@
+## 2.4.0
+
+- Simplify CPUs.
+
 ## 2.3.6
 
 - Type alias.

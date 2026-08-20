@@ -95,42 +95,9 @@ abstract interface class Barrack {
   /// Returns: New Group instance (null if members are missing/entity not ready)
   Group? createGroup(ID gid);
 
-}
-
-
-// -----------------------------------------------------------------------------
-//  Archivist (Persistent Data Access)
-// -----------------------------------------------------------------------------
-
-/// Persistent data access interface for entity metadata and documents.
-///
-/// Core responsibilities:
-/// 1. Saves entity metadata and documents to persistent storage (database)
-/// 2. Retrieves local user IDs (critical for message decryption)
-/// 3. Enforces pre-verification rule: All save operations require prior validation
-abstract interface class Archivist {
-
-  /// Saves entity metadata to persistent storage (must verify metadata first).
-  ///
-  /// Precondition: Metadata must be validated (authenticity/integrity) before saving.
-  ///
-  /// Parameters:
-  /// - [meta] : Validated metadata of the entity (user/group)
-  /// - [did]  : Unique ID of the entity to associate with the metadata
-  ///
-  /// Returns: True if metadata is saved successfully, false otherwise
-  Future<bool> saveMeta(Meta meta, ID did);
-
-  /// Saves an entity document to persistent storage (must verify document first).
-  ///
-  /// Precondition: Document must be validated (authenticity/integrity) before saving.
-  ///
-  /// Parameters:
-  /// - [doc] : Validated document data of the entity (user/group)
-  /// - [did] : Unique ID of the entity to associate with the document
-  ///
-  /// Returns: True if document is saved successfully, false otherwise
-  Future<bool> saveDocument(Document doc, ID did);
+  //
+  //  Archivist
+  //
 
   // -------------------------------------------------------------------------
   //  Local User Management (Critical for Message Decryption)

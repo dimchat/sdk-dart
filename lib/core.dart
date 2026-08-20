@@ -11,7 +11,7 @@ export 'src/core/packer.dart';
 export 'src/core/processor.dart';
 export 'src/core/transformer.dart';  // require 'mkm/*'
 
-export 'src/facebook.dart';   // require 'archivist.dart', 'core/*', 'mkm/*'
+export 'src/facebook.dart';   // require 'core/*', 'mkm/*'
 export 'src/messenger.dart';  // require 'core/*'
 export 'src/twins.dart';      // require 'facebook.dart', 'messenger.dart'
 export 'src/packer.dart';     // require 'twins.dart', 'msg/*'

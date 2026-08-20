@@ -56,12 +56,6 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   // protected
   Barrack? get barrack;
 
-  /// Returns the persistent data access layer (Archivist) - internal use only.
-  ///
-  /// Null if the archivist is not initialized/ready for use.
-  // protected
-  Archivist? get archivist;
-
   /// Selects a local user for decrypting messages to a user/broadcast receiver.
   ///
   /// Core logic:
@@ -78,8 +72,8 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   /// Throws: Assertion error if receiver is invalid (group) or local users are empty
   Future<ID?> selectUser(ID receiver) async {
     assert(receiver.isUser || receiver.isBroadcast, 'user ID error: $receiver');
-    assert(archivist != null, 'archivist not ready');
-    List<ID>? allUsers = await archivist?.getLocalUsers();
+    assert(barrack != null, 'archivist not ready');
+    List<ID>? allUsers = await barrack?.getLocalUsers();
     if (allUsers == null || allUsers.isEmpty) {
       assert(false, 'local users should not be empty');
       return null;
@@ -114,8 +108,8 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   /// Throws: Assertion error if members are empty or local users are empty
   Future<ID?> selectMember(List<ID> members) async {
     assert(members.isNotEmpty, 'group members not found');
-    assert(archivist != null, 'archivist not ready');
-    List<ID>? allUsers = await archivist?.getLocalUsers();
+    assert(barrack != null, 'archivist not ready');
+    List<ID>? allUsers = await barrack?.getLocalUsers();
     if (allUsers == null || allUsers.isEmpty) {
       assert(false, 'local users should not be empty');
       return null;
