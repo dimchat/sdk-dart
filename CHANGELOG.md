@@ -1,3 +1,7 @@
+## 2.4.1
+
+- String key map.
+
 ## 2.4.0
 
 - Simplify CPUs.

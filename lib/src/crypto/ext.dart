@@ -86,7 +86,7 @@ class DefaultBundleHelper implements EncryptedBundleHelper {
     Map<String, Object> encodedKeys = {};
     String target;
     Object base64;
-    var map = bundle.toMap();
+    Map<String, Uint8List> map = bundle.toMap();
     map.forEach((terminal, data) {
       // encode data
       base64 = Base64.encode(data);

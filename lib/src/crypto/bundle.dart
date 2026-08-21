@@ -52,7 +52,7 @@ abstract interface class EncryptedBundle {
   /// Converts the bundle to a raw map (terminal → encrypted bytes).
   ///
   /// Returns: Map with terminal strings as keys and encrypted Uint8List data
-  MutableMapping<String, Uint8List> toMap();
+  Map<String, Uint8List> toMap();
 
   /// Checks if the bundle contains no encrypted data for any terminal.
   ///
@@ -107,7 +107,7 @@ abstract interface class EncryptedBundle {
   ///
   /// Returns: Decoded EncryptedBundle with terminal-specific encrypted data
   static EncryptedBundle decode(Mapping keys, ID did, Iterable<String> terminals) {
-    var helper = sharedAccountExtensions.bundleHelper;
+    final helper = sharedAccountExtensions.bundleHelper;
     return helper.decodeBundle(keys, did, terminals);
   }
 
@@ -138,7 +138,7 @@ class UserEncryptedBundle implements EncryptedBundle {
   }
 
   @override
-  MutableMapping<String, Uint8List> toMap() => _map.asMutableMapping();
+  Map<String, Uint8List> toMap() => _map;
 
   @override
   bool get isEmpty => _map.isEmpty;
@@ -163,7 +163,7 @@ class UserEncryptedBundle implements EncryptedBundle {
 
   @override
   Map<String, Object> encode(ID did) {
-    var helper = sharedAccountExtensions.bundleHelper;
+    final helper = sharedAccountExtensions.bundleHelper;
     return helper.encodeBundle(this, did);
   }
 

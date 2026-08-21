@@ -213,7 +213,7 @@ class BaseUser extends BaseEntity implements User {
 
   @override
   UserDataSource? get dataSource {
-    var facebook = super.dataSource;
+    final facebook = super.dataSource;
     if (facebook is UserDataSource) {
       return facebook;
     }
@@ -229,13 +229,13 @@ class BaseUser extends BaseEntity implements User {
   Future<Set<String>> get terminals async {
     List<Document> docs = await documents;
     assert(docs.isNotEmpty, 'failed to get documents: $identifier');
-    var agent = sharedAccountExtensions.visaAgent;
+    final agent = sharedAccountExtensions.visaAgent;
     return agent.getTerminals(docs);
   }
 
   @override
   Future<bool> verify(Uint8List data, Uint8List signature) async {
-    var agent = sharedAccountExtensions.visaAgent;
+    final agent = sharedAccountExtensions.visaAgent;
     List<VerifyKey> keys = agent.getVerifyKeys(await meta, await documents);
     assert(keys.isNotEmpty, 'failed to get verify keys: $identifier');
     for (VerifyKey pubKey in keys) {
@@ -253,7 +253,7 @@ class BaseUser extends BaseEntity implements User {
   Future<EncryptedBundle> encryptBundle(Uint8List plaintext) async {
     // NOTICE: meta.key will never changed, so use visa.key to encrypt message
     //         is a better way
-    var agent = sharedAccountExtensions.visaAgent;
+    final agent = sharedAccountExtensions.visaAgent;
     return agent.encryptBundle(plaintext, await meta, await documents);
   }
 
@@ -272,7 +272,7 @@ class BaseUser extends BaseEntity implements User {
   Future<Uint8List?> decryptBundle(EncryptedBundle bundle) async {
     // NOTICE: if you provide a public key in visa for encryption,
     //         here you should return the private key paired with visa.key
-    MutableMapping<String, Uint8List> map = bundle.toMap();
+    Map<String, Uint8List> map = bundle.toMap();
     assert(map.isNotEmpty, 'key data empty: $bundle');
     String terminal;
     Uint8List ciphertext;
@@ -303,7 +303,7 @@ class BaseUser extends BaseEntity implements User {
 
   @override
   Future<Visa?> signVisa(Visa doc) async {
-    var helper = sharedAccountExtensions.helper;
+    final helper = sharedAccountExtensions.helper;
     ID? did = helper?.getDocumentID(doc.toMap());
     assert(did == null || did.isSameAs(identifier), 'visa ID not match: $did, $identifier');
     // NOTICE: only sign visa with the private key paired with your meta.key
@@ -323,7 +323,7 @@ class BaseUser extends BaseEntity implements User {
   Future<bool> verifyVisa(Visa doc) async {
     // NOTICE: only verify visa with meta.key
     //         (if meta not exists, user won't be created)
-    var helper = sharedAccountExtensions.helper;
+    final helper = sharedAccountExtensions.helper;
     ID? did = helper?.getDocumentID(doc.toMap());
     assert(did == null || did.isSameAs(identifier), 'visa ID not match: $did, $identifier');
     // if meta not exists, user won't be created

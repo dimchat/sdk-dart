@@ -215,10 +215,10 @@ class MessageShortener implements Shortener {
 
 
 /// Translate
-Mapping _trans(Mapping info, Map<String, String> dictionary) {
-  Map result = {};
+Mapping<String, dynamic> _trans(Mapping info, Map<String, String> dictionary) {
+  Map<String, dynamic> result = {};
   info.forEach((key, value) {
-    var name = dictionary[key] ?? key;
+    final name = dictionary[key] ?? key;
     result[name] = value;
   });
   return result.asMapping();
