@@ -80,9 +80,9 @@ class BaseCustomizedContentHandler implements CustomizedContentHandler {
     String mod = content.module;
     String act = content.action;
     String text = 'Content not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: <String, dynamic>{
       'template': 'Customized content (app: \${app}, mod: \${mod}, act: \${act}) not support yet!',
-      'replacements': {
+      'replacements': <String, dynamic>{
         'app': app,
         'mod': mod,
         'act': act,
@@ -95,7 +95,7 @@ class BaseCustomizedContentHandler implements CustomizedContentHandler {
   //
 
   // protected
-  List<ReceiptCommand> respondReceipt(String text, {
+  List<Command> respondReceipt(String text, {
     required Envelope envelope, Content? content, Map<String, Object>? extra
   }) => [
     // create base receipt command with text & original envelope

@@ -31,8 +31,8 @@
 import 'dart:typed_data';
 
 import 'package:dimp/crypto.dart';
+import 'package:dimp/ext.dart';
 import 'package:dimp/protocol.dart';
-import 'package:dimp/dkd.dart';
 
 import '../crypto/bundle.dart';
 import 'instant_delegate.dart';
@@ -104,7 +104,7 @@ class InstantMessagePacker {
     //  3. Encode 'message.data' to String (Base64)
     //
     TransportableData encodedData;
-    if (BaseMessage.isBroadcast(iMsg)) {
+    if (sharedMessageExtensions.helper!.isBroadcast(iMsg)) {
       // broadcast message content will not be encrypted (just encoded to JsON),
       // so no need to encode to Base64 here
       encodedData = PlainData.createWithBytes(ciphertext);

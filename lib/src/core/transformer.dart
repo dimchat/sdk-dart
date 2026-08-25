@@ -31,8 +31,8 @@
 import 'dart:typed_data';
 
 import 'package:dimp/crypto.dart';
+import 'package:dimp/ext.dart';
 import 'package:dimp/protocol.dart';
-import 'package:dimp/dkd.dart';
 
 import '../crypto/bundle.dart';
 import '../mkm/entity.dart';
@@ -106,7 +106,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
 
   // @override
   // Future<Object> encodeData(Uint8List data, InstantMessage iMsg) async {
-  //   if (BaseMessage.isBroadcast(iMsg)) {
+  //   if (sharedMessageExtensions.helper!.isBroadcast(iMsg)) {
   //     // broadcast message content will not be encrypted (just encoded to JsON),
   //     // so no need to encode to Base64 here
   //     return UTF8.decode(data)!;
@@ -118,7 +118,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
 
   @override
   Future<Uint8List?> serializeKey(SymmetricKey password, InstantMessage iMsg) async {
-    if (BaseMessage.isBroadcast(iMsg)) {
+    if (sharedMessageExtensions.helper!.isBroadcast(iMsg)) {
       // broadcast message has no key
       return null;
     }
@@ -127,7 +127,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
 
   @override
   Future<EncryptedBundle?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg) async {
-    assert(!BaseMessage.isBroadcast(iMsg), 'broadcast message has no key: $iMsg');
+    assert(!sharedMessageExtensions.helper!.isBroadcast(iMsg), 'broadcast message has no key: $iMsg');
     assert(receiver.isUser, 'receiver error: $receiver');
     // TODO: make sure the receiver's public key exists
     User? contact = await facebook.getUser(receiver);
@@ -138,7 +138,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
 
   @override
   Future<Map<String, Object>> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) async {
-    assert(!BaseMessage.isBroadcast(iMsg), 'broadcast message has no key: $iMsg');
+    assert(!sharedMessageExtensions.helper!.isBroadcast(iMsg), 'broadcast message has no key: $iMsg');
     // message key had been encrypted by a public key,
     // so the data should be encode here (with algorithm 'base64' as default).
     return bundle.encode(receiver);
@@ -151,7 +151,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
 
   @override
   Future<EncryptedBundle?> decodeKeys(Mapping keys, ID receiver, SecureMessage sMsg) async {
-    assert(!BaseMessage.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
+    assert(!sharedMessageExtensions.helper!.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
     assert(receiver.isUser, 'receiver error: $receiver');
     User? user = await facebook.getUser(receiver);
     if (user == null) {
@@ -167,7 +167,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
   Future<Uint8List?> decryptKey(EncryptedBundle bundle, ID receiver, SecureMessage sMsg) async {
     // NOTICE: the receiver must be a member ID
     //         if it's a group message
-    assert(!BaseMessage.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
+    assert(!sharedMessageExtensions.helper!.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
     assert(receiver.isUser, 'receiver error: $receiver');
     User? user = await facebook.getUser(receiver);
     assert(user != null, 'failed to decrypt key: ${sMsg.sender} => $receiver, ${sMsg.group}');
@@ -177,7 +177,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
 
   @override
   Future<SymmetricKey?> deserializeKey(Uint8List? key, SecureMessage sMsg) async {
-    assert(!BaseMessage.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
+    assert(!sharedMessageExtensions.helper!.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
     if (key == null) {
       assert(false, 'reused key? get it from cache: '
           '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
@@ -189,7 +189,7 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
 
   // @override
   // Future<Uint8List?> decodeData(Object data, SecureMessage sMsg) async {
-  //   if (BaseMessage.isBroadcast(sMsg)) {
+  //   if (sharedMessageExtensions.helper!.isBroadcast(sMsg)) {
   //     // broadcast message content will not be encrypted (just encoded to JsON),
   //     // so return the string data directly
   //     if (data is String) {

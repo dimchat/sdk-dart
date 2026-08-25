@@ -1,3 +1,7 @@
+## 2.4.2
+
+- Broadcast message.
+
 ## 2.4.1
 
 - String key map.

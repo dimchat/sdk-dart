@@ -58,9 +58,9 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   @override
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg) async {
     String text = 'Content not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: <String, dynamic>{
       'template': 'Content (type: \${type}) not support yet!',
-      'replacements': {
+      'replacements': <String, dynamic>{
         'type': content.type,
       },
     });
@@ -83,7 +83,7 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   /// Returns: List with one [ReceiptCommand] instance
   // protected
   List<Content> respondReceipt(String text, {
-    required Envelope envelope, Content? content, Map<String, Object>? extra
+    required Envelope envelope, Content? content, Map<String, dynamic>? extra
   }) => [
     createReceipt(text, envelope: envelope, content: content, extra: extra)
   ];
@@ -101,7 +101,7 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   ///
   /// Returns: Formatted [ReceiptCommand] instance
   static Command createReceipt(String text, {
-    required Envelope envelope, Content? content, Map<String, Object>? extra
+    required Envelope envelope, Content? content, Map<String, dynamic>? extra
   }) {
     // create base receipt command with text, original envelope, serial number & group ID
     var helper = sharedMessageExtensions.cmdHelper;
@@ -138,9 +138,9 @@ class BaseCommandProcessor extends BaseContentProcessor {
     assert(content is Command, 'command error: $content');
     Command command = content as Command;
     String text = 'Command not support.';
-    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: {
+    return respondReceipt(text, content: content, envelope: rMsg.envelope, extra: <String, dynamic>{
       'template': 'Command (name: \${command}) not support yet!',
-      'replacements': {
+      'replacements': <String, dynamic>{
         'command': command.cmd,
       },
     });
