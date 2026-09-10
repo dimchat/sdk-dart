@@ -60,6 +60,38 @@ abstract interface class Shortener {
   Mapping compressReliableMessage(Mapping msg);
   Mapping extractReliableMessage(Mapping msg);
 
+  /// Compress ReliableMessage
+  static final List<String> messageShortKeys = [
+    "F", "sender",      // From
+    "R", "receiver",    // Rcpt to
+    "W", "time",        // When
+    "T", "type",
+    "G", "group",
+    //------------------
+    "K", "keys",
+    "D", "data",
+    "V", "signature",   // Verification
+    //------------------
+    "M", "meta",
+    "P", "visa",        // Profile
+  ];
+
+  /// Compress Content
+  static final List<String> contentShortKeys = [
+    "T", "type",
+    "N", "sn",
+    "W", "time",        // When
+    "G", "group",
+    "C", "command",     // Command name
+  ];
+
+  /// Compress SymmetricKey
+  static final List<String> cryptoShortKeys = [
+    "A", "algorithm",
+    "D", "data",
+    "I", "iv",          // Initial Vector
+  ];
+
 }
 
 
@@ -89,42 +121,18 @@ abstract interface class Shortener {
     "S" - deprecated (ambiguous for "sender" and "signature")
  */
 
-final _messageKeyPairs = [
-  "F", "sender",      // From
-  "R", "receiver",    // Rcpt to
-  "W", "time",        // When
-  "T", "type",
-  "G", "group",
-  //------------------
-  "K", "keys",
-  "D", "data",
-  "V", "signature",   // Verification
-  //------------------
-  "M", "meta",
-  "P", "visa",        // Profile
-];
-
-final _contentKeyPairs = [
-  "T", "type",
-  "N", "sn",
-  "W", "time",        // When
-  "G", "group",
-  "C", "command",     // Command name
-];
-
-final _cryptoKeyPairs = [
-  "A", "algorithm",
-  "D", "data",
-  "I", "iv",          // Initial Vector
-];
-
 
 /// Concrete implementation of [Shortener] for message/content/key short key mapping.
 ///
-/// Implements fixed key pair conversion with in-place Map modification,
-/// including special handling for "K" (short for "keys").
+/// Implements fixed key pair conversion with new Map creation (not modifying
+/// the original one), including special handling for "K" (short for "keys").
 class MessageShortener implements Shortener {
   MessageShortener() {
+
+    // build for message
+    final (m2l, m2s) = buildMessageKeyMaps();
+    messageShortToLong = m2l;
+    messageLongToShort = m2s;
 
     // build for content
     final (c2l, c2s) = buildContentKeyMaps();
@@ -136,49 +144,46 @@ class MessageShortener implements Shortener {
     cryptoShortToLong = k2l;
     cryptoLongToShort = k2s;
 
-    // build for message
-    final (m2l, m2s) = buildMessageKeyMaps();
-    messageShortToLong = m2l;
-    messageLongToShort = m2s;
   }
 
   // protected
+  (Map<String, String> s2l, Map<String, String> l2s) buildMessageKeyMaps() =>
+      build(Shortener.messageShortKeys);
+
+  // protected
   (Map<String, String> s2l, Map<String, String> l2s) buildContentKeyMaps() =>
-      _build(_contentKeyPairs);
+      build(Shortener.contentShortKeys);
 
   // protected
   (Map<String, String> s2l, Map<String, String> l2s) buildCryptoKeyMaps() =>
-      _build(_cryptoKeyPairs);
+      build(Shortener.cryptoShortKeys);
 
   // protected
-  (Map<String, String> s2l, Map<String, String> l2s) buildMessageKeyMaps() =>
-      _build(_messageKeyPairs);
+  (Map<String, String> s2l, Map<String, String> l2s) build(List<String> keys) {
+    Map<String, String> shortToLong = {};
+    Map<String, String> longToShort = {};
+    int i = 1;
+    String k1, k2;
+    while (i < keys.length) {
+      k1 = keys[i - 1];
+      k2 = keys[i];
+      assert(k1.length < k2.length, 'key pair error: $k1, $k2');
+      shortToLong[k1] = k2;
+      longToShort[k2] = k1;
+      i += 2;
+    }
+    return (shortToLong, longToShort);
+  }
 
-  // -------------------------------------------------------------------------
-  //  Content Key Mapping
-  // -------------------------------------------------------------------------
-
-  late Map<String, String> contentShortToLong;
-  late Map<String, String> contentLongToShort;
-
-  @override
-  Mapping compressContent(Mapping content) => _trans(content, contentLongToShort);
-
-  @override
-  Mapping extractContent(Mapping content) => _trans(content, contentShortToLong);
-
-  // -------------------------------------------------------------------------
-  //  Symmetric Key Mapping
-  // -------------------------------------------------------------------------
-
-  late Map<String, String> cryptoShortToLong;
-  late Map<String, String> cryptoLongToShort;
-
-  @override
-  Mapping compressSymmetricKey(Mapping key) => _trans(key, cryptoLongToShort);
-
-  @override
-  Mapping extractSymmetricKey(Mapping key) => _trans(key, cryptoShortToLong);
+  // protected
+  Mapping<String, dynamic> translate(Mapping info, Map<String, String> dictionary) {
+    Map<String, dynamic> result = {};
+    info.forEach((key, value) {
+      final name = dictionary[key] ?? key;
+      result[name] = value;
+    });
+    return result.asMapping();
+  }
 
   // -------------------------------------------------------------------------
   //  ReliableMessage Key Mapping
@@ -188,38 +193,35 @@ class MessageShortener implements Shortener {
   late Map<String, String> messageLongToShort;
 
   @override
-  Mapping compressReliableMessage(Mapping msg) => _trans(msg, messageLongToShort);
+  Mapping compressReliableMessage(Mapping msg) => translate(msg, messageLongToShort);
 
   @override
-  Mapping extractReliableMessage(Mapping msg) => _trans(msg, messageShortToLong);
+  Mapping extractReliableMessage(Mapping msg) => translate(msg, messageShortToLong);
 
-}
+  // -------------------------------------------------------------------------
+  //  Content Key Mapping
+  // -------------------------------------------------------------------------
 
+  late Map<String, String> contentShortToLong;
+  late Map<String, String> contentLongToShort;
 
-/// Build key table
-(Map<String, String> s2l, Map<String, String> l2s) _build(List<String> keys) {
-  Map<String, String> shortToLong = {};
-  Map<String, String> longToShort = {};
-  int i = 1;
-  String k1, k2;
-  while (i < keys.length) {
-    k1 = keys[i - 1];
-    k2 = keys[i];
-    assert(k1.length < k2.length, 'key pair error: $k1, $k2');
-    shortToLong[k1] = k2;
-    longToShort[k2] = k1;
-    i += 2;
-  }
-  return (shortToLong, longToShort);
-}
+  @override
+  Mapping compressContent(Mapping content) => translate(content, contentLongToShort);
 
+  @override
+  Mapping extractContent(Mapping content) => translate(content, contentShortToLong);
 
-/// Translate
-Mapping<String, dynamic> _trans(Mapping info, Map<String, String> dictionary) {
-  Map<String, dynamic> result = {};
-  info.forEach((key, value) {
-    final name = dictionary[key] ?? key;
-    result[name] = value;
-  });
-  return result.asMapping();
+  // -------------------------------------------------------------------------
+  //  Symmetric Key Mapping
+  // -------------------------------------------------------------------------
+
+  late Map<String, String> cryptoShortToLong;
+  late Map<String, String> cryptoLongToShort;
+
+  @override
+  Mapping compressSymmetricKey(Mapping key) => translate(key, cryptoLongToShort);
+
+  @override
+  Mapping extractSymmetricKey(Mapping key) => translate(key, cryptoShortToLong);
+
 }

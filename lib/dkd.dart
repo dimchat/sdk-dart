@@ -5,6 +5,11 @@ library dimsdk;
 
 export 'package:dimp/dkd.dart';
 
+// export 'src/dkd/proc.dart';           // -> 'cpu.dart'
+// export 'src/dkd/factory.dart';        // -> 'cpu.dart'
+export 'src/dkd/compress_keys.dart';
+export 'src/dkd/compressor.dart';
+
 //
 //  Message Delegates
 //

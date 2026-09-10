@@ -5,8 +5,6 @@ library dimsdk;
 
 export 'src/core/delegate.dart';
 export 'src/core/barrack.dart';      // require 'mkm/*'
-export 'src/core/compress_keys.dart';
-export 'src/core/compressor.dart';
 export 'src/core/packer.dart';
 export 'src/core/processor.dart';
 export 'src/core/transformer.dart';  // require 'mkm/*'

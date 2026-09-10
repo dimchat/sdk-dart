@@ -141,12 +141,12 @@ class MessageCompressor implements Compressor {
 
   @override
   Mapping? extractContent(Uint8List data, Mapping key) {
-    var json = UTF8.decode(data);
+    final json = UTF8.decode(data);
     if (json == null) {
       assert(false, 'content data error: ${data.length}');
       return null;
     }
-    var info = JSONMap.decode(json);
+    final info = JSONMap.decode(json);
     if (info == null) {
       assert(false, 'failed to decode content: $json');
       return null;
@@ -167,12 +167,12 @@ class MessageCompressor implements Compressor {
 
   @override
   Mapping? extractSymmetricKey(Uint8List data) {
-    var json = UTF8.decode(data);
+    final json = UTF8.decode(data);
     if (json == null) {
-      assert(false, 'symmetric key error: ${data.length}');
+      assert(false, 'symmetric key data error: ${data.length}');
       return null;
     }
-    var key = JSONMap.decode(json);
+    final key = JSONMap.decode(json);
     if (key == null) {
       assert(false, 'failed to decode symmetric key: $json');
       return null;
@@ -193,12 +193,12 @@ class MessageCompressor implements Compressor {
 
   @override
   Mapping? extractReliableMessage(Uint8List data) {
-    var json = UTF8.decode(data);
+    final json = UTF8.decode(data);
     if (json == null) {
-      assert(false, 'reliable message error: ${data.length}');
+      assert(false, 'message data error: ${data.length}');
       return null;
     }
-    var msg = JSONMap.decode(json);
+    final msg = JSONMap.decode(json);
     if (msg == null) {
       assert(false, 'failed to decode message: $json');
       return null;

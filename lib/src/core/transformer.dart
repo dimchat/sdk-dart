@@ -42,7 +42,7 @@ import '../msg/instant_delegate.dart';
 import '../msg/reliable_delegate.dart';
 import '../msg/secure_delegate.dart';
 
-import 'compressor.dart';
+import '../dkd/compressor.dart';
 
 
 // -----------------------------------------------------------------------------
