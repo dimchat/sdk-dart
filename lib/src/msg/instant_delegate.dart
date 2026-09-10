@@ -129,17 +129,17 @@ abstract interface class InstantMessageDelegate {
   /// Returns: Encrypted key bundle (null if receiver's Visa is not found)
   Future<EncryptedBundle?> encryptKey(Uint8List key, ID receiver, InstantMessage iMsg);
 
-  /// Encodes encrypted key bundle to message-compatible map (Step 6).
-  ///
-  /// Converts the EncryptedBundle to a map format (ID+terminal → base64 data)
-  /// suitable for inclusion in SecureMessage's 'keys' field.
-  ///
-  /// Parameters:
-  /// - [bundle]   : Encrypted key bundle with terminal-specific data
-  /// - [receiver] : Actual target receiver (user/group member ID)
-  /// - [iMsg]     : Parent instant message object (context)
-  ///
-  /// Returns: Encoded map (ID+terminal → base64-encoded encrypted key data)
-  Future<Map<String, Object>> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg);
+  // /// Encodes encrypted key bundle to message-compatible map (Step 6).
+  // ///
+  // /// Converts the EncryptedBundle to a map format (ID+terminal → base64 data)
+  // /// suitable for inclusion in SecureMessage's 'keys' field.
+  // ///
+  // /// Parameters:
+  // /// - [bundle]   : Encrypted key bundle with terminal-specific data
+  // /// - [receiver] : Actual target receiver (user/group member ID)
+  // /// - [iMsg]     : Parent instant message object (context)
+  // ///
+  // /// Returns: Encoded map (ID+terminal → base64-encoded encrypted key data)
+  // Future<Map<String, Object>> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg);
 
 }

@@ -32,8 +32,11 @@ import 'dart:typed_data';
 
 import 'package:dkd/dkd.dart';  // FIXME:
 
-import 'package:dimp/crypto.dart';
+import 'package:dimp/ext.dart';
 import 'package:dimp/protocol.dart';
+
+import '../crypto/agent.dart';
+import '../crypto/ext.dart';
 
 import 'secure_delegate.dart';
 
@@ -64,28 +67,6 @@ class SecureMessagePacker {
    *    +----------+
    */
 
-  /// Decodes the encrypted key map from a SecureMessage (internal use).
-  ///
-  /// Extracts the 'keys' field and converts it to an EncryptedBundle for decryption.
-  ///
-  /// Parameters:
-  /// - [sMsg]     : Encrypted secure message
-  /// - [receiver] : Actual target receiver (local user ID)
-  ///
-  /// Returns: Decoded EncryptedBundle (null if no key found/broadcast message)
-  // protected
-  Future<EncryptedBundle?> decodeKeys(SecureMessage sMsg, ID receiver) async {
-    Map? msgKeys = sMsg.encryptedKeys;
-    if (msgKeys == null) {
-      // broadcast message?
-      // reused key?
-      return null;
-    }
-    SecureMessageDelegate? transformer = delegate;
-    assert(transformer != null, 'secure message delegate not found');
-    return await transformer?.decodeKeys(msgKeys.asMapping(), receiver, sMsg);
-  }
-
   /// Decrypts a SecureMessage back to an InstantMessage (for local user).
   ///
   /// Replaces the encrypted 'data' field with plaintext 'content' by decrypting the
@@ -106,7 +87,8 @@ class SecureMessagePacker {
     //
     //  1. Decode 'message.keys' to encrypted symmetric key data
     //
-    EncryptedBundle? bundle = await decodeKeys(sMsg, receiver);
+    VisaAgent agent = sharedAccountExtensions.visaAgent;
+    EncryptedBundle? bundle = agent.decodeBundle(sMsg, receiver);
     if (bundle == null || bundle.isEmpty) {
       // broadcast message?
       // reused key?
@@ -160,8 +142,6 @@ class SecureMessagePacker {
           '${sMsg.sender} => $receiver, ${sMsg.group}');
       // TODO: ask the sender to send again
     }
-    assert(body.isNotEmpty, 'message data should not be empty: '
-        '${sMsg.sender} => $receiver, ${sMsg.group}');
 
     //
     //  6. Deserialize message content from data (JsON / ProtoBuf / ...)
@@ -239,17 +219,10 @@ class SecureMessagePacker {
     //
     //  2. Encode 'message.signature' to String (Base64)
     //
-    TransportableData base64 = TransportableData.create(signature);
-    if (base64.isEmpty) {
-      assert(false, 'failed to encode signature: ${signature.length} byte(s) '
-          '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');
-      return null;
-    }
+    // ... do it in ReliableMessage.Factory::createReliableMessage()
 
     // OK, pack message
-    Map info = sMsg.copyMap();
-    info['signature'] = base64.serialize();
-    return ReliableMessage.parse(info)!;
+    return ReliableMessage.create(sMsg, signature);
   }
 
 }

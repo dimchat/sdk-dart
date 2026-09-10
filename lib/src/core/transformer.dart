@@ -136,32 +136,32 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
     return await contact?.encryptBundle(key);
   }
 
-  @override
-  Future<Map<String, Object>> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) async {
-    assert(!sharedMessageExtensions.handler!.isBroadcast(iMsg), 'broadcast message has no key: $iMsg');
-    // message key had been encrypted by a public key,
-    // so the data should be encode here (with algorithm 'base64' as default).
-    return bundle.encode(receiver);
-    // TODO: check for wildcard
-  }
+  // @override
+  // Future<Map<String, Object>> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) async {
+  //   assert(!sharedMessageExtensions.handler!.isBroadcast(iMsg), 'broadcast message has no key: $iMsg');
+  //   // message key had been encrypted by a public key,
+  //   // so the data should be encode here (with algorithm 'base64' as default).
+  //   return bundle.encode(receiver);
+  //   // TODO: check for wildcard
+  // }
 
   // -------------------------------------------------------------------------
   //  SecureMessageDelegate Implementation
   // -------------------------------------------------------------------------
 
-  @override
-  Future<EncryptedBundle?> decodeKeys(Mapping keys, ID receiver, SecureMessage sMsg) async {
-    assert(!sharedMessageExtensions.handler!.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
-    assert(receiver.isUser, 'receiver error: $receiver');
-    User? user = await facebook.getUser(receiver);
-    if (user == null) {
-      assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
-      return null;
-    }
-    // decode key bundle for all terminals
-    Set<String> terminals = await user.terminals;
-    return EncryptedBundle.decode(keys, receiver, terminals);
-  }
+  // @override
+  // Future<EncryptedBundle?> decodeKeys(Mapping keys, ID receiver, SecureMessage sMsg) async {
+  //   assert(!sharedMessageExtensions.handler!.isBroadcast(sMsg), 'broadcast message has no key: $sMsg');
+  //   assert(receiver.isUser, 'receiver error: $receiver');
+  //   User? user = await facebook.getUser(receiver);
+  //   if (user == null) {
+  //     assert(false, 'failed to decode key: ${sMsg.sender} => $receiver, ${sMsg.group}');
+  //     return null;
+  //   }
+  //   // decode key bundle for all terminals
+  //   Set<String> terminals = await user.terminals;
+  //   return EncryptedBundle.decode(keys, receiver, terminals);
+  // }
 
   @override
   Future<Uint8List?> decryptKey(EncryptedBundle bundle, ID receiver, SecureMessage sMsg) async {

@@ -32,7 +32,6 @@ import 'dart:typed_data';
 
 import 'package:dkd/dkd.dart';  // FIXME:
 
-import 'package:dimp/crypto.dart';
 import 'package:dimp/protocol.dart';
 
 
@@ -63,18 +62,18 @@ abstract interface class SecureMessageDelegate {
   //  Key Decryption Pipeline (Steps 1-3)
   // -------------------------------------------------------------------------
 
-  /// Decodes encrypted key map to EncryptedBundle (Step 1).
-  ///
-  /// Converts the SecureMessage's 'keys' map back to an EncryptedBundle
-  /// containing terminal-specific encrypted key data.
-  ///
-  /// Parameters:
-  /// - [keys]     : Encoded key map (ID+terminal → base64 data) from SecureMessage
-  /// - [receiver] : Actual target receiver (user/group member ID)
-  /// - [sMsg]     : Parent secure message object (context)
-  ///
-  /// Returns: Decoded encrypted key bundle (null if decoding fails)
-  Future<EncryptedBundle?> decodeKeys(Mapping keys, ID receiver, SecureMessage sMsg);
+  // /// Decodes encrypted key map to EncryptedBundle (Step 1).
+  // ///
+  // /// Converts the SecureMessage's 'keys' map back to an EncryptedBundle
+  // /// containing terminal-specific encrypted key data.
+  // ///
+  // /// Parameters:
+  // /// - [msgKeys]  : Encoded key map (ID+terminal → base64 data) from SecureMessage
+  // /// - [receiver] : Actual target receiver (user/group member ID)
+  // /// - [sMsg]     : Parent secure message object (context)
+  // ///
+  // /// Returns: Decoded encrypted key bundle (null if decoding fails)
+  // Future<EncryptedBundle?> decodeKeys(Mapping msgKeys, ID receiver, SecureMessage sMsg);
 
   /// Decrypts encrypted key bundle with receiver's private key (Step 2).
   ///

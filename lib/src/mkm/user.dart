@@ -345,7 +345,7 @@ class BaseUser extends BaseEntity implements User {
       return null;
     }
     ID uid = identifier;
-    if (terminal == '*') {
+    if (terminal.isEmpty || terminal == '/') {
       uid = uid.withoutTerminal();
     } else {
       uid = uid.withTerminal(terminal);

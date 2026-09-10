@@ -51,6 +51,15 @@ import 'package:dimp/ext.dart';
 /// Acts as a helper to abstract complex Visa-based encryption logic from User entity.
 abstract interface class VisaAgent {
 
+  /// Decrypts key bundle for the receiver.
+  ///
+  /// Parameters:
+  /// - [sMsg]     : Received message
+  /// - [receiver] : Actual receiver (user, or group member)
+  ///
+  /// Returns: Encrypted bundle with terminals
+  EncryptedBundle? decodeBundle(SecureMessage sMsg, ID receiver);
+
   /// Encrypts plaintext data using all available Visa/Meta public keys.
   ///
   /// Creates an [EncryptedBundle] with terminal-specific encrypted data, using:
@@ -95,11 +104,30 @@ abstract interface class VisaAgent {
 class DefaultVisaAgent implements VisaAgent {
 
   @override
+  EncryptedBundle? decodeBundle(SecureMessage sMsg, ID receiver) {
+    // TODO: check key digest
+    Mapping? keys = sMsg.encryptedKeys?.asMapping();
+    if (keys == null || keys.isEmpty) {
+      return null;
+    }
+    // TODO: get terminal(s) for local user
+    String? terminal = receiver.terminal;
+    if (terminal == null || terminal.isEmpty) {
+      // get full bundle
+      return EncryptedBundle.decode(keys, receiver, null);
+    }
+    // get single bundle
+    Set<String> devices = {terminal};
+    receiver = receiver.withoutTerminal();
+    return EncryptedBundle.decode(keys, receiver, devices);
+  }
+
+  @override
   EncryptedBundle encryptBundle(Uint8List plaintext, Meta meta, List<Document> documents) {
     // NOTICE: meta.key will never changed, so use visa.key to encrypt message
     //         is a better way
     EncryptedBundle bundle = UserEncryptedBundle();
-    String? terminal;
+    String terminal;
     EncryptKey? pubKey;
     Uint8List ciphertext;
     //
@@ -113,9 +141,9 @@ class DefaultVisaAgent implements VisaAgent {
       }
       // get visa.terminal
       terminal = getTerminal(doc);
-      if (terminal == null || terminal.isEmpty) {
-        terminal = '*';
-      }
+      // if (terminal == null || terminal.isEmpty) {
+      //   terminal = '/';
+      // }
       if (bundle[terminal] != null) {
         assert(false, 'duplicated visa key: "$terminal", bundle: $bundle, ${documents.length} document(s): $doc');
         continue;
@@ -130,9 +158,9 @@ class DefaultVisaAgent implements VisaAgent {
       VerifyKey metaKey = meta.publicKey;
       if (metaKey is EncryptKey) {
         pubKey = metaKey as EncryptKey;
-        // terminal = '*';
+        // terminal = '/';
         ciphertext = pubKey.encrypt(plaintext);
-        bundle['*'] = ciphertext;
+        bundle['/'] = ciphertext;
       }
     }
     // OK
@@ -180,7 +208,7 @@ class DefaultVisaAgent implements VisaAgent {
   }
 
   // protected
-  String? getTerminal(Document doc) {
+  String getTerminal(Document doc) {
     String? terminal = doc.getString('terminal');
     if (terminal == null) {
       // get from document ID
@@ -193,6 +221,9 @@ class DefaultVisaAgent implements VisaAgent {
         // TODO: get from property?
       }
     }
+    if (terminal == null || terminal.isEmpty || terminal == '*') {
+      terminal = '/';
+    }
     return terminal;
   }
 
@@ -202,9 +233,9 @@ class DefaultVisaAgent implements VisaAgent {
     String? terminal;
     for (Document doc in documents) {
       terminal = getTerminal(doc);
-      if (terminal == null || terminal.isEmpty) {
-        terminal = '*';
-      }
+      // if (terminal == null || terminal.isEmpty) {
+      //   terminal = '/';
+      // }
       devices.add(terminal);
     }
     return devices;

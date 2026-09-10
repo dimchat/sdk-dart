@@ -32,7 +32,6 @@ import 'dart:typed_data';
 
 import 'package:dkd/dkd.dart';  // FIXME:
 
-import 'package:dimp/crypto.dart';
 import 'package:dimp/protocol.dart';
 
 import 'instant_delegate.dart';
@@ -103,20 +102,7 @@ class InstantMessagePacker {
     //
     //  3. Encode 'message.data' to String (Base64)
     //
-    TransportableData encodedData;
-    if (sharedMessageExtensions.handler!.isBroadcast(iMsg)) {
-      // broadcast message content will not be encrypted (just encoded to JsON),
-      // so no need to encode to Base64 here
-      encodedData = PlainData.createWithBytes(ciphertext);
-    } else {
-      // message content had been encrypted by a symmetric key,
-      // so the data should be encoded here (with algorithm 'base64' as default).
-      encodedData = TransportableData.create(ciphertext);
-    }
-    if (encodedData.isEmpty) {
-      assert(false, 'failed to encode content data: $ciphertext');
-      return null;
-    }
+    // ... do it in SecureMessage.Factory::createSecureMessage()
 
     //
     //  4. Serialize message key to data (JsON / ProtoBuf / ...)
@@ -124,18 +110,13 @@ class InstantMessagePacker {
     Uint8List? pwd = await transformer?.serializeKey(password, iMsg);
     // NOTICE:
     //    if the key is reused, iMsg must be updated with key digest.
-    Map info = iMsg.copyMap();
-
-    // replace 'content' with encrypted 'data'
-    info.remove('content');
-    info['data'] = encodedData.serialize();
 
     // check serialized key data,
     // if key data is null here, build the secure message directly.
     if (pwd == null) {
       // A) broadcast message has no key
       // B) reused key
-      return SecureMessage.parse(info);
+      return SecureMessage.create(iMsg, ciphertext, null);
     }
     // encrypt + encode key
 
@@ -144,11 +125,11 @@ class InstantMessagePacker {
       ID receiver = iMsg.receiver;
       assert(receiver.isUser, 'message.receiver error: $receiver');
       members = [receiver];
-    } else {
-      // group message
-      ID receiver = iMsg.receiver;
-      assert(receiver.isGroup, 'message.receiver error: $receiver');
-      assert(members.isNotEmpty, 'group members empty: $receiver');
+    //} else {
+    //    // group message
+    //    ID receiver = iMsg.receiver;
+    //    assert receiver.isGroup() : "message.receiver error: " + receiver;
+    //    assert !members.isEmpty() : "group members empty: " + receiver;
     }
 
     Map<ID, EncryptedBundle> bundleMap = {};
@@ -169,51 +150,11 @@ class InstantMessagePacker {
     //
     //  6. Encode message key to String (Base64)
     //
-    Map<String, Object>? msgKeys = await encodeKeys(bundleMap, iMsg);
-    // if (msgKeys == null || msgKeys.isEmpty) {
-    //   // public key for member(s) not found
-    //   // TODO: suspend this message for waiting member's visa
-    //   return null;
-    // }
-
-    // insert as 'keys'
-    info['keys'] = msgKeys;
+    // ... do it in SecureMessage.Factory::createSecureMessage()
 
     // OK, pack message
-    return SecureMessage.parse(info);
-  }
-
-  /// Encodes encrypted key bundles to a message-compatible map (internal use).
-  ///
-  /// Converts terminal-specific EncryptedBundle objects to a unified map format
-  /// for inclusion in SecureMessage's 'keys' field.
-  ///
-  /// Parameters:
-  /// - [bundleMap] : Map of receiver IDs to their encrypted key bundles
-  /// - [iMsg]      : Parent instant message (context)
-  ///
-  /// Returns: Encoded key map (ID+terminal → base64 data, null if encoding fails)
-  // protected
-  Future<Map<String, Object>?> encodeKeys(Map<ID, EncryptedBundle> bundleMap, InstantMessage iMsg) async {
-    InstantMessageDelegate? transformer = delegate;
-    assert(transformer != null, 'instant message delegate not found');
-    Map<String, Object> msgKeys = {};
-    ID receiver;
-    EncryptedBundle bundle;
-    Map<String, Object>? encodedKeys;
-    for (MapEntry<ID, EncryptedBundle> entry in bundleMap.entries) {
-      receiver = entry.key;
-      bundle = entry.value;
-      encodedKeys = await transformer?.encodeKeys(bundle, receiver, iMsg);
-      if (encodedKeys == null || encodedKeys.isEmpty) {
-        assert(false, 'failed to encode key data: $receiver');
-        continue;
-      }
-      // insert to 'message.keys' with ID + terminal
-      msgKeys.addAll(encodedKeys);
-    }
+    return SecureMessage.create(iMsg, ciphertext, bundleMap);
     // TODO: put key digest
-    return msgKeys;
   }
 
 }
