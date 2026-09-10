@@ -59,11 +59,10 @@ abstract class MessageProcessor extends TwinsHelper implements Processor {
 
   /// Creates a [ContentProcessorFactory] instance (must be overridden by subclasses).
   ///
-  /// Parameters:
-  /// - [facebook]  : Entity management service
-  /// - [messenger] : Messaging service
+  /// [facebook] is the entity management service.
+  /// [messenger] is the messaging service.
   ///
-  /// Returns: New [ContentProcessorFactory] instance
+  /// Returns a new [ContentProcessorFactory] instance.
   // protected
   ContentProcessorFactory createFactory(Facebook facebook, Messenger messenger);
 

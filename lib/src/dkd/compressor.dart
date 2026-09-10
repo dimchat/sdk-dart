@@ -58,20 +58,18 @@ abstract interface class Compressor {
 
   /// Compresses content map to UTF8 binary bytes (short keys + JSON + UTF8).
   ///
-  /// Parameters:
-  /// - [content] : Original content map with long keys
-  /// - [key]     : Symmetric key map (reserved parameter, not used in implementation)
+  /// [content] is the original content map with long keys.
+  /// [key] is the symmetric key map (reserved parameter, not used in implementation).
   ///
-  /// Returns: UTF8 encoded binary bytes of compressed content
+  /// Returns the UTF8 encoded binary bytes of compressed content.
   Uint8List compressContent(Mapping content, Mapping key);
 
   /// Extracts content map from UTF8 binary bytes (UTF8 → JSON → long keys).
   ///
-  /// Parameters:
-  /// - [data] : UTF8 encoded binary bytes of compressed content
-  /// - [key]  : Symmetric key map (reserved parameter, not used in implementation)
+  /// [data] is the UTF8 encoded binary bytes of compressed content.
+  /// [key] is the symmetric key map (reserved parameter, not used in implementation).
   ///
-  /// Returns: Restored content map with long keys (null if decoding/deserialization fails)
+  /// Returns the restored content map with long keys (null if decoding/deserialization fails).
   Mapping? extractContent(Uint8List data, Mapping key);
 
   // -------------------------------------------------------------------------
@@ -80,18 +78,16 @@ abstract interface class Compressor {
 
   /// Compresses symmetric key map to UTF8 binary bytes (short keys + JSON + UTF8).
   ///
-  /// Parameters:
-  /// - [key] : Original symmetric key map with long keys
+  /// [key] is the original symmetric key map with long keys.
   ///
-  /// Returns: UTF8 encoded binary bytes of compressed symmetric key
+  /// Returns the UTF8 encoded binary bytes of compressed symmetric key.
   Uint8List compressSymmetricKey(Mapping key);
 
   /// Extracts symmetric key map from UTF8 binary bytes (UTF8 → JSON → long keys).
   ///
-  /// Parameters:
-  /// - [data] : UTF8 encoded binary bytes of compressed symmetric key
+  /// [data] is the UTF8 encoded binary bytes of compressed symmetric key.
   ///
-  /// Returns: Restored symmetric key map with long keys (null if decoding/deserialization fails)
+  /// Returns the restored symmetric key map with long keys (null if decoding/deserialization fails).
   Mapping? extractSymmetricKey(Uint8List data);
 
   // -------------------------------------------------------------------------
@@ -100,18 +96,16 @@ abstract interface class Compressor {
 
   /// Compresses ReliableMessage map to UTF8 binary bytes (short keys + JSON + UTF8).
   ///
-  /// Parameters:
-  /// - [msg] : Original ReliableMessage map with long keys
+  /// [msg] is the original ReliableMessage map with long keys.
   ///
-  /// Returns: UTF8 encoded binary bytes of compressed message
+  /// Returns the UTF8 encoded binary bytes of compressed message.
   Uint8List compressReliableMessage(Mapping msg);
 
   /// Extracts ReliableMessage map from UTF8 binary bytes (UTF8 → JSON → long keys).
   ///
-  /// Parameters:
-  /// - [data] : UTF8 encoded binary bytes of compressed message
+  /// [data] is the UTF8 encoded binary bytes of compressed message.
   ///
-  /// Returns: Restored message map with long keys (null if decoding/deserialization fails)
+  /// Returns the restored message map with long keys (null if decoding/deserialization fails).
   Mapping? extractReliableMessage(Uint8List data);
 
 }

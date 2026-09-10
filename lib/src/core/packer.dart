@@ -50,26 +50,23 @@ abstract interface class Packer {
 
   /// Encrypts the content of a plain instant message to create a secure message.
   ///
-  /// Parameters:
-  /// - [iMsg] : Plain instant message to encrypt (contains unencrypted content)
+  /// [iMsg] is the plain instant message to encrypt (contains unencrypted content).
   ///
-  /// Returns: Encrypted secure message (null if encryption fails)
+  /// Returns the encrypted secure message (null if encryption fails).
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg);
 
   /// Signs the encrypted data of a secure message to create a reliable message.
   ///
-  /// Parameters:
-  /// - [sMsg] : Encrypted secure message to sign (contains encrypted data)
+  /// [sMsg] is the encrypted secure message to sign (contains encrypted data).
   ///
-  /// Returns: Signed reliable message (null if signing fails)
+  /// Returns the signed reliable message (null if signing fails).
   Future<ReliableMessage?> signMessage(SecureMessage sMsg);
 
   // /// Serializes a signed reliable message to binary data (network transport format).
   // ///
-  // /// Parameters:
-  // /// - [rMsg] : Signed reliable message to serialize
+  // /// [rMsg] is the signed reliable message to serialize.
   // ///
-  // /// Returns: Binary data package (null if serialization fails)
+  // /// Returns the binary data package (null if serialization fails).
   // Future<Uint8List?> serializeMessage(ReliableMessage rMsg);
 
   //
@@ -78,25 +75,22 @@ abstract interface class Packer {
 
   // /// Deserializes binary data back to a reliable message (reverse of serialize).
   // ///
-  // /// Parameters:
-  // /// - [data] : Binary data package to deserialize
+  // /// [data] is the binary data package to deserialize.
   // ///
-  // /// Returns: Deserialized reliable message (null if deserialization fails)
+  // /// Returns the deserialized reliable message (null if deserialization fails).
   // Future<ReliableMessage?> deserializeMessage(Uint8List data);
 
   /// Verifies the signature of a reliable message to retrieve the secure message.
   ///
-  /// Parameters:
-  /// - [rMsg] : Reliable message to verify (checks signature validity)
+  /// [rMsg] is the reliable message to verify (checks signature validity).
   ///
-  /// Returns: Verified secure message (null if verification fails)
+  /// Returns the verified secure message (null if verification fails).
   Future<SecureMessage?> verifyMessage(ReliableMessage rMsg);
 
   /// Decrypts the data of a secure message to retrieve the plain instant message.
   ///
-  /// Parameters:
-  /// - [sMsg] : Encrypted secure message to decrypt
+  /// [sMsg] is the encrypted secure message to decrypt.
   ///
-  /// Returns: Decrypted plain instant message (null if decryption fails)
+  /// Returns the decrypted plain instant message (null if decryption fails).
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg);
 }

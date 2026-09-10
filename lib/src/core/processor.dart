@@ -47,44 +47,39 @@ abstract interface class Processor {
 
   /// Processes a binary data package to generate response packages.
   ///
-  /// Parameters:
-  /// - [data] : Binary data package to process (received from network)
+  /// [data] is the binary data package to process (received from network).
   ///
-  /// Returns: List of binary response packages (empty if no response needed)
+  /// Returns the list of binary response packages (empty if no response needed).
   Future<List<Uint8List>> processPackage(Uint8List data);
 
   /// Processes a reliable message to generate response reliable messages.
   ///
-  /// Parameters:
-  /// - [rMsg] : Reliable message to process (after deserialization)
+  /// [rMsg] is the reliable message to process (after deserialization).
   ///
-  /// Returns: List of reliable response messages (empty if no response needed)
+  /// Returns the list of reliable response messages (empty if no response needed).
   Future<List<ReliableMessage>> processReliableMessage(ReliableMessage rMsg);
 
   /// Processes a secure message to generate response secure messages.
   ///
-  /// Parameters:
-  /// - [sMsg] : Secure message to process (after verification)
-  /// - [rMsg] : Original reliable message (for context)
+  /// [sMsg] is the secure message to process (after verification).
+  /// [rMsg] is the original reliable message (for context).
   ///
-  /// Returns: List of secure response messages (empty if no response needed)
+  /// Returns the list of secure response messages (empty if no response needed).
   Future<List<SecureMessage>> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg);
 
   /// Processes a plain instant message to generate response instant messages.
   ///
-  /// Parameters:
-  /// - [iMsg] : Instant message to process (after decryption)
-  /// - [rMsg] : Original reliable message (for context)
+  /// [iMsg] is the instant message to process (after decryption).
+  /// [rMsg] is the original reliable message (for context).
   ///
-  /// Returns: List of instant response messages (empty if no response needed)
+  /// Returns the list of instant response messages (empty if no response needed).
   Future<List<InstantMessage>> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg);
 
   /// Processes message content to generate response content items.
   ///
-  /// Parameters:
-  /// - [content] : Message content to process (extracted from instant message)
-  /// - [rMsg]    : Original reliable message (for context)
+  /// [content] is the message content to process (extracted from instant message).
+  /// [rMsg] is the original reliable message (for context).
   ///
-  /// Returns: List of response content items (empty if no response needed)
+  /// Returns the list of response content items (empty if no response needed).
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg);
 }

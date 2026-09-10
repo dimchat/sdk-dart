@@ -1,3 +1,7 @@
+## 2.5.0
+
+- D/encode keys.
+
 ## 2.4.2
 
 - Broadcast message.

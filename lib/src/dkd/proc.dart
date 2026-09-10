@@ -46,11 +46,10 @@ abstract interface class ContentProcessor {
 
   /// Processes incoming message content and generates response contents.
   ///
-  /// Parameters:
-  /// - [content] : Incoming message content to process (e.g., text, command, file, ...)
-  /// - [rMsg]    : Original reliable message (provides context: sender, receiver, envelope)
+  /// [content] is the incoming message content to process (e.g., text, command, file, ...).
+  /// [rMsg] is the original reliable message (provides context: sender, receiver, envelope).
   ///
-  /// Returns: List of response content items (empty list if no response is needed)
+  /// Returns the list of response content items (empty list if no response is needed).
   Future<List<Content>> processContent(Content content, ReliableMessage rMsg);
 
 }
@@ -69,19 +68,17 @@ abstract interface class ContentProcessorCreator {
 
   /// Creates a content processor for a specific content type.
   ///
-  /// Parameters:
-  /// - [msgType] : Content type identifier (e.g., "text", "command", "file", ...)
+  /// [msgType] is the content type identifier (e.g., "text", "command", "file", ...).
   ///
-  /// Returns: Specific [ContentProcessor] instance (null if type is unsupported)
+  /// Returns a specific [ContentProcessor] instance (null if type is unsupported).
   ContentProcessor? createContentProcessor(String msgType);
 
   /// Creates a command processor for a specific content type and command name.
   ///
-  /// Parameters:
-  /// - [msgType] : Content type identifier (typically "command" for command content)
-  /// - [cmdName] : Command name (e.g., "meta", "documents", "group", ...)
+  /// [msgType] is the content type identifier (typically "command" for command content).
+  /// [cmdName] is the command name (e.g., "meta", "documents", "group", ...).
   ///
-  /// Returns: Specific command processor instance (null if command is unsupported)
+  /// Returns a specific command processor instance (null if command is unsupported).
   ContentProcessor? createCommandProcessor(String msgType, String cmdName);
 
 }
@@ -104,18 +101,16 @@ abstract interface class ContentProcessorFactory {
   /// 2. Falls back to group command processor (if applicable)
   /// 3. Finally uses the default content processor for the content type
   ///
-  /// Parameters:
-  /// - [content] : Content instance to get processor for (can be regular content or command)
+  /// [content] is the content instance to get processor for (can be regular content or command).
   ///
-  /// Returns: Matching [ContentProcessor] instance (null if no processor found)
+  /// Returns a matching [ContentProcessor] instance (null if no processor found).
   ContentProcessor? getContentProcessor(Content content);
 
   /// Retrieves a content processor for a specific content type.
   ///
-  /// Parameters:
-  /// - [msgType] : Content type identifier (e.g., "text", "command", "file", ...)
+  /// [msgType] is the content type identifier (e.g., "text", "command", "file", ...).
   ///
-  /// Returns: [ContentProcessor] instance for the type (null if type is unsupported)
+  /// Returns the [ContentProcessor] instance for the type (null if type is unsupported).
   ContentProcessor? getContentProcessorForType(String msgType);
 
 }

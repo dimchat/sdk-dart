@@ -48,9 +48,8 @@ abstract class BaseContentProcessorCreator extends TwinsHelper implements Conten
 
   /// Creates a [BaseContentProcessorCreator] with required twin dependencies.
   ///
-  /// Parameters:
-  /// - [facebook]  : Entity management service (user/group operations)
-  /// - [messenger] : Messaging service (packing/processing)
+  /// [facebook] is the entity management service (user/group operations).
+  /// [messenger] is the messaging service (packing/processing).
   BaseContentProcessorCreator(super.facebook, super.messenger);
 
   @override

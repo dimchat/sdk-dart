@@ -62,7 +62,7 @@ abstract interface class User implements Entity {
   ///
   /// Represents the user's address book/contacts list in the communication system.
   ///
-  /// Returns: List of user contact IDs (empty list if none)
+  /// Returns the list of user contact IDs (empty list if none).
   Future<List<ID>> get contacts;
 
   /// Set of terminal identifiers associated with the user's Visa documents (async).
@@ -70,18 +70,17 @@ abstract interface class User implements Entity {
   /// Terminals represent different devices/sessions the user is logged into (e.g., "mobile", "desktop").
   /// Retrieved via [VisaAgent.getTerminals] from the user's Visa documents.
   ///
-  /// Returns: Set of unique terminal identifiers (empty set if none)
+  /// Returns the set of unique terminal identifiers (empty set if none).
   Future<Set<String>> get terminals;
 
   /// Verifies data and its signature using the user's Meta/Visa public keys (async).
   ///
   /// Uses verification keys from [VisaAgent.getVerifyKeys] to validate message authenticity.
   ///
-  /// Parameters:
-  /// - [data]      : Raw message data to verify
-  /// - [signature] : Digital signature of the data
+  /// [data] is the raw message data to verify.
+  /// [signature] is the digital signature of the data.
   ///
-  /// Returns: True if the signature is valid, false otherwise
+  /// Returns true if the signature is valid, false otherwise.
   Future<bool> verify(Uint8List data, Uint8List signature);
 
   /// Encrypts plaintext data for the user's terminals (async).
@@ -90,10 +89,9 @@ abstract interface class User implements Entity {
   /// 1. Tries Visa public keys first (terminal-specific encryption)
   /// 2. Falls back to Meta public key (wildcard/* encryption)
   ///
-  /// Parameters:
-  /// - [plaintext] : Raw data to encrypt (usually a symmetric message key)
+  /// [plaintext] is the raw data to encrypt (usually a symmetric message key).
   ///
-  /// Returns: EncryptedBundle with terminal-specific encrypted data
+  /// Returns an EncryptedBundle with terminal-specific encrypted data.
   Future<EncryptedBundle> encryptBundle(Uint8List plaintext);
 
   // -------------------------------------------------------------------------
@@ -105,10 +103,9 @@ abstract interface class User implements Entity {
   /// Generates a digital signature for the data using the private key paired with
   /// the user's Visa/Meta public key (non-repudiation).
   ///
-  /// Parameters:
-  /// - [data] : Raw message data to sign
+  /// [data] is the raw message data to sign.
   ///
-  /// Returns: Digital signature of the data
+  /// Returns the digital signature of the data.
   Future<Uint8List> sign(Uint8List data);
 
   /// Decrypts a terminal-specific EncryptedBundle (async, local user only).
@@ -116,10 +113,9 @@ abstract interface class User implements Entity {
   /// Uses private keys from [UserDataSource.getPrivateKeysForDecryption] to decrypt
   /// the bundle, extracting the original plaintext data for the user's terminals.
   ///
-  /// Parameters:
-  /// - [bundle] : Encrypted data bundle with terminal-specific data
+  /// [bundle] is the encrypted data bundle with terminal-specific data.
   ///
-  /// Returns: Decrypted plaintext (null if decryption fails)
+  /// Returns the decrypted plaintext (null if decryption fails).
   Future<Uint8List?> decryptBundle(EncryptedBundle bundle);
 
   // -------------------------------------------------------------------------
@@ -131,10 +127,9 @@ abstract interface class User implements Entity {
   /// Uses [UserDataSource.getPrivateKeyForVisaSignature] to sign the Visa,
   /// verifying the document's authenticity (only Meta key is used for Visa signing).
   ///
-  /// Parameters:
-  /// - [visa] : Visa document to sign
+  /// [visa] is the visa document to sign.
   ///
-  /// Returns: Signed Visa document (null if signing fails)
+  /// Returns the signed Visa document (null if signing fails).
   Future<Document?> signDocument(Document visa);
 
   /// Verifies the signature of a Visa document (async).
@@ -142,10 +137,9 @@ abstract interface class User implements Entity {
   /// Uses the user's Meta public key (only) to verify the Visa signature,
   /// ensuring the document was signed by the user's Meta private key.
   ///
-  /// Parameters:
-  /// - [visa] : Visa document to verify
+  /// [visa] is the visa document to verify.
   ///
-  /// Returns: True if the Visa signature is valid, false otherwise
+  /// Returns true if the Visa signature is valid, false otherwise.
   Future<bool> verifyDocument(Document visa);
 }
 
@@ -166,21 +160,19 @@ abstract interface class UserDataSource implements EntityDataSource {
 
   /// Retrieves the contact list for a user (async).
   ///
-  /// Parameters:
-  /// - [user] : Unique ID of the target user
+  /// [user] is the unique ID of the target user.
   ///
-  /// Returns: List of contact IDs (empty list if the user has no contacts)
+  /// Returns the list of contact IDs (empty list if the user has no contacts).
   Future<List<ID>> getContacts(ID user);
 
   /// Retrieves private keys for decryption (async, local user only).
   ///
-  /// Returns private keys paired with the user's Visa/Meta public keys, used to
+  /// Returns the private keys paired with the user's Visa/Meta public keys, used to
   /// decrypt terminal-specific [EncryptedBundle] data.
   ///
-  /// Parameters:
-  /// - [user] : Unique ID of the target user
+  /// [user] is the unique ID of the target user.
   ///
-  /// Returns: List of decryption keys (empty list if no keys are available)
+  /// Returns the list of decryption keys (empty list if no keys are available).
   Future<List<DecryptKey>> getPrivateKeysForDecryption(ID user);
 
   /// Retrieves the private key for message signing (async, local user only).
@@ -188,10 +180,9 @@ abstract interface class UserDataSource implements EntityDataSource {
   /// Returns the private key paired with the user's Visa/Meta public key, used to
   /// generate digital signatures for messages.
   ///
-  /// Parameters:
-  /// - [user] : Unique ID of the target user
+  /// [user] is the unique ID of the target user.
   ///
-  /// Returns: Signing key (null if no key is available)
+  /// Returns the signing key (null if no key is available).
   Future<SignKey?> getPrivateKeyForSignature(ID user);
 
   /// Retrieves the private key for Visa signing (async, local user only).
@@ -199,10 +190,9 @@ abstract interface class UserDataSource implements EntityDataSource {
   /// Returns the private key paired with the user's Meta public key (only), used to
   /// sign the user's Visa documents (identity verification).
   ///
-  /// Parameters:
-  /// - [user] : Unique ID of the target user
+  /// [user] is the unique ID of the target user.
   ///
-  /// Returns: Signing key for Visa documents (null if no key is available)
+  /// Returns the signing key for Visa documents (null if no key is available).
   Future<SignKey?> getPrivateKeyForVisaSignature(ID user);
 }
 
@@ -337,6 +327,14 @@ class BaseUser extends BaseEntity implements User {
   //  Private Keys
   //
 
+  /// Retrieves the decryption private keys for a specific terminal (async).
+  ///
+  /// Queries the [UserDataSource] for private keys paired with the public keys
+  /// in the user's Visa/Meta documents, targeting the given terminal.
+  ///
+  /// [terminal] is the device terminal string (empty or "/" for wildcard).
+  ///
+  /// Returns the list of decryption private keys (null if data source is missing).
   // protected
   Future<List<DecryptKey>?> getPrivateKeysForDecryption(String terminal) async {
     UserDataSource? facebook = dataSource;
@@ -351,8 +349,14 @@ class BaseUser extends BaseEntity implements User {
       uid = uid.withTerminal(terminal);
     }
     return await facebook.getPrivateKeysForDecryption(uid);
-}
+  }
 
+  /// Retrieves the private key for message signing (async).
+  ///
+  /// Returns the private key paired with the user's Visa/Meta public key,
+  /// used to generate digital signatures for outgoing messages.
+  ///
+  /// Returns the signing key (null if data source is missing).
   // protected
   Future<SignKey?> get privateKeyForSignature async {
     UserDataSource? facebook = dataSource;
@@ -360,6 +364,12 @@ class BaseUser extends BaseEntity implements User {
     return await facebook?.getPrivateKeyForSignature(identifier);
   }
 
+  /// Retrieves the private key for Visa document signing (async).
+  ///
+  /// Returns the private key paired with the user's Meta public key (only),
+  /// used to sign the user's Visa documents (identity verification).
+  ///
+  /// Returns the signing key for Visa documents (null if data source is missing).
   // protected
   Future<SignKey?> get privateKeyForVisaSignature async {
     UserDataSource? facebook = dataSource;

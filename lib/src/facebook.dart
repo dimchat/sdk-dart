@@ -64,12 +64,11 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   ///   2. If receiver is user → returns matching local user (personal message target)
   ///   3. Returns null if no matching local user is found
   ///
-  /// Parameters:
-  /// - [receiver] : Target receiver ID (must be user or broadcast type)
+  /// [receiver] is the target receiver ID (must be user or broadcast type).
   ///
-  /// Returns: Local user ID for decryption (null if no match)
+  /// Returns a local user ID for decryption (null if no match).
   ///
-  /// Throws: Assertion error if receiver is invalid (group) or local users are empty
+  /// Raises an assertion error if receiver is invalid (group) or local users are empty.
   Future<ID?> selectUser(ID receiver) async {
     assert(receiver.isUser || receiver.isBroadcast, 'user ID error: $receiver');
     assert(barrack != null, 'archivist not ready');
@@ -100,12 +99,11 @@ abstract class Facebook implements EntityDelegate, UserDataSource, GroupDataSour
   ///   1. Finds the first local user that exists in the group member list
   ///   2. Returns null if no local user is a group member
   ///
-  /// Parameters:
-  /// - [members] : List of group member IDs (must be non-empty)
+  /// [members] is the list of group member IDs (must be non-empty).
   ///
-  /// Returns: Local user ID who is a group member (null if no match)
+  /// Returns a local user ID who is a group member (null if no match).
   ///
-  /// Throws: Assertion error if members are empty or local users are empty
+  /// Raises an assertion error if members are empty or local users are empty.
   Future<ID?> selectMember(List<ID> members) async {
     assert(members.isNotEmpty, 'group members not found');
     assert(barrack != null, 'archivist not ready');

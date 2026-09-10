@@ -47,30 +47,26 @@ abstract interface class Barrack {
 
   /// Caches a User entity in memory (overwrites existing entry for the same ID).
   ///
-  /// Parameters:
-  /// - [user] : User entity to cache (must have a valid ID)
+  /// [user] is the user entity to cache (must have a valid ID).
   void cacheUser(User user);
 
   /// Caches a Group entity in memory (overwrites existing entry for the same ID).
   ///
-  /// Parameters:
-  /// - [group] : Group entity to cache (must have a valid ID)
+  /// [group] is the group entity to cache (must have a valid ID).
   void cacheGroup(Group group);
 
   /// Retrieves a cached User entity by ID.
   ///
-  /// Parameters:
-  /// - [uid] : Unique ID of the target user
+  /// [uid] is the unique ID of the target user.
   ///
-  /// Returns: Cached User instance (null if not found in cache)
+  /// Returns a cached User instance (null if not found in cache).
   User? getUser(ID uid);
 
   /// Retrieves a cached Group entity by ID.
   ///
-  /// Parameters:
-  /// - [gid] : Unique ID of the target group
+  /// [gid] is the unique ID of the target group.
   ///
-  /// Returns: Cached Group instance (null if not found in cache)
+  /// Returns a cached Group instance (null if not found in cache).
   Group? getGroup(ID gid);
 
   /// Creates a User entity if the required visa key metadata exists.
@@ -78,10 +74,9 @@ abstract interface class Barrack {
   /// Lazy creation rule: Only creates a User when the user's visa.key (public key)
   /// is available (entity is "ready" for use). Does not cache the created user automatically.
   ///
-  /// Parameters:
-  /// - [uid] : Unique ID of the user to create
+  /// [uid] is the unique ID of the user to create.
   ///
-  /// Returns: New User instance (null if visa.key is missing/entity not ready)
+  /// Returns a new User instance (null if visa.key is missing/entity not ready).
   User? createUser(ID uid);
 
   /// Creates a Group entity if the required member list exists.
@@ -89,10 +84,9 @@ abstract interface class Barrack {
   /// Lazy creation rule: Only creates a Group when the group's member list is available
   /// (entity is "ready" for use). Does not cache the created group automatically.
   ///
-  /// Parameters:
-  /// - [gid]: Unique ID of the group to create
+  /// [gid] is the unique ID of the group to create.
   ///
-  /// Returns: New Group instance (null if members are missing/entity not ready)
+  /// Returns a new Group instance (null if members are missing/entity not ready).
   Group? createGroup(ID gid);
 
   //
@@ -108,7 +102,7 @@ abstract interface class Barrack {
   /// Local users are accounts logged into the current device with private keys,
   /// required to decrypt incoming personal/group messages targeted to the device.
   ///
-  /// Returns: List of local user IDs (non-empty in normal operation)
+  /// Returns the list of local user IDs (non-empty in normal operation).
   Future<List<ID>> getLocalUsers();
 
 }

@@ -76,7 +76,7 @@ abstract interface class Entity {
   /// Contains the core public key and type information used to generate the entity's ID.
   /// Fetched from [dataSource] if available, otherwise from internal storage.
   ///
-  /// Returns: Entity's core Meta object
+  /// Returns the entity's core Meta object.
   Future<Meta> get meta;
 
   /// Extended documents associated with the entity (async).
@@ -84,7 +84,7 @@ abstract interface class Entity {
   /// - For users: Contains [Visa] documents (identity/authorization info with terminal data)
   /// - For groups: Contains [Bulletin] documents (group info/announcements)
   ///
-  /// Returns: List of entity documents (empty list if none)
+  /// Returns the list of entity documents (empty list if none).
   Future<List<Document>> get documents;
 }
 
@@ -103,18 +103,16 @@ abstract interface class EntityDataSource {
 
   /// Retrieves the metadata for a specific entity (async).
   ///
-  /// Parameters:
-  /// - [identifier] : Unique ID of the target entity (user/group)
+  /// [identifier] is the unique ID of the target entity (user/group).
   ///
-  /// Returns: Meta object for the entity (null if not found)
+  /// Returns the meta object for the entity (null if not found).
   Future<Meta?> getMeta(ID identifier);
 
   /// Retrieves the extended documents for a specific entity (async).
   ///
-  /// Parameters:
-  /// - [identifier] : Unique ID of the target entity (user/group)
+  /// [identifier] is the unique ID of the target entity (user/group).
   ///
-  /// Returns: List of documents (Visa/Bulletin) associated with the entity (empty list if none)
+  /// Returns the list of documents (Visa/Bulletin) associated with the entity (empty list if none).
   Future<List<Document>> getDocuments(ID identifier);
 }
 
@@ -127,18 +125,16 @@ abstract interface class EntityDelegate {
 
   /// Creates/retrieves a User instance for a specific ID (async).
   ///
-  /// Parameters:
-  /// - [identifier] : Unique ID of the target user
+  /// [identifier] is the unique ID of the target user.
   ///
-  /// Returns: User instance (null if the user does not exist)
+  /// Returns the user instance (null if the user does not exist).
   Future<User?> getUser(ID identifier);
 
   /// Creates/retrieves a Group instance for a specific ID (async).
   ///
-  /// Parameters:
-  /// - [identifier] : Unique ID of the target group
+  /// [identifier] is the unique ID of the target group.
   ///
-  /// Returns: Group instance (null if the group does not exist)
+  /// Returns the group instance (null if the group does not exist).
   Future<Group?> getGroup(ID identifier);
 }
 

@@ -53,11 +53,10 @@ abstract interface class VisaAgent {
 
   /// Decrypts key bundle for the receiver.
   ///
-  /// Parameters:
-  /// - [sMsg]     : Received message
-  /// - [receiver] : Actual receiver (user, or group member)
+  /// [sMsg] is the received message.
+  /// [receiver] is the actual receiver (user, or group member).
   ///
-  /// Returns: Encrypted bundle with terminals
+  /// Returns the encrypted bundle with terminals.
   EncryptedBundle? decodeBundle(SecureMessage sMsg, ID receiver);
 
   /// Encrypts plaintext data using all available Visa/Meta public keys.
@@ -66,12 +65,11 @@ abstract interface class VisaAgent {
   /// 1. Visa public keys for terminal-specific encryption
   /// 2. Meta public key as fallback for wildcard (*) encryption
   ///
-  /// Parameters:
-  /// - [plaintext] : Raw data to encrypt (usually a symmetric message key)
-  /// - [meta]      : User's core Meta (contains fallback public key)
-  /// - [documents] : List of user Visa documents (contains terminal-specific public keys)
+  /// [plaintext] is the raw data to encrypt (usually a symmetric message key).
+  /// [meta] is the user's core Meta (contains fallback public key).
+  /// [documents] is the list of user Visa documents (contains terminal-specific public keys).
   ///
-  /// Returns: EncryptedBundle with terminal-specific encrypted data
+  /// Returns an EncryptedBundle with terminal-specific encrypted data.
   EncryptedBundle encryptBundle(Uint8List plaintext, Meta meta, List<Document> documents);
 
   /// Extracts all verification keys from Meta and Visa documents.
@@ -80,11 +78,10 @@ abstract interface class VisaAgent {
   /// 1. User's Meta (core identity key)
   /// 2. All Visa documents (terminal-specific keys)
   ///
-  /// Parameters:
-  /// - [meta]      : User's core Meta
-  /// - [documents] : List of user Visa documents
+  /// [meta] is the user's core Meta.
+  /// [documents] is the list of user Visa documents.
   ///
-  /// Returns: List of VerifyKey instances for signature verification
+  /// Returns the list of VerifyKey instances for signature verification.
   List<VerifyKey> getVerifyKeys(Meta meta, List<Document> documents);
 
   /// Extracts all terminal identifiers from user Visa documents.
@@ -92,10 +89,9 @@ abstract interface class VisaAgent {
   /// Collects unique terminal strings (e.g., "mobile", "desktop") from Visa documents,
   /// representing all devices the user is logged into.
   ///
-  /// Parameters:
-  /// - [documents] : List of user Visa documents
+  /// [documents] is the list of user Visa documents.
   ///
-  /// Returns: Set of unique terminal identifiers (empty set if none)
+  /// Returns the set of unique terminal identifiers (empty set if none).
   Set<String> getTerminals(List<Document> documents);
 
 }
@@ -188,12 +184,27 @@ class DefaultVisaAgent implements VisaAgent {
     return keys;
   }
 
+  /// Extracts the public verification key from a user document (Visa).
+  ///
+  /// Parses the "key" property of the document as a [PublicKey].
+  ///
+  /// [doc] is the user document (Visa) containing the public key.
+  ///
+  /// Returns the verification key (null if the document has no valid key).
   // protected
   VerifyKey? getVerifyKey(Document doc) {
     // public key in user profile?
     return PublicKey.parse(doc.getProperty('key'));
   }
 
+  /// Extracts the public encryption key from a user document (Visa).
+  ///
+  /// Parses the "key" property of the document as a [PublicKey]; only keys
+  /// implementing [EncryptKey] can be used for encryption.
+  ///
+  /// [doc] is the user document (Visa) containing the public key.
+  ///
+  /// Returns the encryption key (null if not an encryptable key).
   // protected
   EncryptKey? getEncryptKey(Document doc) {
     PublicKey? pubKey = PublicKey.parse(doc.getProperty('key'));
@@ -207,6 +218,14 @@ class DefaultVisaAgent implements VisaAgent {
     return null;
   }
 
+  /// Determines the terminal identifier for a user document (Visa).
+  ///
+  /// Reads the "terminal" property from the document; if missing, extracts it
+  /// from the document ID. Falls back to "/" (wildcard) when empty or "*".
+  ///
+  /// [doc] is the user document (Visa) to get terminal from.
+  ///
+  /// Returns the terminal string ("/" for wildcard).
   // protected
   String getTerminal(Document doc) {
     String? terminal = doc.getString('terminal');

@@ -50,9 +50,8 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
 
   /// Creates a [BaseContentProcessor] with required twin dependencies.
   ///
-  /// Parameters:
-  /// - [facebook]  : Entity management service (user/group operations)
-  /// - [messenger] : Messaging service (packing/processing)
+  /// [facebook] is the entity management service (user/group operations).
+  /// [messenger] is the messaging service (packing/processing).
   BaseContentProcessor(super.facebook, super.messenger);
 
   @override
@@ -74,13 +73,12 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   ///
   /// Convenience method for consistent response formatting across processors.
   ///
-  /// Parameters:
-  /// - [text]     : Human-readable response text
-  /// - [envelope] : Original message envelope (for sender/receiver context)
-  /// - [content]  : Original message content (optional, for additional context)
-  /// - [extra]    : Extra key-value data to include in the receipt (optional)
+  /// [text] is the human-readable response text.
+  /// [envelope] is the original message envelope (for sender/receiver context).
+  /// [content] is the original message content (optional, for additional context).
+  /// [extra] is the extra key-value data to include in the receipt (optional).
   ///
-  /// Returns: List with one [ReceiptCommand] instance
+  /// Returns a list with one [ReceiptCommand] instance.
   // protected
   List<Content> respondReceipt(String text, {
     required Envelope envelope, Content? content, Map<String, dynamic>? extra
@@ -93,13 +91,12 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
   /// Includes original message context (envelope, serial number, group ID)
   /// and optional extra data. Static method for use without instantiation.
   ///
-  /// Parameters:
-  /// - [text]     : Human-readable response text
-  /// - [envelope] : Original message envelope (provides sender/receiver/serial number)
-  /// - [content]  : Original message content (optional, for group ID or other context)
-  /// - [extra]    : Extra key-value data to add to the receipt (optional)
+  /// [text] is the human-readable response text.
+  /// [envelope] is the original message envelope (provides sender/receiver/serial number).
+  /// [content] is the original message content (optional, for group ID or other context).
+  /// [extra] is the extra key-value data to add to the receipt (optional).
   ///
-  /// Returns: Formatted [ReceiptCommand] instance
+  /// Returns a formatted [ReceiptCommand] instance.
   static Command createReceipt(String text, {
     required Envelope envelope, Content? content, Map<String, dynamic>? extra
   }) {
@@ -128,9 +125,8 @@ class BaseCommandProcessor extends BaseContentProcessor {
 
   /// Creates a [BaseCommandProcessor] with required twin dependencies.
   ///
-  /// Parameters:
-  /// - [facebook]  : Entity management service (user/group operations)
-  /// - [messenger] : Messaging service (packing/processing)
+  /// [facebook] is the entity management service (user/group operations).
+  /// [messenger] is the messaging service (packing/processing).
   BaseCommandProcessor(super.facebook, super.messenger);
 
   @override

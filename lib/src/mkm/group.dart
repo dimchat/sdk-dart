@@ -55,7 +55,7 @@ abstract interface class Group implements Entity {
   /// The original creator of the group (cannot be changed after group creation).
   /// The founder's private key is used to generate the group's Meta.
   ///
-  /// Returns: Group founder's ID
+  /// Returns the group founder's ID.
   Future<ID> get founder;
 
   /// Current owner ID of the group (async).
@@ -63,14 +63,14 @@ abstract interface class Group implements Entity {
   /// The user with administrative control over the group (can be transferred via abdicate command).
   /// Must be a member of the group.
   ///
-  /// Returns: Current group owner's ID
+  /// Returns the current group owner's ID.
   Future<ID> get owner;
 
   /// List of all member IDs in the group (async).
   ///
   /// Includes the owner and all regular members (excludes founder if not a member).
   ///
-  /// Returns: List of group member IDs (empty list if none)
+  /// Returns the list of group member IDs (empty list if none).
   Future<List<ID>> get members;
   // NOTICE: the owner must be a member
   //         (usually the first one)
@@ -90,26 +90,23 @@ abstract interface class GroupDataSource implements EntityDataSource {
 
   /// Retrieves the founder ID of a group (async).
   ///
-  /// Parameters:
-  /// - [group] : Unique ID of the target group
+  /// [group] is the unique ID of the target group.
   ///
-  /// Returns: Founder ID (null if the group does not exist)
+  /// Returns the founder ID (null if the group does not exist).
   Future<ID?> getFounder(ID group);
 
   /// Retrieves the current owner ID of a group (async).
   ///
-  /// Parameters:
-  /// - [group] : Unique ID of the target group
+  /// [group] is the unique ID of the target group.
   ///
-  /// Returns: Owner ID (null if the group does not exist or has no owner)
+  /// Returns the owner ID (null if the group does not exist or has no owner).
   Future<ID?> getOwner(ID group);
 
   /// Retrieves the list of member IDs for a group (async).
   ///
-  /// Parameters:
-  /// - [group] : Unique ID of the target group
+  /// [group] is the unique ID of the target group.
   ///
-  /// Returns: List of member IDs (empty list if the group has no members)
+  /// Returns the list of member IDs (empty list if the group has no members).
   Future<List<ID>> getMembers(ID group);
 
 }
@@ -126,7 +123,7 @@ class BaseGroup extends BaseEntity implements Group {
 
   @override
   GroupDataSource? get dataSource {
-    var facebook = super.dataSource;
+    final facebook = super.dataSource;
     if (facebook is GroupDataSource) {
       return facebook;
     }

@@ -34,13 +34,17 @@ import 'agent.dart';
 
 
 /// VisaAgent Extensions
-/// ~~~~~~~~~~~~~~~~~~~~
-
+///
+/// Global [VisaAgent] instance (shared singleton) for visa-based
+/// cryptographic operations, accessible via [AccountExtensions].
 VisaAgent _agent = DefaultVisaAgent();
 
 extension VisaAgentExtension on AccountExtensions {
 
+  /// The shared [VisaAgent] instance (getter).
   VisaAgent get visaAgent => _agent;
+
+  /// Replaces the shared [VisaAgent] instance (setter).
   set visaAgent(VisaAgent agent) => _agent = agent;
 
 }

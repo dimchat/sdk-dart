@@ -84,11 +84,10 @@ class GeneralContentProcessorFactory implements ContentProcessorFactory {
   ///
   /// Private helper method - internal use only.
   ///
-  /// Parameters:
-  /// - [msgType] : Content type identifier (typically "command")
-  /// - [cmd]     : Command name (e.g., "meta", "documents", "group", ...)
+  /// [msgType] is the content type identifier (typically "command").
+  /// [cmd] is the command name (e.g., "meta", "documents", "group", ...).
   ///
-  /// Returns: Command processor instance (null if unsupported)
+  /// Returns the command processor instance (null if unsupported).
   // protected
   ContentProcessor? getCommandProcessor(String msgType, String cmd) {
     ContentProcessor? cpu = _commandProcessors[cmd];

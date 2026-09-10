@@ -124,8 +124,8 @@ abstract interface class Shortener {
 
 /// Concrete implementation of [Shortener] for message/content/key short key mapping.
 ///
-/// Implements fixed key pair conversion with new Map creation (not modifying
-/// the original one), including special handling for "K" (short for "keys").
+/// Implements fixed key pair conversion with new Map creation
+/// (does not modify the original one).
 class MessageShortener implements Shortener {
   MessageShortener() {
 
@@ -146,18 +146,40 @@ class MessageShortener implements Shortener {
 
   }
 
+  /// Builds the short-to-long and long-to-short maps for message keys.
+  ///
+  /// Uses the standard message key pairs defined in [Shortener.messageShortKeys].
+  ///
+  /// Returns a record of (shortToLong, longToShort) mapping tables.
   // protected
   (Map<String, String> s2l, Map<String, String> l2s) buildMessageKeyMaps() =>
       build(Shortener.messageShortKeys);
 
+  /// Builds the short-to-long and long-to-short maps for content keys.
+  ///
+  /// Uses the standard content key pairs defined in [Shortener.contentShortKeys].
+  ///
+  /// Returns a record of (shortToLong, longToShort) mapping tables.
   // protected
   (Map<String, String> s2l, Map<String, String> l2s) buildContentKeyMaps() =>
       build(Shortener.contentShortKeys);
 
+  /// Builds the short-to-long and long-to-short maps for symmetric key fields.
+  ///
+  /// Uses the standard crypto key pairs defined in [Shortener.cryptoShortKeys].
+  ///
+  /// Returns a record of (shortToLong, longToShort) mapping tables.
   // protected
   (Map<String, String> s2l, Map<String, String> l2s) buildCryptoKeyMaps() =>
       build(Shortener.cryptoShortKeys);
 
+  /// Builds two mapping tables from a list of (shortKey, longKey) pairs.
+  ///
+  /// The [keys] list must contain pairs in order: short key followed by long key.
+  ///
+  /// [keys] is the flattened list of (short, long) key pairs.
+  ///
+  /// Returns a record of (shortToLong, longToShort) mapping tables.
   // protected
   (Map<String, String> s2l, Map<String, String> l2s) build(List<String> keys) {
     Map<String, String> shortToLong = {};
@@ -175,6 +197,14 @@ class MessageShortener implements Shortener {
     return (shortToLong, longToShort);
   }
 
+  /// Translates the keys of [info] using the given [dictionary].
+  ///
+  /// NOTICE: does not modify the original map, creates a new one instead.
+  ///
+  /// [info] is the source map whose keys need translation.
+  /// [dictionary] is the mapping table (old key -> new key).
+  ///
+  /// Returns a new map with translated keys (unmatched keys kept as-is).
   // protected
   Mapping<String, dynamic> translate(Mapping info, Map<String, String> dictionary) {
     Map<String, dynamic> result = {};

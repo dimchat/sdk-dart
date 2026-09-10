@@ -72,11 +72,10 @@ class SecureMessagePacker {
   /// Replaces the encrypted 'data' field with plaintext 'content' by decrypting the
   /// symmetric key (with receiver's private key) and then decrypting the content.
   ///
-  /// Parameters:
-  /// - [sMsg]     : Encrypted secure message to decrypt
-  /// - [receiver] : Actual target receiver (local user ID, must be a user)
+  /// [sMsg] is the encrypted secure message to decrypt.
+  /// [receiver] is the actual target receiver (local user ID, must be a user).
   ///
-  /// Returns: Decrypted InstantMessage (throws Exception if decryption fails)
+  /// Returns the decrypted InstantMessage (throws Exception if decryption fails).
   Future<InstantMessage?> decryptMessage(SecureMessage sMsg, ID receiver) async {
     assert(receiver.isUser, 'receiver error: $receiver');
     SecureMessageDelegate? transformer = delegate;
@@ -187,10 +186,9 @@ class SecureMessagePacker {
   /// Generates a digital signature for the encrypted 'data' field using the sender's
   /// private key, and adds it as the 'signature' field in ReliableMessage.
   ///
-  /// Parameters:
-  /// - [sMsg] : Encrypted secure message to sign
+  /// [sMsg] is the encrypted secure message to sign.
   ///
-  /// Returns: Signed ReliableMessage (null if signing/encoding fails)
+  /// Returns the signed ReliableMessage (null if signing/encoding fails).
   Future<ReliableMessage?> signMessage(SecureMessage sMsg) async {
     SecureMessageDelegate? transformer = delegate;
     assert(transformer != null, 'secure message delegate not found');

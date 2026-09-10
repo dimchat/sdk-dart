@@ -67,12 +67,11 @@ abstract interface class SecureMessageDelegate {
   // /// Converts the SecureMessage's 'keys' map back to an EncryptedBundle
   // /// containing terminal-specific encrypted key data.
   // ///
-  // /// Parameters:
-  // /// - [msgKeys]  : Encoded key map (ID+terminal → base64 data) from SecureMessage
-  // /// - [receiver] : Actual target receiver (user/group member ID)
-  // /// - [sMsg]     : Parent secure message object (context)
+  // /// [msgKeys] is the encoded key map (ID+terminal → base64 data) from SecureMessage.
+  // /// [receiver] is the actual target receiver (user/group member ID).
+  // /// [sMsg] is the parent secure message object (context).
   // ///
-  // /// Returns: Decoded encrypted key bundle (null if decoding fails)
+  // /// Returns the decoded encrypted key bundle (null if decoding fails).
   // Future<EncryptedBundle?> decodeKeys(Mapping msgKeys, ID receiver, SecureMessage sMsg);
 
   /// Decrypts encrypted key bundle with receiver's private key (Step 2).
@@ -80,12 +79,11 @@ abstract interface class SecureMessageDelegate {
   /// Uses the receiver's private key to decrypt the EncryptedBundle,
   /// retrieving the serialized symmetric key data.
   ///
-  /// Parameters:
-  /// - [bundle]   : Encrypted key bundle with terminal-specific data
-  /// - [receiver] : Actual target receiver (user/group member ID)
-  /// - [sMsg]     : Parent secure message object (context)
+  /// [bundle] is the encrypted key bundle with terminal-specific data.
+  /// [receiver] is the actual target receiver (user/group member ID).
+  /// [sMsg] is the parent secure message object (context).
   ///
-  /// Returns: Serialized binary data of the symmetric key (null if decryption fails)
+  /// Returns the serialized binary data of the symmetric key (null if decryption fails).
   Future<Uint8List?> decryptKey(EncryptedBundle bundle, ID receiver, SecureMessage sMsg);
 
   /// Deserializes symmetric key from binary data (Step 3).
@@ -93,11 +91,10 @@ abstract interface class SecureMessageDelegate {
   /// Converts serialized key data back to a SymmetricKey object. If key is null,
   /// retrieves the reused key from cache (for broadcast/reused keys).
   ///
-  /// Parameters:
-  /// - [key]  : Serialized binary data of the symmetric key (null for reused keys)
-  /// - [sMsg] : Parent secure message object (context)
+  /// [key] is the serialized binary data of the symmetric key (null for reused keys).
+  /// [sMsg] is the parent secure message object (context).
   ///
-  /// Returns: Deserialized symmetric key (null if key is invalid/missing)
+  /// Returns the deserialized symmetric key (null if key is invalid/missing).
   Future<SymmetricKey?> deserializeKey(Uint8List? key, SecureMessage sMsg);
 
   // -------------------------------------------------------------------------
@@ -109,11 +106,10 @@ abstract interface class SecureMessageDelegate {
   // /// Converts the SecureMessage's Base64-encoded 'data' field back to raw
   // /// encrypted binary data for decryption.
   // ///
-  // /// Parameters:
-  // /// - [data] : Base64-encoded string of the encrypted content
-  // /// - [sMsg] : Parent secure message object (context)
+  // /// [data] is the base64-encoded string of the encrypted content.
+  // /// [sMsg] is the parent secure message object (context).
   // ///
-  // /// Returns: Encrypted binary data of the content (null if decoding fails)
+  // /// Returns the encrypted binary data of the content (null if decoding fails).
   // Future<Uint8List?> decodeData(Object data, SecureMessage sMsg);
 
   /// Decrypts encrypted content data with symmetric key (Step 5).
@@ -121,12 +117,11 @@ abstract interface class SecureMessageDelegate {
   /// Uses the symmetric key to decrypt the SecureMessage's 'data' field,
   /// retrieving the serialized content data.
   ///
-  /// Parameters:
-  /// - [data]     : Encrypted binary data of the content
-  /// - [password] : Symmetric key for decryption
-  /// - [sMsg]     : Parent secure message object (context)
+  /// [data] is the encrypted binary data of the content.
+  /// [password] is the symmetric key for decryption.
+  /// [sMsg] is the parent secure message object (context).
   ///
-  /// Returns: Serialized binary data of the content (null if decryption fails)
+  /// Returns the serialized binary data of the content (null if decryption fails).
   Future<Uint8List?> decryptContent(Uint8List data, SymmetricKey password, SecureMessage sMsg);
 
   /// Deserializes content from binary data (Step 6).
@@ -134,12 +129,11 @@ abstract interface class SecureMessageDelegate {
   /// Converts decrypted serialized content data back to a structured Content object,
   /// using compression algorithm specified in the symmetric key.
   ///
-  /// Parameters:
-  /// - [data]     : Serialized binary data of the content
-  /// - [password] : Symmetric key (includes compression algorithm metadata)
-  /// - [sMsg]     : Parent secure message object (context)
+  /// [data] is the serialized binary data of the content.
+  /// [password] is the symmetric key (includes compression algorithm metadata).
+  /// [sMsg] is the parent secure message object (context).
   ///
-  /// Returns: Deserialized structured content (null if deserialization fails)
+  /// Returns the deserialized structured content (null if deserialization fails).
   Future<Content?> deserializeContent(Uint8List data, SymmetricKey password, SecureMessage sMsg);
 
   /*
@@ -167,11 +161,10 @@ abstract interface class SecureMessageDelegate {
   /// Generates a digital signature for the SecureMessage's 'data' field
   /// using the sender's private key (Meta/Visa), for non-repudiation.
   ///
-  /// Parameters:
-  /// - [data] : Encrypted binary data of the content
-  /// - [sMsg] : Parent secure message object (context)
+  /// [data] is the encrypted binary data of the content.
+  /// [sMsg] is the parent secure message object (context).
   ///
-  /// Returns: Digital signature of the encrypted content data
+  /// Returns the digital signature of the encrypted content data.
   Future<Uint8List> signData(Uint8List data, SecureMessage sMsg);
 
   // /// Encodes signature data to Base64 string (Step 2).
@@ -179,11 +172,10 @@ abstract interface class SecureMessageDelegate {
   // /// Converts raw signature binary data to a Base64-encoded string for
   // /// transmission/storage in the ReliableMessage's 'signature' field.
   // ///
-  // /// Parameters:
-  // /// - [signature] : Raw binary signature of the encrypted content data
-  // /// - [sMsg]      : Parent secure message object (context)
+  // /// [signature] is the raw binary signature of the encrypted content data.
+  // /// [sMsg] is the parent secure message object (context).
   // ///
-  // /// Returns: Base64-encoded string of the signature data
+  // /// Returns the base64-encoded string of the signature data.
   // Future<Object> encodeSignature(Uint8List signature, SecureMessage sMsg);
 
 }

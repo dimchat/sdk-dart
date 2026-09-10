@@ -98,10 +98,9 @@ abstract interface class CipherKeyDelegate {
   /// Maps the message's receiver/group context to a standard destination ID
   /// for key lookup/caching (follows the scenario matrix above).
   ///
-  /// Parameters:
-  /// - [msg] : Message to get key destination for
+  /// [msg] is the message to get key destination for.
   ///
-  /// Returns: Standardized destination ID for key management
+  /// Returns the standardized destination ID for key management.
   static ID getDestinationForMessage(Message msg) =>
       getDestination(receiver: msg.receiver, group: ID.parse(msg['group']));
 
@@ -114,13 +113,12 @@ abstract interface class CipherKeyDelegate {
   /// 4. If receiver is broadcast → use receiver (unencrypted group command: K)
   /// 5. Otherwise → use group ID (standard group scenarios: H/J)
   ///
-  /// Parameters:
-  /// - [receiver] : Target receiver ID (user/group/broadcast)
-  /// - [group]    : Optional group ID (null for personal messages)
+  /// [receiver] is the target receiver ID (user/group/broadcast).
+  /// [group] is the optional group ID (null for personal messages).
   ///
-  /// Returns: Standardized destination ID for key management
+  /// Returns the standardized destination ID for key management.
   ///
-  /// Throws: Assertion error if ID types are invalid (e.g., non-user receiver for personal message)
+  /// Raises an assertion error if ID types are invalid (e.g., non-user receiver for personal message).
   static ID getDestination({required ID receiver, required ID? group}) {
     if (group == null && receiver.isGroup) {
       /// Transform:
@@ -161,12 +159,11 @@ abstract interface class CipherKeyDelegate {
   /// - If key doesn't exist and [generate] is true → creates a new random key
   /// - If key doesn't exist and [generate] is false → returns null
   ///
-  /// Parameters:
-  /// - [sender]   : Source user/contact ID (defines key direction origin)
-  /// - [receiver] : Target user/group ID (defines key direction target)
-  /// - [generate] : Whether to generate a new key if none exists (default: false)
+  /// [sender] is the source user/contact ID (defines key direction origin).
+  /// [receiver] is the target user/group ID (defines key direction target).
+  /// [generate] is whether to generate a new key if none exists (default: false).
   ///
-  /// Returns: Directional symmetric key for sender→receiver (null if not found and not generated)
+  /// Returns the directional symmetric key for sender→receiver (null if not found and not generated).
   Future<SymmetricKey?> getCipherKey({required ID sender, required ID receiver,
                                       bool generate = false});
 
@@ -177,12 +174,11 @@ abstract interface class CipherKeyDelegate {
   /// - Overwrites any existing key for the same direction (sender→receiver)
   /// - Does not affect the reverse direction (receiver→sender) key
   ///
-  /// Parameters:
-  /// - [sender]   : Source user/contact ID (key direction origin)
-  /// - [receiver] : Target user/group ID (key direction target)
-  /// - [key]      : Symmetric key to cache (must be unique for this direction)
+  /// [sender] is the source user/contact ID (key direction origin).
+  /// [receiver] is the target user/group ID (key direction target).
+  /// [key] is the symmetric key to cache (must be unique for this direction).
   ///
-  /// Returns: Future that completes when caching is done (no return value)
+  /// Returns a future that completes when caching is done (no return value).
   Future<void> cacheCipherKey({required ID sender, required ID receiver,
                                required SymmetricKey key});
 

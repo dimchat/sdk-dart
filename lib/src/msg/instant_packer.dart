@@ -69,12 +69,11 @@ class InstantMessagePacker {
   /// Replaces the plaintext 'content' field with encrypted 'data', and encrypts the
   /// symmetric key for target recipients (personal: single user, group: multiple members).
   ///
-  /// Parameters:
-  /// - [iMsg]     : Plaintext instant message to encrypt
-  /// - [password] : Symmetric key for content encryption
-  /// - [members]  : Optional group member IDs (required for group messages)
+  /// [iMsg] is the plaintext instant message to encrypt.
+  /// [password] is the symmetric key for content encryption.
+  /// [members] is the optional group member IDs (required for group messages).
   ///
-  /// Returns: Encrypted SecureMessage (null if encryption fails/Visa not found)
+  /// Returns the encrypted SecureMessage (null if encryption fails/Visa not found).
   Future<SecureMessage?> encryptMessage(InstantMessage iMsg, SymmetricKey password, {List<ID>? members}) async {
     // TODO: check attachment for File/Image/Audio/Video message content
     //      (do it by application)

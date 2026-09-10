@@ -39,15 +39,33 @@ import 'secure_packer.dart';
 import 'reliable_packer.dart';
 
 
-/// create message packers (can be overridden by subclasses)
+/// Factory for creating message packers.
+///
+/// Provides creation methods for the three message packers
+/// (instant/secure/reliable), which can be overridden by subclasses.
 class MessagePackerFactory {
 
+  /// Creates an [InstantMessagePacker] for the given delegate.
+  ///
+  /// [delegate] is the instant message delegate (encryption pipeline).
+  ///
+  /// Returns a new [InstantMessagePacker] instance.
   InstantMessagePacker createInstantMessagePacker(InstantMessageDelegate delegate) =>
       InstantMessagePacker(delegate);
 
+  /// Creates a [SecureMessagePacker] for the given delegate.
+  ///
+  /// [delegate] is the secure message delegate (decryption/signing pipeline).
+  ///
+  /// Returns a new [SecureMessagePacker] instance.
   SecureMessagePacker createSecureMessagePacker(SecureMessageDelegate delegate) =>
       SecureMessagePacker(delegate);
 
+  /// Creates a [ReliableMessagePacker] for the given delegate.
+  ///
+  /// [delegate] is the reliable message delegate (verification pipeline).
+  ///
+  /// Returns a new [ReliableMessagePacker] instance.
   ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate delegate) =>
       ReliableMessagePacker(delegate);
 
@@ -55,13 +73,17 @@ class MessagePackerFactory {
 
 
 /// MessagePacker Extensions
-/// ~~~~~~~~~~~~~~~~~~~~~~~~
-
+///
+/// Global [MessagePackerFactory] instance (shared singleton) for creating
+/// message packers, accessible via [MessageExtensions].
 MessagePackerFactory _packerFactory = MessagePackerFactory();
 
 extension MessagePackerExtension on MessageExtensions {
 
+  /// The shared [MessagePackerFactory] instance (getter).
   MessagePackerFactory get packerFactory => _packerFactory;
+
+  /// Replaces the shared [MessagePackerFactory] instance (setter).
   set packerFactory(MessagePackerFactory factory) => _packerFactory = factory;
 
 }

@@ -91,14 +91,13 @@ abstract class Messenger extends Transformer implements Packer, Processor {
   ///
   /// Uses directional key scoping (sender → target) via [CipherKeyDelegate].
   ///
-  /// Parameters:
-  /// - [iMsg] : Instant message to get encryption key for
+  /// [iMsg] is the instant message to get encryption key for.
   ///
-  /// Returns: Directional symmetric encryption key (null if unavailable)
+  /// Returns the directional symmetric encryption key (null if unavailable).
   Future<SymmetricKey?> getEncryptKey(InstantMessage iMsg) async {
     ID sender = iMsg.sender;
     ID target = CipherKeyDelegate.getDestinationForMessage(iMsg);
-    var db = cipherKeyDelegate;
+    final db = cipherKeyDelegate;
     return await db?.getCipherKey(sender: sender, receiver: target, generate: true);
   }
 
@@ -106,28 +105,26 @@ abstract class Messenger extends Transformer implements Packer, Processor {
   ///
   /// Uses directional key scoping (sender → target) via [CipherKeyDelegate].
   ///
-  /// Parameters:
-  /// - [sMsg] : Secure message to get decryption key for
+  /// [sMsg] is the secure message to get decryption key for.
   ///
-  /// Returns: Directional symmetric decryption key (null if unavailable)
+  /// Returns the directional symmetric decryption key (null if unavailable).
   Future<SymmetricKey?> getDecryptKey(SecureMessage sMsg) async {
     ID sender = sMsg.sender;
     ID target = CipherKeyDelegate.getDestinationForMessage(sMsg);
-    var db = cipherKeyDelegate;
+    final db = cipherKeyDelegate;
     return await db?.getCipherKey(sender: sender, receiver: target, generate: false);
   }
 
   /// Caches a decryption key for future use (directional scoping).
   ///
-  /// Parameters:
-  /// - [key]  : Symmetric key to cache
-  /// - [sMsg] : Secure message (for direction context)
+  /// [key] is the symmetric key to cache.
+  /// [sMsg] is the secure message (for direction context).
   ///
-  /// Returns: Future that completes when caching is done (no return value)
+  /// Returns a future that completes when caching is done (no return value).
   Future<void> cacheDecryptKey(SymmetricKey key, SecureMessage sMsg) async {
     ID sender = sMsg.sender;
     ID target = CipherKeyDelegate.getDestinationForMessage(sMsg);
-    var db = cipherKeyDelegate;
+    final db = cipherKeyDelegate;
     return await db?.cacheCipherKey(sender: sender, receiver: target, key: key);
   }
 

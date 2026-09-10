@@ -67,10 +67,9 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
 
   /// Serializes a reliable message to binary data (uses compressor).
   ///
-  /// Parameters:
-  /// - [rMsg] : Reliable message to serialize
+  /// [rMsg] is the reliable message to serialize.
   ///
-  /// Returns: Binary data package (null if serialization fails)
+  /// Returns the binary data package (null if serialization fails).
   Future<Uint8List?> serializeMessage(ReliableMessage rMsg) async {
     MutableMapping info = rMsg.toMap();
     return compressor.compressReliableMessage(info);
@@ -78,10 +77,9 @@ abstract class Transformer implements InstantMessageDelegate, SecureMessageDeleg
 
   /// Deserializes binary data back to a reliable message (uses compressor).
   ///
-  /// Parameters:
-  /// - [data] : Binary data package to deserialize
+  /// [data] is the binary data package to deserialize.
   ///
-  /// Returns: Deserialized reliable message (null if deserialization fails)
+  /// Returns the deserialized reliable message (null if deserialization fails).
   Future<ReliableMessage?> deserializeMessage(Uint8List data) async {
     Object? info = compressor.extractReliableMessage(data);
     return ReliableMessage.parse(info);

@@ -53,9 +53,8 @@ abstract class TwinsHelper {
 
   /// Creates a [TwinsHelper] with references to the core Facebook and Messenger services.
   ///
-  /// Parameters:
-  /// - [facebook]  : Entity management service (user/group operations)
-  /// - [messenger] : Core messaging service (packing/processing/key management)
+  /// [facebook] is the entity management service (user/group operations).
+  /// [messenger] is the core messaging service (packing/processing/key management).
   ///
   /// Note: Uses WeakReference to store dependencies to avoid memory leaks.
   TwinsHelper(Facebook facebook, Messenger messenger)
@@ -67,12 +66,12 @@ abstract class TwinsHelper {
 
   /// Retrieves the Facebook service instance (nullable - may be GC'd).
   ///
-  /// Returns: Facebook instance (null if garbage collected or not initialized)
+  /// Returns the facebook instance (null if garbage collected or not initialized).
   Facebook? get facebook => _facebook.target;
 
   /// Retrieves the Messenger service instance (nullable - may be GC'd).
   ///
-  /// Returns: Messenger instance (null if garbage collected or not initialized)
+  /// Returns the messenger instance (null if garbage collected or not initialized).
   Messenger? get messenger => _messenger.target;
 
   /// Selects the local User entity for decrypting messages to a target receiver (unified entry).
@@ -87,12 +86,11 @@ abstract class TwinsHelper {
   ///
   /// Precondition: Group member list is guaranteed to exist
   ///
-  /// Parameters:
-  /// - [receiver] : Target receiver ID (supports broadcast/user/group types)
+  /// [receiver] is the target receiver ID (supports broadcast/user/group types).
   ///
-  /// Returns: Local User entity for decryption (null if no matching local user found)
+  /// Returns the local User entity for decryption (null if no matching local user found).
   ///
-  /// Throws: Assertion error if:
+  /// Raises an assertion error when:
   /// - Facebook service is unavailable (null)
   /// - Receiver type is invalid (not broadcast/user/group)
   /// - Group member list is empty/missing (violates precondition)
