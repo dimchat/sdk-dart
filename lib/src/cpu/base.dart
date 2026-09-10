@@ -104,7 +104,7 @@ class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
     required Envelope envelope, Content? content, Map<String, dynamic>? extra
   }) {
     // create base receipt command with text, original envelope, serial number & group ID
-    var helper = sharedMessageExtensions.cmdHelper;
+    final helper = sharedMessageExtensions.commandHandler;
     Command res = helper!.createReceipt(text, envelope, content);
     // add extra key-values
     if (extra != null) {

@@ -34,7 +34,6 @@ import '../dkd/proc.dart';
 import '../twins.dart';
 
 import 'base.dart';
-import 'contents.dart';
 
 
 // -----------------------------------------------------------------------------
@@ -43,9 +42,8 @@ import 'contents.dart';
 
 /// Base implementation of [ContentProcessorCreator] for standard content/command types.
 ///
-/// Creates concrete processors for common content types (forward, array, ...) and
-/// standard commands (meta, documents, ...), falling back to base processors for
-/// unsupported types/commands.
+/// Creates concrete processors for standard commands (meta, documents, ...),
+/// falling back to base processors for unsupported types/commands.
 abstract class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessorCreator {
 
   /// Creates a [BaseContentProcessorCreator] with required twin dependencies.
@@ -58,14 +56,6 @@ abstract class BaseContentProcessorCreator extends TwinsHelper implements Conten
   @override
   ContentProcessor? createContentProcessor(String msgType) {
     switch (msgType) {
-
-      // forward content
-      case ContentType.FORWARD:
-        return ForwardContentProcessor(facebook!, messenger!);
-
-      // array content
-      case ContentType.ARRAY:
-        return ArrayContentProcessor(facebook!, messenger!);
 
       // default commands
       case ContentType.COMMAND:

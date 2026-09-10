@@ -30,13 +30,15 @@
  */
 import 'dart:typed_data';
 
+import 'package:dkd/dkd.dart';  // FIXME:
+
 import 'package:dimp/crypto.dart';
-import 'package:dimp/ext.dart';
 import 'package:dimp/mkm.dart';
+import 'package:dimp/ext.dart';
 
 import '../crypto/agent.dart';
-import '../crypto/bundle.dart';
 import '../crypto/ext.dart';
+
 import 'entity.dart';
 
 
@@ -130,10 +132,10 @@ abstract interface class User implements Entity {
   /// verifying the document's authenticity (only Meta key is used for Visa signing).
   ///
   /// Parameters:
-  /// - [doc] : Visa document to sign
+  /// - [visa] : Visa document to sign
   ///
   /// Returns: Signed Visa document (null if signing fails)
-  Future<Visa?> signVisa(Visa doc);
+  Future<Document?> signDocument(Document visa);
 
   /// Verifies the signature of a Visa document (async).
   ///
@@ -141,10 +143,10 @@ abstract interface class User implements Entity {
   /// ensuring the document was signed by the user's Meta private key.
   ///
   /// Parameters:
-  /// - [doc] : Visa document to verify
+  /// - [visa] : Visa document to verify
   ///
   /// Returns: True if the Visa signature is valid, false otherwise
-  Future<bool> verifyVisa(Visa doc);
+  Future<bool> verifyDocument(Document visa);
 }
 
 
@@ -302,9 +304,9 @@ class BaseUser extends BaseEntity implements User {
   }
 
   @override
-  Future<Visa?> signVisa(Visa doc) async {
-    final helper = sharedAccountExtensions.helper;
-    ID? did = helper?.getDocumentID(doc.toMap());
+  Future<Document?> signDocument(Document visa) async {
+    final helper = sharedAccountExtensions.handler;
+    ID? did = helper?.getDocumentID(visa.toMap());
     assert(did == null || did.isSameAs(identifier), 'visa ID not match: $did, $identifier');
     // NOTICE: only sign visa with the private key paired with your meta.key
     SignKey? sKey = await privateKeyForVisaSignature;
@@ -312,23 +314,23 @@ class BaseUser extends BaseEntity implements User {
       assert(false, 'failed to get sign key for visa: $identifier');
       return null;
     }
-    if (doc.sign(sKey) == null) {
-      assert(false, 'failed to sign visa: $identifier, $doc');
+    if (visa.sign(sKey) == null) {
+      assert(false, 'failed to sign visa: $identifier, $visa');
       return null;
     }
-    return doc;
+    return visa;
   }
 
   @override
-  Future<bool> verifyVisa(Visa doc) async {
+  Future<bool> verifyDocument(Document visa) async {
     // NOTICE: only verify visa with meta.key
     //         (if meta not exists, user won't be created)
-    final helper = sharedAccountExtensions.helper;
-    ID? did = helper?.getDocumentID(doc.toMap());
+    final helper = sharedAccountExtensions.handler;
+    ID? did = helper?.getDocumentID(visa.toMap());
     assert(did == null || did.isSameAs(identifier), 'visa ID not match: $did, $identifier');
     // if meta not exists, user won't be created
     VerifyKey pKey = (await meta).publicKey;
-    return doc.verify(pKey);
+    return visa.verify(pKey);
   }
 
   //

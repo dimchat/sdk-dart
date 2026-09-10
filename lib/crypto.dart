@@ -8,6 +8,5 @@ export 'package:dimp/crypto.dart';
 //
 //  Visa
 //
-export 'src/crypto/bundle.dart';
 export 'src/crypto/agent.dart';
 export 'src/crypto/ext.dart';

@@ -30,10 +30,10 @@
  */
 import 'dart:typed_data';
 
+import 'package:dkd/dkd.dart';  // FIXME:
+
 import 'package:dimp/crypto.dart';
 import 'package:dimp/protocol.dart';
-
-import '../crypto/bundle.dart';
 
 
 /// Delegate interface for decrypting SecureMessage and signing to ReliableMessage.

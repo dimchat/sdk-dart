@@ -30,10 +30,11 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/ext.dart';
-import 'package:dimp/protocol.dart';
+import 'package:dkd/dkd.dart';  // FIXME:
 
-import 'bundle.dart';
+import 'package:dimp/crypto.dart';
+import 'package:dimp/mkm.dart';
+import 'package:dimp/ext.dart';
 
 
 // -----------------------------------------------------------------------------
@@ -161,28 +162,12 @@ class DefaultVisaAgent implements VisaAgent {
 
   // protected
   VerifyKey? getVerifyKey(Document doc) {
-    if (doc is Visa) {
-      EncryptKey? visaKey = doc.publicKey;
-      if (visaKey is VerifyKey) {
-        return visaKey as VerifyKey;
-      }
-      assert(false, 'visa key error: $visaKey, $doc');
-      return null;
-    }
     // public key in user profile?
     return PublicKey.parse(doc.getProperty('key'));
   }
 
   // protected
   EncryptKey? getEncryptKey(Document doc) {
-    if (doc is Visa) {
-      EncryptKey? visaKey = doc.publicKey;
-      if (visaKey != null) {
-        return visaKey;
-      }
-      assert(false, 'failed to get visa key: $doc');
-      return null;
-    }
     PublicKey? pubKey = PublicKey.parse(doc.getProperty('key'));
     if (pubKey == null) {
       // profile document?
@@ -199,7 +184,7 @@ class DefaultVisaAgent implements VisaAgent {
     String? terminal = doc.getString('terminal');
     if (terminal == null) {
       // get from document ID
-      var helper = sharedAccountExtensions.helper;
+      final helper = sharedAccountExtensions.handler;
       ID? did = helper?.getDocumentID(doc.toMap());
       if (did != null) {
         terminal = did.terminal;

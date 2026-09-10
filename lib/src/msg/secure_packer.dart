@@ -30,10 +30,11 @@
  */
 import 'dart:typed_data';
 
+import 'package:dkd/dkd.dart';  // FIXME:
+
 import 'package:dimp/crypto.dart';
 import 'package:dimp/protocol.dart';
 
-import '../crypto/bundle.dart';
 import 'secure_delegate.dart';
 
 
@@ -238,7 +239,7 @@ class SecureMessagePacker {
     //
     //  2. Encode 'message.signature' to String (Base64)
     //
-    TransportableData base64 = Base64Data.createWithBytes(signature);
+    TransportableData base64 = TransportableData.create(signature);
     if (base64.isEmpty) {
       assert(false, 'failed to encode signature: ${signature.length} byte(s) '
           '${sMsg.sender} => ${sMsg.receiver}, ${sMsg.group}');

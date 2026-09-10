@@ -30,9 +30,9 @@
  */
 import 'dart:typed_data';
 
-import 'package:dimp/protocol.dart';
+import 'package:dkd/dkd.dart';  // FIXME:
 
-import '../crypto/bundle.dart';
+import 'package:dimp/protocol.dart';
 
 
 /// Delegate interface for encrypting InstantMessage to SecureMessage.
