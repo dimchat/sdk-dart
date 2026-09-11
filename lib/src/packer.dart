@@ -29,9 +29,9 @@
  * =============================================================================
  */
 import 'package:dimp/crypto.dart';
+import 'package:dimp/mkm.dart';
 import 'package:dimp/dkd.dart';
 import 'package:dimp/ext.dart';
-import 'package:dimp/mkm.dart';
 
 import 'core/packer.dart';
 import 'mkm/user.dart';
@@ -52,7 +52,7 @@ import 'twins.dart';
 abstract class MessagePacker extends TwinsHelper implements Packer {
   MessagePacker(Facebook facebook, Messenger messenger)
       : super(facebook, messenger) {
-    var factory = sharedMessageExtensions.packerFactory;
+    final factory = sharedMessageExtensions.packerFactory;
     instantPacker  = factory.createInstantMessagePacker(messenger);
     securePacker   = factory.createSecureMessagePacker(messenger);
     reliablePacker = factory.createReliableMessagePacker(messenger);

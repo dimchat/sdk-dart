@@ -30,10 +30,9 @@
  */
 import 'dart:typed_data';
 
-import 'package:dkd/dkd.dart';  // FIXME:
-
 import 'package:dimp/crypto.dart';
 import 'package:dimp/mkm.dart';
+import 'package:dimp/dkd.dart';
 import 'package:dimp/ext.dart';
 
 import '../crypto/agent.dart';

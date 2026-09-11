@@ -4,6 +4,7 @@
 library dimsdk;
 
 export 'package:dimp/crypto.dart';
+export 'package:dimp/format.dart';
 
 //
 //  Visa

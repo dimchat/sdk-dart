@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  Dao-Ke-Dao: Universal Message Module
+ *  DIMP : Decentralized Instant Messaging Protocol
  *
  *                                Written in 2023 by Moky <albert.moky@gmail.com>
  *

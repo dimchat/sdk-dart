@@ -30,9 +30,8 @@
  */
 import 'dart:typed_data';
 
-import 'package:dkd/dkd.dart';  // FIXME:
-
 import 'package:dimp/protocol.dart';
+import 'package:dimp/dkd.dart';
 
 import 'instant_delegate.dart';
 

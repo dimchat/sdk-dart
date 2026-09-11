@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2023 by Moky <albert.moky@gmail.com>
  *
@@ -30,10 +30,10 @@
  */
 import 'dart:typed_data';
 
-import 'package:dkd/dkd.dart';  // FIXME:
-
 import 'package:dimp/crypto.dart';
 import 'package:dimp/protocol.dart';
+import 'package:dimp/dkd.dart';
+import 'package:dimp/ext.dart';
 
 import '../mkm/entity.dart';
 import '../mkm/user.dart';

@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  Dao-Ke-Dao: Universal Message Module
+ *  DIMP : Decentralized Instant Messaging Protocol
  *
  *                                Written in 2023 by Moky <albert.moky@gmail.com>
  *
@@ -30,9 +30,8 @@
  */
 import 'dart:typed_data';
 
-import 'package:dkd/dkd.dart';  // FIXME:
-
 import 'package:dimp/protocol.dart';
+import 'package:dimp/dkd.dart';
 
 
 /// Delegate interface for decrypting SecureMessage and signing to ReliableMessage.

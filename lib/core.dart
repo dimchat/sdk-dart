@@ -9,6 +9,9 @@ export 'src/core/packer.dart';
 export 'src/core/processor.dart';
 export 'src/core/transformer.dart';  // require 'mkm/*'
 
+export 'src/dkd/compress_keys.dart';
+export 'src/dkd/compressor.dart';
+
 export 'src/facebook.dart';   // require 'core/*', 'mkm/*'
 export 'src/messenger.dart';  // require 'core/*'
 export 'src/twins.dart';      // require 'facebook.dart', 'messenger.dart'

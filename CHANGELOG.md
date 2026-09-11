@@ -1,3 +1,7 @@
+## 2.5.1
+
+- Export dkd from dimp.
+
 ## 2.5.0
 
 - D/encode keys.
